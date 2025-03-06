@@ -1,17 +1,54 @@
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
-const Header = () => {
+interface HeaderProps {
+  showBackButton?: boolean;
+  title?: string;
+  titleColor?: string;
+}
+
+const Header = ({
+  showBackButton = false,
+  title,
+  titleColor = "text-gray-900",
+}: HeaderProps) => {
+  const router = useRouter();
+
   return (
     <header className="fixed top-0 left-0 right-0 h-16 bg-white flex justify-between items-center px-4 z-50 border-b">
       <div className="flex items-center">
-        <Image
-          src="/logo.png"
-          alt="로고"
-          width={40}
-          height={40}
-          className="rounded-full"
-        />
+        {showBackButton ? (
+          <button onClick={() => router.back()} className="mr-4">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 19l-7-7 7-7"
+              />
+            </svg>
+          </button>
+        ) : (
+          <Image
+            src="/logo.png"
+            alt="로고"
+            width={40}
+            height={40}
+            className="rounded-full"
+          />
+        )}
       </div>
+      {title && (
+        <div className="absolute left-1/2 transform -translate-x-1/2">
+          <h1 className={`text-lg font-semibold text-black ${titleColor}`}>{title}</h1>
+        </div>
+      )}
       <div className="flex items-center">
         <button className="relative p-2">
           <svg
