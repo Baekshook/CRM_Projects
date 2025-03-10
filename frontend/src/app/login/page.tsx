@@ -4,12 +4,23 @@ import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import BottomNav from "@/components/BottomNav";
+import { api } from "@/utils/api";
+import { API_ENDPOINTS } from "@/config/api";
+
+interface LoginResponse {
+  accessToken: string;
+  user: {
+    id: string;
+    name: string;
+  };
+}
 
 const LoginPage = () => {
   const router = useRouter();
   const [id, setId] = useState("");
   const [password, setPassword] = useState("");
   const [saveId, setSaveId] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     // 저장된 아이디 불러오기
@@ -27,12 +38,28 @@ const LoginPage = () => {
     }
   };
 
-  const handleLogin = () => {
-    if (saveId) {
-      localStorage.setItem("savedId", id);
+  const handleLogin = async () => {
+    try {
+      if (saveId) {
+        localStorage.setItem("savedId", id);
+      }
+
+      const response = await api.post<LoginResponse>(API_ENDPOINTS.LOGIN, {
+        id,
+        password,
+      });
+
+      if (response.success && response.data) {
+        // 로그인 성공 시 토큰 저장
+        localStorage.setItem("accessToken", response.data.accessToken);
+        // 홈 화면으로 이동
+        router.push("/");
+      } else {
+        setError(response.error || "로그인에 실패했습니다.");
+      }
+    } catch (error) {
+      setError("서버 오류가 발생했습니다.");
     }
-    // 로그인 로직 구현
-    console.log("로그인 시도:", { id, password });
   };
 
   return (
@@ -40,6 +67,11 @@ const LoginPage = () => {
       <Header showBackButton={true} title="로그인" titleColor="text-black" />
       <main className="pt-16 px-4">
         <div className="max-w-md mx-auto space-y-6">
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg">
+              {error}
+            </div>
+          )}
           <div className="space-y-4">
             <input
               type="text"
