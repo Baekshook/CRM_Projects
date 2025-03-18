@@ -58,6 +58,26 @@ const SignupPage = () => {
                 공연 및 행사를 진행하고 싶으신가요?
               </p>
             </button>
+
+            <button
+              onClick={() => router.push("/signup/admin")}
+              className="w-full bg-white border-2 border-gray-200 rounded-xl p-6 flex flex-col items-center hover:border-orange-500 transition-colors"
+            >
+              <div className="w-24 h-24 mb-4 relative">
+                <Image
+                  src="/admin-icon.svg"
+                  alt="관리자 회원가입"
+                  fill
+                  className="object-contain"
+                />
+              </div>
+              <span className="text-lg font-semibold text-black">
+                관리자 회원가입
+              </span>
+              <p className="text-sm text-gray-500 mt-2 text-center">
+                서비스 관리 및 운영을 담당하시나요?
+              </p>
+            </button>
           </div>
         </div>
       </main>
