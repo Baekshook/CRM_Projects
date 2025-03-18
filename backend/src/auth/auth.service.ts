@@ -1,63 +1,58 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-
-interface User {
-  id: string;
-  password: string;
-  name: string;
-}
+import { JwtService } from '@nestjs/jwt';
+import { UsersService } from '../users/users.service';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class AuthService {
-  // 임시 사용자 데이터 (실제로는 데이터베이스를 사용해야 함)
-  private users: User[] = [
-    {
-      id: 'test',
-      password: '1234',
-      name: '테스트 사용자',
-    },
-  ];
+  constructor(
+    private usersService: UsersService,
+    private jwtService: JwtService,
+  ) {}
 
-  async login({ id, password }: { id: string; password: string }) {
-    // 실제 구현에서는 데이터베이스에서 사용자를 찾고 비밀번호를 검증해야 함
-    const user = this.users.find((u) => u.id === id && u.password === password);
-
-    if (!user) {
-      throw new UnauthorizedException('아이디 또는 비밀번호가 잘못되었습니다.');
+  async validateUser(email: string, password: string): Promise<any> {
+    const user = await this.usersService.findByEmail(email);
+    if (user && (await bcrypt.compare(password, user.password))) {
+      const { password, ...result } = user;
+      return result;
     }
+    return null;
+  }
 
-    // JWT 토큰 생성 및 반환 (실제 구현 필요)
+  async login(user: any) {
+    const payload = { email: user.email, sub: user.id, role: user.role };
     return {
-      accessToken: 'dummy_token',
+      access_token: this.jwtService.sign(payload),
       user: {
         id: user.id,
+        email: user.email,
         name: user.name,
+        role: user.role,
       },
     };
   }
 
-  async register({
-    id,
-    password,
-    name,
-  }: {
-    id: string;
-    password: string;
-    name: string;
-  }) {
-    // 실제 구현에서는 데이터베이스에 사용자 정보를 저장해야 함
-    if (this.users.some((u) => u.id === id)) {
-      throw new UnauthorizedException('이미 존재하는 아이디입니다.');
+  async findId(email: string, name: string) {
+    const user = await this.usersService.findByEmail(email);
+    if (!user || user.name !== name) {
+      throw new UnauthorizedException(
+        '일치하는 사용자 정보를 찾을 수 없습니다.',
+      );
+    }
+    return { id: user.id };
+  }
+
+  async resetPassword(email: string, name: string, newPassword: string) {
+    const user = await this.usersService.findByEmail(email);
+    if (!user || user.name !== name) {
+      throw new UnauthorizedException(
+        '일치하는 사용자 정보를 찾을 수 없습니다.',
+      );
     }
 
-    const newUser: User = { id, password, name };
-    this.users.push(newUser);
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    await this.usersService.update(user.id, { password: hashedPassword });
 
-    return {
-      message: '회원가입이 완료되었습니다.',
-      user: {
-        id: newUser.id,
-        name: newUser.name,
-      },
-    };
+    return { message: '비밀번호가 성공적으로 변경되었습니다.' };
   }
 }

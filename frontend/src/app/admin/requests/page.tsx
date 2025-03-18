@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 // 요청서 타입 정의
 interface Request {
@@ -15,18 +16,22 @@ interface Request {
 }
 
 export default function RequestsPage() {
+  const router = useRouter();
   // 필터 상태
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [dateFilter, setDateFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
 
+  // 액션 상태
+  const [activeRequestId, setActiveRequestId] = useState<string | null>(null);
+
   // 샘플 요청서 데이터
   const requests: Request[] = [
     {
       id: "REQ-001",
-      title: "2023 연말 기업 행사",
+      title: "연간 기업 행사",
       customer: "(주)이벤트 플래닝",
-      date: "2023-11-15",
+      date: "2025-02-10",
       status: "협상 진행",
       budget: "5,000,000원",
       location: "서울 강남구 삼성동",
@@ -34,9 +39,9 @@ export default function RequestsPage() {
     },
     {
       id: "REQ-002",
-      title: "12월 결혼식 축가",
+      title: "결혼식 축가",
       customer: "웨딩 홀 A",
-      date: "2023-11-14",
+      date: "2025-02-12",
       status: "견적 완료",
       budget: "1,200,000원",
       location: "서울 서초구 반포동",
@@ -44,53 +49,183 @@ export default function RequestsPage() {
     },
     {
       id: "REQ-003",
-      title: "돌잔치 행사",
-      customer: "김철수",
-      date: "2023-11-13",
-      status: "요청중",
-      budget: "800,000원",
-      location: "경기도 성남시 분당구",
-      attendees: 50,
-    },
-    {
-      id: "REQ-004",
       title: "대학 축제 공연",
       customer: "대학 축제 위원회",
-      date: "2023-11-12",
+      date: "2025-03-15",
       status: "검토중",
       budget: "3,500,000원",
       location: "서울 관악구",
       attendees: 500,
     },
     {
-      id: "REQ-005",
-      title: "기업 송년회",
+      id: "REQ-004",
+      title: "기업 봄맞이 행사",
       customer: "(주)테크놀로지",
-      date: "2023-11-10",
+      date: "2025-03-05",
       status: "견적 완료",
       budget: "4,200,000원",
       location: "서울 영등포구",
       attendees: 120,
     },
     {
-      id: "REQ-006",
-      title: "신제품 출시 행사",
-      customer: "(주)뷰티코스메틱",
-      date: "2023-11-08",
-      status: "취소",
+      id: "REQ-005",
+      title: "지역 축제 공연",
+      customer: "OO시 문화재단",
+      date: "2025-02-25",
+      status: "요청중",
       budget: "2,800,000원",
-      location: "서울 강남구 청담동",
-      attendees: 80,
+      location: "경기도 고양시",
+      attendees: 300,
+    },
+    {
+      id: "REQ-006",
+      title: "신제품 론칭 행사",
+      customer: "(주)코스메틱 브랜드",
+      date: "2025-02-05",
+      status: "협상 진행",
+      budget: "3,000,000원",
+      location: "서울 강남구 신사동",
+      attendees: 100,
     },
     {
       id: "REQ-007",
-      title: "지역 축제 공연",
-      customer: "OO시 문화재단",
-      date: "2023-11-05",
+      title: "방송 프로그램 출연",
+      customer: "OO방송국",
+      date: "2025-02-08",
       status: "견적 완료",
-      budget: "6,500,000원",
-      location: "경기도 고양시",
-      attendees: 1000,
+      budget: "2,500,000원",
+      location: "서울 마포구",
+      attendees: 50,
+    },
+    {
+      id: "REQ-008",
+      title: "봄맞이 특별 공연",
+      customer: "OO쇼핑몰",
+      date: "2025-04-15",
+      status: "협상 진행",
+      budget: "1,800,000원",
+      location: "서울 중구",
+      attendees: 200,
+    },
+    {
+      id: "REQ-009",
+      title: "기업 창립 기념일 행사",
+      customer: "(주)테크 솔루션",
+      date: "2025-04-10",
+      status: "견적 완료",
+      budget: "4,500,000원",
+      location: "경기도 성남시 분당구",
+      attendees: 180,
+    },
+    {
+      id: "REQ-010",
+      title: "라디오 공개방송",
+      customer: "OO라디오",
+      date: "2025-04-05",
+      status: "협상 진행",
+      budget: "1,500,000원",
+      location: "서울 영등포구",
+      attendees: 80,
+    },
+    {
+      id: "REQ-011",
+      title: "사내 워크숍 축하공연",
+      customer: "(주)글로벌 테크",
+      date: "2025-02-20",
+      status: "견적 완료",
+      budget: "2,200,000원",
+      location: "강원도 평창",
+      attendees: 70,
+    },
+    {
+      id: "REQ-012",
+      title: "벚꽃 축제 공연",
+      customer: "OO구청",
+      date: "2025-03-25",
+      status: "검토중",
+      budget: "3,000,000원",
+      location: "서울 여의도 공원",
+      attendees: 400,
+    },
+    {
+      id: "REQ-013",
+      title: "신간 북콘서트",
+      customer: "OO출판사",
+      date: "2025-03-01",
+      status: "요청중",
+      budget: "1,000,000원",
+      location: "서울 종로구",
+      attendees: 60,
+    },
+    {
+      id: "REQ-014",
+      title: "브랜드 팝업스토어 이벤트",
+      customer: "(주)패션 그룹",
+      date: "2025-04-30",
+      status: "협상 진행",
+      budget: "2,800,000원",
+      location: "서울 강남구",
+      attendees: 120,
+    },
+    {
+      id: "REQ-015",
+      title: "어린이날 특별공연",
+      customer: "OO테마파크",
+      date: "2025-04-20",
+      status: "견적 완료",
+      budget: "3,200,000원",
+      location: "경기도 용인시",
+      attendees: 250,
+    },
+    {
+      id: "REQ-016",
+      title: "대기업 채용설명회 축하공연",
+      customer: "(주)대형그룹",
+      date: "2025-03-10",
+      status: "견적 완료",
+      budget: "1,800,000원",
+      location: "서울 송파구",
+      attendees: 150,
+    },
+    {
+      id: "REQ-017",
+      title: "스포츠 브랜드 런칭쇼",
+      customer: "글로벌 스포츠",
+      date: "2025-04-01",
+      status: "협상 진행",
+      budget: "4,000,000원",
+      location: "서울 중구",
+      attendees: 200,
+    },
+    {
+      id: "REQ-018",
+      title: "뮤직 페스티벌 게스트",
+      customer: "OO엔터테인먼트",
+      date: "2025-05-05",
+      status: "검토중",
+      budget: "3,500,000원",
+      location: "인천 송도",
+      attendees: 350,
+    },
+    {
+      id: "REQ-019",
+      title: "대학 입학식 축하공연",
+      customer: "OO대학교",
+      date: "2025-02-15",
+      status: "견적 완료",
+      budget: "2,000,000원",
+      location: "서울 노원구",
+      attendees: 500,
+    },
+    {
+      id: "REQ-020",
+      title: "IT 컨퍼런스 클로징 공연",
+      customer: "테크 얼라이언스",
+      date: "2025-05-15",
+      status: "요청중",
+      budget: "2,500,000원",
+      location: "부산 해운대구",
+      attendees: 300,
     },
   ];
 
@@ -132,8 +267,27 @@ export default function RequestsPage() {
     }
   };
 
+  // 요청서 상세 페이지로 이동
+  const handleViewDetail = (id: string) => {
+    router.push(`/admin/requests/${id}`);
+  };
+
+  // 요청서 수정
+  const handleEdit = (id: string) => {
+    router.push(`/admin/requests/${id}/edit`);
+  };
+
+  // 요청서 삭제
+  const handleDelete = (id: string) => {
+    if (confirm("정말로 이 요청서를 삭제하시겠습니까?")) {
+      // 실제로는 API 호출이 필요하지만 현재는 샘플 데이터만 사용
+      alert(`요청서 ${id}가 삭제되었습니다.`);
+      // 실제 구현에서는 목록을 다시 불러오거나 상태 업데이트 필요
+    }
+  };
+
   return (
-    <div>
+    <>
       {/* 페이지 헤더 */}
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-800">요청서 관리</h1>
@@ -142,32 +296,72 @@ export default function RequestsPage() {
         </p>
       </div>
 
-      {/* 필터 및 검색 */}
-      <div className="bg-white rounded-lg shadow p-5 mb-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* 상태 필터 */}
-          <div>
-            <label
-              htmlFor="status-filter"
-              className="block text-sm font-medium text-gray-700 mb-1"
-            >
-              상태
-            </label>
-            <select
-              id="status-filter"
-              className="w-full rounded-md border border-gray-300 py-2 px-3 focus:outline-none focus:ring-2 focus:ring-orange-500"
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-            >
-              <option value="all">전체</option>
-              <option value="요청중">요청중</option>
-              <option value="검토중">검토중</option>
-              <option value="협상 진행">협상 진행</option>
-              <option value="견적 완료">견적 완료</option>
-              <option value="취소">취소</option>
-            </select>
-          </div>
+      {/* 상태 필터 버튼 */}
+      <div className="bg-white rounded-lg shadow p-4 mb-6">
+        <div className="flex flex-wrap gap-2 mb-4">
+          <button
+            className={`px-4 py-2 rounded-md text-sm font-medium ${
+              statusFilter === "all"
+                ? "bg-orange-500 text-white"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+            }`}
+            onClick={() => setStatusFilter("all")}
+          >
+            전체
+          </button>
+          <button
+            className={`px-4 py-2 rounded-md text-sm font-medium ${
+              statusFilter === "요청중"
+                ? "bg-blue-500 text-white"
+                : "bg-blue-100 text-blue-800 hover:bg-blue-200"
+            }`}
+            onClick={() => setStatusFilter("요청중")}
+          >
+            요청중
+          </button>
+          <button
+            className={`px-4 py-2 rounded-md text-sm font-medium ${
+              statusFilter === "검토중"
+                ? "bg-yellow-500 text-white"
+                : "bg-yellow-100 text-yellow-800 hover:bg-yellow-200"
+            }`}
+            onClick={() => setStatusFilter("검토중")}
+          >
+            검토중
+          </button>
+          <button
+            className={`px-4 py-2 rounded-md text-sm font-medium ${
+              statusFilter === "협상 진행"
+                ? "bg-purple-500 text-white"
+                : "bg-purple-100 text-purple-800 hover:bg-purple-200"
+            }`}
+            onClick={() => setStatusFilter("협상 진행")}
+          >
+            협상 진행
+          </button>
+          <button
+            className={`px-4 py-2 rounded-md text-sm font-medium ${
+              statusFilter === "견적 완료"
+                ? "bg-green-500 text-white"
+                : "bg-green-100 text-green-800 hover:bg-green-200"
+            }`}
+            onClick={() => setStatusFilter("견적 완료")}
+          >
+            견적 완료
+          </button>
+          <button
+            className={`px-4 py-2 rounded-md text-sm font-medium ${
+              statusFilter === "취소"
+                ? "bg-red-500 text-white"
+                : "bg-red-100 text-red-800 hover:bg-red-200"
+            }`}
+            onClick={() => setStatusFilter("취소")}
+          >
+            취소
+          </button>
+        </div>
 
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* 날짜 필터 */}
           <div>
             <label
@@ -314,12 +508,24 @@ export default function RequestsPage() {
                     {request.budget}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    <div className="flex space-x-2">
-                      <button className="text-blue-600 hover:text-blue-800">
+                    <div className="flex space-x-2 relative">
+                      <button
+                        onClick={() => handleViewDetail(request.id)}
+                        className="text-blue-600 hover:text-blue-800"
+                      >
                         상세
                       </button>
-                      <button className="text-green-600 hover:text-green-800">
+                      <button
+                        onClick={() => handleEdit(request.id)}
+                        className="text-green-600 hover:text-green-800"
+                      >
                         수정
+                      </button>
+                      <button
+                        onClick={() => handleDelete(request.id)}
+                        className="text-red-600 hover:text-red-800"
+                      >
+                        삭제
                       </button>
                     </div>
                   </td>
@@ -407,6 +613,6 @@ export default function RequestsPage() {
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 // 협상 타입 정의
 interface Negotiation {
@@ -17,6 +18,7 @@ interface Negotiation {
 }
 
 export default function NegotiationsPage() {
+  const router = useRouter();
   // 필터 상태
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [dateFilter, setDateFilter] = useState<string>("all");
@@ -27,62 +29,242 @@ export default function NegotiationsPage() {
     {
       id: "NEG-001",
       requestId: "REQ-001",
-      requestTitle: "2023 연말 기업 행사",
+      requestTitle: "연간 기업 행사",
       customer: "(주)이벤트 플래닝",
       singer: "가수 A",
       agency: "엔터테인먼트 A",
-      price: "3,000,000원",
+      price: "4,500,000원",
       status: "협상 중",
-      lastUpdate: "2023-11-16",
-      dueDate: "2023-11-20",
+      lastUpdate: "2025-02-12",
+      dueDate: "2025-02-14",
     },
     {
       id: "NEG-002",
       requestId: "REQ-002",
-      requestTitle: "12월 결혼식 축가",
+      requestTitle: "결혼식 축가",
       customer: "웨딩 홀 A",
       singer: "가수 B",
       agency: "엔터테인먼트 B",
       price: "1,200,000원",
       status: "계약 대기",
-      lastUpdate: "2023-11-15",
-      dueDate: "2023-11-18",
+      lastUpdate: "2025-02-15",
+      dueDate: "2025-02-18",
     },
     {
       id: "NEG-003",
-      requestId: "REQ-004",
+      requestId: "REQ-003",
       requestTitle: "대학 축제 공연",
       customer: "대학 축제 위원회",
       singer: "가수 C",
       agency: "엔터테인먼트 C",
-      price: "3,500,000원",
-      status: "견적 제안",
-      lastUpdate: "2023-11-14",
-      dueDate: "2023-11-19",
+      price: "3,200,000원",
+      status: "협상 중",
+      lastUpdate: "2025-03-18",
+      dueDate: "2025-03-22",
     },
     {
       id: "NEG-004",
-      requestId: "REQ-005",
-      requestTitle: "기업 송년회",
+      requestId: "REQ-004",
+      requestTitle: "기업 봄맞이 행사",
       customer: "(주)테크놀로지",
       singer: "가수 D",
       agency: "엔터테인먼트 D",
-      price: "4,200,000원",
+      price: "4,000,000원",
       status: "계약 완료",
-      lastUpdate: "2023-11-10",
-      dueDate: "2023-11-15",
+      lastUpdate: "2025-03-08",
+      dueDate: "2025-03-10",
     },
     {
       id: "NEG-005",
-      requestId: "REQ-007",
+      requestId: "REQ-005",
       requestTitle: "지역 축제 공연",
       customer: "OO시 문화재단",
       singer: "가수 E",
       agency: "엔터테인먼트 E",
-      price: "6,500,000원",
+      price: "2,800,000원",
+      status: "견적 검토",
+      lastUpdate: "2025-02-28",
+      dueDate: "2025-03-03",
+    },
+    {
+      id: "NEG-006",
+      requestId: "REQ-006",
+      requestTitle: "신제품 론칭 행사",
+      customer: "(주)코스메틱 브랜드",
+      singer: "가수 F",
+      agency: "엔터테인먼트 F",
+      price: "2,800,000원",
       status: "협상 중",
-      lastUpdate: "2023-11-12",
-      dueDate: "2023-11-22",
+      lastUpdate: "2025-02-08",
+      dueDate: "2025-02-12",
+    },
+    {
+      id: "NEG-007",
+      requestId: "REQ-007",
+      requestTitle: "방송 프로그램 출연",
+      customer: "OO방송국",
+      singer: "가수 G",
+      agency: "엔터테인먼트 G",
+      price: "2,300,000원",
+      status: "계약 대기",
+      lastUpdate: "2025-02-10",
+      dueDate: "2025-02-13",
+    },
+    {
+      id: "NEG-008",
+      requestId: "REQ-008",
+      requestTitle: "봄맞이 특별 공연",
+      customer: "OO쇼핑몰",
+      singer: "가수 H",
+      agency: "엔터테인먼트 H",
+      price: "1,700,000원",
+      status: "협상 중",
+      lastUpdate: "2025-04-17",
+      dueDate: "2025-04-20",
+    },
+    {
+      id: "NEG-009",
+      requestId: "REQ-009",
+      requestTitle: "기업 창립 기념일 행사",
+      customer: "(주)테크 솔루션",
+      singer: "가수 I",
+      agency: "엔터테인먼트 I",
+      price: "4,200,000원",
+      status: "계약 완료",
+      lastUpdate: "2025-04-13",
+      dueDate: "2025-04-15",
+    },
+    {
+      id: "NEG-010",
+      requestId: "REQ-010",
+      requestTitle: "라디오 공개방송",
+      customer: "OO라디오",
+      singer: "가수 A",
+      agency: "엔터테인먼트 A",
+      price: "1,400,000원",
+      status: "협상 중",
+      lastUpdate: "2025-04-08",
+      dueDate: "2025-04-12",
+    },
+    {
+      id: "NEG-011",
+      requestId: "REQ-011",
+      requestTitle: "사내 워크숍 축하공연",
+      customer: "(주)글로벌 테크",
+      singer: "가수 J",
+      agency: "엔터테인먼트 J",
+      price: "2,100,000원",
+      status: "계약 완료",
+      lastUpdate: "2025-02-23",
+      dueDate: "2025-02-25",
+    },
+    {
+      id: "NEG-012",
+      requestId: "REQ-012",
+      requestTitle: "벚꽃 축제 공연",
+      customer: "OO구청",
+      singer: "가수 K",
+      agency: "엔터테인먼트 K",
+      price: "2,800,000원",
+      status: "협상 중",
+      lastUpdate: "2025-03-28",
+      dueDate: "2025-04-01",
+    },
+    {
+      id: "NEG-013",
+      requestId: "REQ-013",
+      requestTitle: "신간 북콘서트",
+      customer: "OO출판사",
+      singer: "가수 L",
+      agency: "엔터테인먼트 L",
+      price: "950,000원",
+      status: "견적 검토",
+      lastUpdate: "2025-03-04",
+      dueDate: "2025-03-07",
+    },
+    {
+      id: "NEG-014",
+      requestId: "REQ-014",
+      requestTitle: "브랜드 팝업스토어 이벤트",
+      customer: "(주)패션 그룹",
+      singer: "가수 M",
+      agency: "엔터테인먼트 M",
+      price: "2,600,000원",
+      status: "협상 중",
+      lastUpdate: "2025-05-02",
+      dueDate: "2025-05-06",
+    },
+    {
+      id: "NEG-015",
+      requestId: "REQ-015",
+      requestTitle: "어린이날 특별공연",
+      customer: "OO테마파크",
+      singer: "가수 N",
+      agency: "엔터테인먼트 N",
+      price: "3,000,000원",
+      status: "계약 대기",
+      lastUpdate: "2025-04-25",
+      dueDate: "2025-04-28",
+    },
+    {
+      id: "NEG-016",
+      requestId: "REQ-016",
+      requestTitle: "대기업 채용설명회 축하공연",
+      customer: "(주)대형그룹",
+      singer: "가수 O",
+      agency: "엔터테인먼트 O",
+      price: "1,700,000원",
+      status: "계약 완료",
+      lastUpdate: "2025-03-12",
+      dueDate: "2025-03-15",
+    },
+    {
+      id: "NEG-017",
+      requestId: "REQ-017",
+      requestTitle: "스포츠 브랜드 런칭쇼",
+      customer: "글로벌 스포츠",
+      singer: "가수 P",
+      agency: "엔터테인먼트 P",
+      price: "3,800,000원",
+      status: "협상 중",
+      lastUpdate: "2025-04-05",
+      dueDate: "2025-04-08",
+    },
+    {
+      id: "NEG-018",
+      requestId: "REQ-018",
+      requestTitle: "뮤직 페스티벌 게스트",
+      customer: "OO엔터테인먼트",
+      singer: "가수 Q",
+      agency: "엔터테인먼트 Q",
+      price: "3,200,000원",
+      status: "견적 검토",
+      lastUpdate: "2025-05-08",
+      dueDate: "2025-05-12",
+    },
+    {
+      id: "NEG-019",
+      requestId: "REQ-019",
+      requestTitle: "대학 입학식 축하공연",
+      customer: "OO대학교",
+      singer: "가수 R",
+      agency: "엔터테인먼트 R",
+      price: "1,900,000원",
+      status: "계약 완료",
+      lastUpdate: "2025-02-20",
+      dueDate: "2025-02-23",
+    },
+    {
+      id: "NEG-020",
+      requestId: "REQ-020",
+      requestTitle: "IT 컨퍼런스 클로징 공연",
+      customer: "테크 얼라이언스",
+      singer: "가수 S",
+      agency: "엔터테인먼트 S",
+      price: "2,300,000원",
+      status: "견적 검토",
+      lastUpdate: "2025-05-18",
+      dueDate: "2025-05-22",
     },
   ];
 
@@ -143,42 +325,91 @@ export default function NegotiationsPage() {
     }
   };
 
+  // 협상 상세 페이지로 이동
+  const handleViewDetail = (id: string) => {
+    router.push(`/admin/negotiations/${id}`);
+  };
+
+  // 협상 수정
+  const handleEdit = (id: string) => {
+    router.push(`/admin/negotiations/${id}/edit`);
+  };
+
+  // 협상 취소
+  const handleCancel = (id: string) => {
+    if (confirm("정말로 이 협상을 취소하시겠습니까?")) {
+      // 실제로는 API 호출이 필요하지만 현재는 샘플 데이터만 사용
+      alert(`협상 ${id}가 취소되었습니다.`);
+      // 실제 구현에서는 목록을 다시 불러오거나 상태 업데이트 필요
+    }
+  };
+
   return (
-    <div>
+    <>
       {/* 페이지 헤더 */}
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-800">매칭/협상 관리</h1>
         <p className="text-gray-600 mt-1">
-          가수와 고객 간의 매칭 및 협상 과정을 관리합니다.
+          요청과 파트너 매칭, 그리고 협상 과정을 관리하고 추적합니다.
         </p>
       </div>
 
-      {/* 필터 및 검색 */}
-      <div className="bg-white rounded-lg shadow p-5 mb-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* 상태 필터 */}
-          <div>
-            <label
-              htmlFor="status-filter"
-              className="block text-sm font-medium text-gray-700 mb-1"
-            >
-              상태
-            </label>
-            <select
-              id="status-filter"
-              className="w-full rounded-md border border-gray-300 py-2 px-3 focus:outline-none focus:ring-2 focus:ring-orange-500"
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-            >
-              <option value="all">전체</option>
-              <option value="견적 제안">견적 제안</option>
-              <option value="협상 중">협상 중</option>
-              <option value="계약 대기">계약 대기</option>
-              <option value="계약 완료">계약 완료</option>
-              <option value="취소">취소</option>
-            </select>
-          </div>
+      {/* 상태 필터 버튼 */}
+      <div className="bg-white rounded-lg shadow p-4 mb-6">
+        <div className="flex flex-wrap gap-2 mb-4">
+          <button
+            className={`px-4 py-2 rounded-md text-sm font-medium ${
+              statusFilter === "all"
+                ? "bg-orange-500 text-white"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+            }`}
+            onClick={() => setStatusFilter("all")}
+          >
+            전체
+          </button>
+          <button
+            className={`px-4 py-2 rounded-md text-sm font-medium ${
+              statusFilter === "협상 중"
+                ? "bg-blue-500 text-white"
+                : "bg-blue-100 text-blue-800 hover:bg-blue-200"
+            }`}
+            onClick={() => setStatusFilter("협상 중")}
+          >
+            협상 중
+          </button>
+          <button
+            className={`px-4 py-2 rounded-md text-sm font-medium ${
+              statusFilter === "견적 제안"
+                ? "bg-yellow-500 text-white"
+                : "bg-yellow-100 text-yellow-800 hover:bg-yellow-200"
+            }`}
+            onClick={() => setStatusFilter("견적 제안")}
+          >
+            견적 제안
+          </button>
+          <button
+            className={`px-4 py-2 rounded-md text-sm font-medium ${
+              statusFilter === "계약 대기"
+                ? "bg-purple-500 text-white"
+                : "bg-purple-100 text-purple-800 hover:bg-purple-200"
+            }`}
+            onClick={() => setStatusFilter("계약 대기")}
+          >
+            계약 대기
+          </button>
+          <button
+            className={`px-4 py-2 rounded-md text-sm font-medium ${
+              statusFilter === "계약 완료"
+                ? "bg-green-500 text-white"
+                : "bg-green-100 text-green-800 hover:bg-green-200"
+            }`}
+            onClick={() => setStatusFilter("계약 완료")}
+          >
+            계약 완료
+          </button>
+        </div>
 
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* 날짜 필터 */}
           <div>
             <label
@@ -342,22 +573,24 @@ export default function NegotiationsPage() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     <div className="flex space-x-2">
-                      <Link
-                        href={`/admin/negotiations/${negotiation.id}`}
+                      <button
+                        onClick={() => handleViewDetail(negotiation.id)}
                         className="text-blue-600 hover:text-blue-800"
                       >
                         상세
-                      </Link>
-                      {negotiation.status === "협상 중" && (
-                        <button className="text-green-600 hover:text-green-800">
-                          협상
-                        </button>
-                      )}
-                      {negotiation.status === "계약 대기" && (
-                        <button className="text-purple-600 hover:text-purple-800">
-                          계약
-                        </button>
-                      )}
+                      </button>
+                      <button
+                        onClick={() => handleEdit(negotiation.id)}
+                        className="text-green-600 hover:text-green-800"
+                      >
+                        수정
+                      </button>
+                      <button
+                        onClick={() => handleCancel(negotiation.id)}
+                        className="text-red-600 hover:text-red-800"
+                      >
+                        취소
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -440,6 +673,6 @@ export default function NegotiationsPage() {
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }

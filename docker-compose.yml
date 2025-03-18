@@ -6,9 +6,21 @@ services:
       - "5001:5000"
     environment:
       - NODE_ENV=production
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_USERNAME=crm_user
+      - DB_PASSWORD=crm_password
+      - DB_DATABASE=crm_db
+      - JWT_SECRET=your_jwt_secret_key
+      - JWT_EXPIRES_IN=1d
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
     volumes:
       - ./backend:/app
       - /app/node_modules
+    depends_on:
+      - mysql
+      - redis
     restart: always
 
   frontend:
@@ -17,6 +29,7 @@ services:
       - "3000:3000"
     environment:
       - NODE_ENV=production
+      - NEXT_PUBLIC_API_URL=http://localhost:5001
     volumes:
       - ./frontend:/app
       - /app/node_modules
@@ -24,3 +37,31 @@ services:
       - backend
     command: sh -c "npm run build && npm run start"
     restart: always
+
+  mysql:
+    image: mysql:8.0
+    container_name: crm_mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: crm_db
+      MYSQL_USER: crm_user
+      MYSQL_PASSWORD: crm_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+
+  redis:
+    image: redis:7.0
+    container_name: crm_redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+volumes:
+  mysql_data:
+  redis_data:
