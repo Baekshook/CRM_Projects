@@ -19,7 +19,7 @@ export class CreateCustomerDto {
   @IsOptional()
   status?: string;
 
-  @IsEnum(['일반', 'VIP', 'VVIP'])
+  @IsEnum(['신규고객', '단골고객', '우수고객', '최우수고객'])
   @IsOptional()
   grade?: string;
 }

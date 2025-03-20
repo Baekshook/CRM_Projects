@@ -29,8 +29,11 @@ export class Customer {
   @Column({ type: 'enum', enum: ['active', 'inactive'], default: 'active' })
   status: string;
 
-  @Column({ type: 'enum', enum: ['일반', 'VIP', 'VVIP'], default: '일반' })
+  @Column({ type: 'enum', enum: ['신규', '일반'], default: '신규' })
   grade: string;
+
+  @Column({ nullable: true })
+  profileImage: string;
 
   @OneToMany(() => Request, (request) => request.customer)
   requests: Request[];
