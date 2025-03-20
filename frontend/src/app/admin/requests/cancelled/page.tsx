@@ -7,54 +7,24 @@ import {
   customers as dummyCustomers,
   singers as dummySingers,
 } from "@/utils/dummyData";
+import PageHeader from "@/components/common/PageHeader";
 
-// 요청서 타입 정의
-interface Request {
-  id: string;
-  customerId: string;
-  customerName: string;
-  customerCompany: string;
-  eventType: string;
-  eventDate: string;
-  venue: string;
-  budget: string;
-  status: string;
-  createdAt: string;
-  title: string;
-  customer?: {
-    id: string;
-    name: string;
-    company: string;
-  };
-  singerId?: string;
-  singerName?: string;
-  singer?: {
-    id: string;
-    name: string;
-    agency: string;
-  };
-}
-
-export default function RequestsPage() {
+export default function CancelledRequestsPage() {
   const router = useRouter();
 
   // 필터 상태
-  const [statusFilter, setStatusFilter] = useState<string>("all");
   const [customerFilter, setCustomerFilter] = useState<string>("all");
   const [singerFilter, setSingerFilter] = useState<string>("all");
   const [dateFilter, setDateFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
 
-  // 액션 상태
-  const [activeRequestId, setActiveRequestId] = useState<string | null>(null);
+  // 취소된 요청만 필터링
+  const cancelledRequests = dummyRequests.filter(
+    (request) => request.status === "cancelled"
+  );
 
   // 필터링된 요청서 목록
-  const filteredRequests = dummyRequests.filter((request) => {
-    // 상태 필터
-    if (statusFilter !== "all" && request.status !== statusFilter) {
-      return false;
-    }
-
+  const filteredRequests = cancelledRequests.filter((request) => {
     // 고객 필터
     if (customerFilter !== "all" && request.customerId !== customerFilter) {
       return false;
@@ -112,24 +82,6 @@ export default function RequestsPage() {
     }
   };
 
-  // 요청서 상세 페이지로 이동
-  const handleViewDetail = (id: string) => {
-    router.push(`/admin/requests/${id}`);
-  };
-
-  // 요청서 수정
-  const handleEdit = (id: string) => {
-    router.push(`/admin/requests/${id}/edit`);
-  };
-
-  // 요청서 삭제
-  const handleDelete = (id: string) => {
-    if (confirm("정말로 이 요청서를 삭제하시겠습니까?")) {
-      alert(`요청서 ${id}가 삭제되었습니다.`);
-      // 실제 구현에서는 API 호출 필요
-    }
-  };
-
   // 날짜 포맷팅 함수
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -138,24 +90,18 @@ export default function RequestsPage() {
 
   return (
     <div className="pb-10">
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-black">견적 요청서 관리</h1>
-          <p className="text-black mt-1">
-            모든 견적 요청서를 확인하고 관리하세요.
-          </p>
-        </div>
-        <Link
-          href="/admin/requests/new"
-          className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
-        >
-          새 견적 요청
-        </Link>
+      <PageHeader title="취소된 요청서" />
+
+      <div className="mb-6">
+        <h2 className="text-2xl font-bold text-black">취소된 요청서 관리</h2>
+        <p className="text-black mt-1">
+          취소된 모든 요청서를 확인하고 관리하세요.
+        </p>
       </div>
 
       {/* 필터 섹션 */}
       <div className="bg-white p-4 rounded-lg shadow mb-6">
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div>
             <label className="block text-sm font-medium text-black mb-1">
               검색
@@ -167,23 +113,6 @@ export default function RequestsPage() {
               placeholder="고객명, 제목, 요청번호 검색..."
               className="w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500"
             />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-black mb-1">
-              상태
-            </label>
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500"
-            >
-              <option value="all">모든 상태</option>
-              <option value="pending">대기중</option>
-              <option value="in_progress">진행중</option>
-              <option value="completed">완료</option>
-              <option value="cancelled">취소</option>
-            </select>
           </div>
 
           <div>
@@ -241,7 +170,6 @@ export default function RequestsPage() {
           <div className="flex items-end">
             <button
               onClick={() => {
-                setStatusFilter("all");
                 setCustomerFilter("all");
                 setSingerFilter("all");
                 setDateFilter("all");
@@ -259,7 +187,7 @@ export default function RequestsPage() {
       <div className="bg-white rounded-lg shadow overflow-hidden">
         <div className="px-4 py-2 border-b border-gray-200 bg-gray-50">
           <h2 className="text-sm font-medium text-black">
-            총 {filteredRequests.length}개의 요청서
+            총 {filteredRequests.length}개의 취소된 요청서
           </h2>
         </div>
 
@@ -274,13 +202,13 @@ export default function RequestsPage() {
                   제목
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">
-                  고객명
+                  고객 정보
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">
-                  가수명
+                  가수 정보
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">
-                  행사 유형
+                  이벤트 유형
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">
                   이벤트 날짜
@@ -306,7 +234,7 @@ export default function RequestsPage() {
               {filteredRequests.length === 0 ? (
                 <tr>
                   <td colSpan={10} className="px-6 py-4 text-center text-black">
-                    요청서가 없습니다.
+                    취소된 요청서가 없습니다.
                   </td>
                 </tr>
               ) : (
@@ -318,22 +246,26 @@ export default function RequestsPage() {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-black">
                       {request.title}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-black">
-                      {request.customerName}
-                      <div className="text-xs text-gray-500">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-black">
+                        {request.customerName}
+                      </div>
+                      <div className="text-sm text-gray-500">
                         {request.customerCompany}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-black">
+                    <td className="px-6 py-4 whitespace-nowrap">
                       {request.singerName ? (
                         <>
-                          {request.singerName}
-                          <div className="text-xs text-gray-500">
+                          <div className="text-sm text-black">
+                            {request.singerName}
+                          </div>
+                          <div className="text-sm text-gray-500">
                             {request.singer?.agency}
                           </div>
                         </>
                       ) : (
-                        <span className="text-gray-400">미지정</span>
+                        <span className="text-sm text-gray-400">미지정</span>
                       )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-black">

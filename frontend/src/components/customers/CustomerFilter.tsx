@@ -85,8 +85,11 @@ export default function CustomerFilter({
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm"
           >
             <option value="all">전체</option>
-            <option value="일반">일반</option>
-            <option value="신규">신규</option>
+            <option value={1}>1등급</option>
+            <option value={2}>2등급</option>
+            <option value={3}>3등급</option>
+            <option value={4}>4등급</option>
+            <option value={5}>5등급</option>
           </select>
         </div>
 

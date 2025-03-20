@@ -2,18 +2,17 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import {
+  requests as dummyRequests,
+  singers as dummySingers,
+} from "@/utils/dummyData";
 
-// 요청서 타입 정의
-interface Request {
+// 로그 타입 정의
+interface Log {
   id: string;
-  title: string;
-  customer: string;
   date: string;
-  status: string;
-  budget: string;
-  location: string;
-  attendees: number;
-  details?: string;
+  action: string;
+  user: string;
 }
 
 // 가수 후보 타입 정의
@@ -26,153 +25,87 @@ interface SingerCandidate {
   status: string;
 }
 
-// 로그 타입 정의
-interface Log {
-  id: string;
-  date: string;
-  action: string;
-  user: string;
-}
-
 export default function RequestDetailPage() {
   const router = useRouter();
   const params = useParams();
   const requestId = params.id as string;
 
   // 상태
-  const [request, setRequest] = useState<Request | null>(null);
+  const [request, setRequest] = useState<any | null>(null);
   const [singerCandidates, setSingerCandidates] = useState<SingerCandidate[]>(
     []
   );
   const [logs, setLogs] = useState<Log[]>([]);
   const [activeTab, setActiveTab] = useState<string>("details");
   const [statusOptions] = useState<string[]>([
-    "요청중",
-    "검토중",
-    "협상 진행",
-    "견적 완료",
-    "취소",
+    "pending",
+    "in_progress",
+    "completed",
+    "cancelled",
   ]);
   const [newStatus, setNewStatus] = useState<string>("");
   const [comment, setComment] = useState<string>("");
 
-  // 샘플 요청서 데이터
-  const sampleRequests: Request[] = [
-    {
-      id: "REQ-001",
-      title: "2023 연말 기업 행사",
-      customer: "(주)이벤트 플래닝",
-      date: "2023-11-15",
-      status: "협상 진행",
-      budget: "5,000,000원",
-      location: "서울 강남구 삼성동",
-      attendees: 150,
-      details:
-        "연말 기업 행사로, 직원들을 위한 공연이 필요합니다. 가요, 댄스 등 다양한 장르의 공연을 원합니다. 행사 시간은 약 2시간이며, 사회자도 함께 요청합니다.",
-    },
-    {
-      id: "REQ-002",
-      title: "12월 결혼식 축가",
-      customer: "웨딩 홀 A",
-      date: "2023-11-14",
-      status: "견적 완료",
-      budget: "1,200,000원",
-      location: "서울 서초구 반포동",
-      attendees: 200,
-      details:
-        "결혼식 축가로 발라드 2곡을 요청합니다. 신랑 신부 입장 시와 케이크 커팅 시간에 각각 한 곡씩 불러주시면 됩니다.",
-    },
-    {
-      id: "REQ-003",
-      title: "돌잔치 행사",
-      customer: "김철수",
-      date: "2023-11-13",
-      status: "요청중",
-      budget: "800,000원",
-      location: "경기도 성남시 분당구",
-      attendees: 50,
-      details:
-        "아이 돌잔치에 어린이들이 좋아하는 공연을 해주실 가수나 퍼포머를 찾고 있습니다. 약 30분 정도의 공연을 원합니다.",
-    },
-    {
-      id: "REQ-004",
-      title: "대학 축제 공연",
-      customer: "대학 축제 위원회",
-      date: "2023-11-12",
-      status: "검토중",
-      budget: "3,500,000원",
-      location: "서울 관악구",
-      attendees: 500,
-      details:
-        "대학 축제 메인 공연으로 인기 가수의 공연을 요청합니다. 약 1시간 정도의 공연이 필요하며, 학생들이 좋아하는 댄스 음악 위주로 구성해주세요.",
-    },
-  ];
-
-  // 샘플 가수 후보 데이터
-  const sampleSingerCandidates: SingerCandidate[] = [
-    {
-      id: "SINGER-001",
-      name: "가수 A",
-      agency: "엔터테인먼트 A",
-      rating: 4.8,
-      price: "3,000,000원",
-      status: "견적 도착",
-    },
-    {
-      id: "SINGER-002",
-      name: "가수 B",
-      agency: "엔터테인먼트 B",
-      rating: 4.5,
-      price: "2,800,000원",
-      status: "협상 중",
-    },
-    {
-      id: "SINGER-003",
-      name: "가수 C",
-      agency: "엔터테인먼트 C",
-      rating: 4.2,
-      price: "2,500,000원",
-      status: "조회",
-    },
-  ];
-
-  // 샘플 로그 데이터
-  const sampleLogs: Log[] = [
-    {
-      id: "LOG-001",
-      date: "2023-11-15 14:30",
-      action: "상태 변경: 검토중 → 협상 진행",
-      user: "관리자",
-    },
-    {
-      id: "LOG-002",
-      date: "2023-11-14 11:20",
-      action: "가수 후보 추가: 가수 A, 가수 B, 가수 C",
-      user: "관리자",
-    },
-    {
-      id: "LOG-003",
-      date: "2023-11-13 09:45",
-      action: "요청서 검토 시작",
-      user: "관리자",
-    },
-    {
-      id: "LOG-004",
-      date: "2023-11-12 16:10",
-      action: "요청서 접수",
-      user: "시스템",
-    },
-  ];
-
   // 요청서 데이터 로드
   useEffect(() => {
-    // 실제 구현에서는 API 호출로 데이터를 가져옴
-    const foundRequest = sampleRequests.find((req) => req.id === requestId);
+    // dummyData.ts에서 요청서 찾기
+    const foundRequest = dummyRequests.find((req) => req.id === requestId);
     if (foundRequest) {
       setRequest(foundRequest);
       setNewStatus(foundRequest.status);
-      // 가수 후보 및 로그 데이터 로드
+
+      // 가수 후보 데이터 설정 (현재는 샘플 데이터 사용)
+      const sampleSingerCandidates: SingerCandidate[] = [
+        {
+          id: "SC-001",
+          name: foundRequest.singerName || "김태희",
+          agency: foundRequest.singer?.agency || "스타 엔터테인먼트",
+          rating: 4.8,
+          price: "3,000,000원",
+          status: "협상 중",
+        },
+        {
+          id: "SC-002",
+          name: "이준호",
+          agency: "드림 뮤직",
+          rating: 4.5,
+          price: "2,500,000원",
+          status: "견적 도착",
+        },
+        {
+          id: "SC-003",
+          name: "박서연",
+          agency: "메가 엔터테인먼트",
+          rating: 4.2,
+          price: "2,000,000원",
+          status: "조회",
+        },
+      ];
+
       setSingerCandidates(sampleSingerCandidates);
+
+      // 로그 데이터 설정 (샘플 데이터)
+      const sampleLogs: Log[] = [
+        {
+          id: "LOG-001",
+          date: "2023-12-15 15:30:25",
+          action: "요청서 등록",
+          user: "관리자",
+        },
+        {
+          id: "LOG-002",
+          date: "2023-12-16 09:15:40",
+          action: "가수 후보 추가: 김태희",
+          user: "관리자",
+        },
+        {
+          id: "LOG-003",
+          date: "2023-12-16 10:20:15",
+          action: "가수 후보 추가: 이준호",
+          user: "관리자",
+        },
+      ];
+
       setLogs(sampleLogs);
     } else {
       // 요청서가 없으면 목록 페이지로 리다이렉트
@@ -190,7 +123,9 @@ export default function RequestDetailPage() {
       const newLog: Log = {
         id: `LOG-${logs.length + 1}`,
         date: new Date().toLocaleString(),
-        action: `상태 변경: ${request.status} → ${newStatus}`,
+        action: `상태 변경: ${getStatusText(request.status)} → ${getStatusText(
+          newStatus
+        )}`,
         user: "관리자",
       };
       setLogs([newLog, ...logs]);
@@ -210,20 +145,34 @@ export default function RequestDetailPage() {
   };
 
   // 상태에 따른 배지 색상
-  const getStatusColor = (status: string) => {
+  const getStatusBadgeClass = (status: string) => {
     switch (status) {
-      case "요청중":
-        return "bg-blue-100 text-blue-800";
-      case "검토중":
+      case "pending":
         return "bg-yellow-100 text-yellow-800";
-      case "협상 진행":
-        return "bg-purple-100 text-purple-800";
-      case "견적 완료":
+      case "in_progress":
+        return "bg-blue-100 text-blue-800";
+      case "completed":
         return "bg-green-100 text-green-800";
-      case "취소":
+      case "cancelled":
         return "bg-red-100 text-red-800";
       default:
         return "bg-gray-100 text-gray-800";
+    }
+  };
+
+  // 상태 텍스트 변환
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case "pending":
+        return "대기중";
+      case "in_progress":
+        return "진행중";
+      case "completed":
+        return "완료";
+      case "cancelled":
+        return "취소";
+      default:
+        return status;
     }
   };
 
@@ -243,6 +192,12 @@ export default function RequestDetailPage() {
       default:
         return "bg-gray-100 text-gray-800";
     }
+  };
+
+  // 날짜 포맷팅 함수
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("ko-KR");
   };
 
   if (!request) {
@@ -281,14 +236,14 @@ export default function RequestDetailPage() {
         </div>
         <div className="flex justify-between items-center">
           <p className="text-gray-600">
-            요청 번호: {request.id} | 제출일: {request.date}
+            요청 번호: {request.id} | 제출일: {formatDate(request.createdAt)}
           </p>
           <span
-            className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(
+            className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusBadgeClass(
               request.status
             )}`}
           >
-            {request.status}
+            {getStatusText(request.status)}
           </span>
         </div>
       </div>
@@ -342,32 +297,56 @@ export default function RequestDetailPage() {
                 <h3 className="text-sm font-medium text-gray-500 mb-1">
                   고객 정보
                 </h3>
-                <p className="text-gray-900">{request.customer}</p>
+                <p className="text-gray-900">
+                  {request.customerName} / {request.customerCompany}
+                </p>
+              </div>
+              <div>
+                <h3 className="text-sm font-medium text-gray-500 mb-1">
+                  가수 정보
+                </h3>
+                <p className="text-gray-900">
+                  {request.singerName ? (
+                    <>
+                      {request.singerName} / {request.singer?.agency}
+                    </>
+                  ) : (
+                    <span className="text-gray-400">미지정</span>
+                  )}
+                </p>
               </div>
               <div>
                 <h3 className="text-sm font-medium text-gray-500 mb-1">예산</h3>
-                <p className="text-gray-900">{request.budget}</p>
+                <p className="text-gray-900">
+                  {Number(request.budget).toLocaleString()}원
+                </p>
+              </div>
+              <div>
+                <h3 className="text-sm font-medium text-gray-500 mb-1">
+                  행사 유형
+                </h3>
+                <p className="text-gray-900">{request.eventType}</p>
               </div>
               <div>
                 <h3 className="text-sm font-medium text-gray-500 mb-1">
                   행사 장소
                 </h3>
-                <p className="text-gray-900">{request.location}</p>
+                <p className="text-gray-900">{request.venue}</p>
               </div>
               <div>
                 <h3 className="text-sm font-medium text-gray-500 mb-1">
-                  참석 인원
+                  행사 날짜
                 </h3>
-                <p className="text-gray-900">{request.attendees}명</p>
+                <p className="text-gray-900">{request.eventDate}</p>
               </div>
             </div>
 
             <div className="mb-6">
               <h3 className="text-sm font-medium text-gray-500 mb-1">
-                상세 내용
+                요구사항
               </h3>
               <p className="text-gray-900 whitespace-pre-line">
-                {request.details}
+                {request.requirements || "요구사항이 없습니다."}
               </p>
             </div>
 
@@ -391,7 +370,7 @@ export default function RequestDetailPage() {
                   >
                     {statusOptions.map((option) => (
                       <option key={option} value={option}>
-                        {option}
+                        {getStatusText(option)}
                       </option>
                     ))}
                   </select>

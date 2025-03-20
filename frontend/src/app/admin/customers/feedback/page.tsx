@@ -26,114 +26,116 @@ interface Feedback {
   responseAt?: string;
 }
 
-// 더미 피드백 데이터
-const dummyFeedbacks: Feedback[] = [
-  {
-    id: "feed-001",
-    customerId: "cust-001",
-    customerName: "김민수",
-    singerId: "sing-005",
-    singerName: "이지은",
-    contractId: "contract-123",
-    rating: 5,
-    content:
-      "가수 분이 너무 좋았고, 직원분들의 응대도 정말 친절했습니다. 다음에도 꼭 이용하고 싶어요.",
-    category: "가수",
-    status: "확인",
-    isPublic: true,
-    createdAt: "2023-06-10T15:30:00Z",
-    updatedAt: "2023-06-10T16:00:00Z",
-  },
-  {
-    id: "feed-002",
-    customerId: "cust-003",
-    customerName: "박지성",
-    singerId: "sing-002",
-    singerName: "김범수",
-    contractId: "contract-124",
-    rating: 3,
-    content:
-      "가수는 좋았으나 행사 당일 너무 늦게 도착해서 준비 시간이 부족했습니다. 이 부분이 개선되면 좋겠어요.",
-    category: "일정",
-    status: "처리중",
-    isPublic: true,
-    createdAt: "2023-06-08T09:45:00Z",
-    updatedAt: "2023-06-09T10:20:00Z",
-    response:
-      "말씀해주신 일정 관련 문제 때문에 불편을 드려 정말 죄송합니다. 해당 문제를 담당자와 함께 검토 중이며, 개선 방안을 마련하고 있습니다.",
-    responseAt: "2023-06-09T10:20:00Z",
-  },
-  {
-    id: "feed-003",
-    customerId: "cust-005",
-    customerName: "이영희",
-    singerId: "sing-008",
-    singerName: "정준영",
-    contractId: "contract-130",
-    rating: 2,
-    content:
-      "계약 금액에 비해 서비스 질이 기대에 미치지 못했습니다. 가수 분의 공연은 좋았으나 음향 문제가 있었습니다.",
-    category: "서비스",
-    status: "처리중",
-    isPublic: false,
-    createdAt: "2023-06-05T18:10:00Z",
-    updatedAt: "2023-06-06T09:30:00Z",
-    response:
-      "불편을 드려 죄송합니다. 음향 문제에 대해 자세히 알려주실 수 있을까요? 개선을 위해 추가 정보가 필요합니다.",
-    responseAt: "2023-06-06T09:30:00Z",
-  },
-  {
-    id: "feed-004",
-    customerId: "cust-010",
-    customerName: "정태영",
-    singerId: "sing-001",
-    singerName: "아이유",
-    contractId: "contract-135",
-    rating: 1,
-    content:
-      "가격이 너무 비쌉니다. 타 업체와 비교했을 때 20% 이상 차이가 났어요. 서비스 내용은 비슷한데 가격 차이가 너무 큽니다.",
-    category: "가격",
-    status: "신규",
-    isPublic: false,
-    createdAt: "2023-06-03T11:20:00Z",
-    updatedAt: "2023-06-03T11:20:00Z",
-  },
-  {
-    id: "feed-005",
-    customerId: "cust-007",
-    customerName: "최유리",
-    singerId: "sing-004",
-    singerName: "성시경",
-    contractId: "contract-140",
-    rating: 4,
-    content:
-      "전반적으로 만족스러웠습니다. 다만 계약 과정에서 소통이 조금 부족했던 점이 아쉽습니다.",
-    category: "서비스",
-    status: "완료",
-    isPublic: true,
-    createdAt: "2023-05-28T14:50:00Z",
-    updatedAt: "2023-05-29T10:15:00Z",
-    response:
-      "소중한 피드백 감사합니다. 계약 과정의 소통 문제를 개선하기 위해 프로세스를 재검토하고 있습니다. 다음에는 더 나은 경험을 제공해 드리겠습니다.",
-    responseAt: "2023-05-29T10:15:00Z",
-  },
-  {
-    id: "feed-006",
-    customerId: "cust-012",
-    customerName: "강동원",
-    singerId: "sing-007",
-    singerName: "거미",
-    contractId: "contract-142",
-    rating: 5,
-    content:
-      "정말 완벽한 서비스였습니다. 특히 담당자분의 세심한 배려와 전문성에 감동받았습니다. 다른 분들에게도 적극 추천하고 싶습니다.",
-    category: "서비스",
-    status: "확인",
-    isPublic: true,
-    createdAt: "2023-05-25T16:40:00Z",
-    updatedAt: "2023-05-26T09:10:00Z",
-  },
-];
+// 더미 피드백 데이터 생성 함수
+const generateDummyFeedbacks = (): Feedback[] => {
+  return [
+    {
+      id: "feed-001",
+      customerId: dummyCustomers[0].id,
+      customerName: dummyCustomers[0].name,
+      singerId: dummySingers[0] ? dummySingers[0].id : "sing-005",
+      singerName: dummySingers[0] ? dummySingers[0].name : "이지은",
+      contractId: "contract-123",
+      rating: 5,
+      content:
+        "가수 분이 너무 좋았고, 직원분들의 응대도 정말 친절했습니다. 다음에도 꼭 이용하고 싶어요.",
+      category: "가수",
+      status: "확인",
+      isPublic: true,
+      createdAt: "2023-06-10T15:30:00Z",
+      updatedAt: "2023-06-10T16:00:00Z",
+    },
+    {
+      id: "feed-002",
+      customerId: dummyCustomers[2] ? dummyCustomers[2].id : "cust-003",
+      customerName: dummyCustomers[2] ? dummyCustomers[2].name : "박준호",
+      singerId: dummySingers[1] ? dummySingers[1].id : "sing-002",
+      singerName: dummySingers[1] ? dummySingers[1].name : "이준호",
+      contractId: "contract-124",
+      rating: 3,
+      content:
+        "가수는 좋았으나 행사 당일 너무 늦게 도착해서 준비 시간이 부족했습니다. 이 부분이 개선되면 좋겠어요.",
+      category: "일정",
+      status: "처리중",
+      isPublic: true,
+      createdAt: "2023-06-08T09:45:00Z",
+      updatedAt: "2023-06-09T10:20:00Z",
+      response:
+        "말씀해주신 일정 관련 문제 때문에 불편을 드려 정말 죄송합니다. 해당 문제를 담당자와 함께 검토 중이며, 개선 방안을 마련하고 있습니다.",
+      responseAt: "2023-06-09T10:20:00Z",
+    },
+    {
+      id: "feed-003",
+      customerId: dummyCustomers[3] ? dummyCustomers[3].id : "cust-005",
+      customerName: dummyCustomers[3] ? dummyCustomers[3].name : "최유진",
+      singerId: dummySingers[2] ? dummySingers[2].id : "sing-008",
+      singerName: dummySingers[2] ? dummySingers[2].name : "박서연",
+      contractId: "contract-130",
+      rating: 2,
+      content:
+        "계약 금액에 비해 서비스 질이 기대에 미치지 못했습니다. 가수 분의 공연은 좋았으나 음향 문제가 있었습니다.",
+      category: "서비스",
+      status: "처리중",
+      isPublic: false,
+      createdAt: "2023-06-05T18:10:00Z",
+      updatedAt: "2023-06-06T09:30:00Z",
+      response:
+        "불편을 드려 죄송합니다. 음향 문제에 대해 자세히 알려주실 수 있을까요? 개선을 위해 추가 정보가 필요합니다.",
+      responseAt: "2023-06-06T09:30:00Z",
+    },
+    {
+      id: "feed-004",
+      customerId: dummyCustomers[4] ? dummyCustomers[4].id : "cust-010",
+      customerName: dummyCustomers[4] ? dummyCustomers[4].name : "권나은",
+      singerId: dummySingers[0] ? dummySingers[0].id : "sing-001",
+      singerName: dummySingers[0] ? dummySingers[0].name : "김태희",
+      contractId: "contract-135",
+      rating: 1,
+      content:
+        "가격이 너무 비쌉니다. 타 업체와 비교했을 때 20% 이상 차이가 났어요. 서비스 내용은 비슷한데 가격 차이가 너무 큽니다.",
+      category: "가격",
+      status: "신규",
+      isPublic: false,
+      createdAt: "2023-06-03T11:20:00Z",
+      updatedAt: "2023-06-03T11:20:00Z",
+    },
+    {
+      id: "feed-005",
+      customerId: dummyCustomers[1] ? dummyCustomers[1].id : "cust-007",
+      customerName: dummyCustomers[1] ? dummyCustomers[1].name : "이지영",
+      singerId: dummySingers[1] ? dummySingers[1].id : "sing-004",
+      singerName: dummySingers[1] ? dummySingers[1].name : "이준호",
+      contractId: "contract-140",
+      rating: 4,
+      content:
+        "전반적으로 만족스러웠습니다. 다만 계약 과정에서 소통이 조금 부족했던 점이 아쉽습니다.",
+      category: "서비스",
+      status: "완료",
+      isPublic: true,
+      createdAt: "2023-05-28T14:50:00Z",
+      updatedAt: "2023-05-29T10:15:00Z",
+      response:
+        "소중한 피드백 감사합니다. 계약 과정의 소통 문제를 개선하기 위해 프로세스를 재검토하고 있습니다. 다음에는 더 나은 경험을 제공해 드리겠습니다.",
+      responseAt: "2023-05-29T10:15:00Z",
+    },
+    {
+      id: "feed-006",
+      customerId: dummyCustomers[2] ? dummyCustomers[2].id : "cust-012",
+      customerName: dummyCustomers[2] ? dummyCustomers[2].name : "박준호",
+      singerId: dummySingers[2] ? dummySingers[2].id : "sing-007",
+      singerName: dummySingers[2] ? dummySingers[2].name : "박서연",
+      contractId: "contract-142",
+      rating: 5,
+      content:
+        "정말 완벽한 서비스였습니다. 특히 담당자분의 세심한 배려와 전문성에 감동받았습니다. 다른 분들에게도 적극 추천하고 싶습니다.",
+      category: "서비스",
+      status: "확인",
+      isPublic: true,
+      createdAt: "2023-05-25T16:40:00Z",
+      updatedAt: "2023-05-26T09:10:00Z",
+    },
+  ];
+};
 
 // 별점 컴포넌트
 const StarRating = ({ rating }: { rating: number }) => {
@@ -235,7 +237,7 @@ export default function FeedbackPage() {
     try {
       setIsLoading(true);
       // API 호출 대신 더미 데이터 사용
-      setFeedbacks(dummyFeedbacks);
+      setFeedbacks(generateDummyFeedbacks());
     } catch (error) {
       console.error("데이터 로드 오류:", error);
       toast.error("피드백 데이터를 불러오는데 실패했습니다.");
@@ -254,7 +256,6 @@ export default function FeedbackPage() {
       filter.category === "all" || feedback.category === filter.category;
     const publicMatch =
       filter.isPublic === "all" || feedback.isPublic === filter.isPublic;
-
     return statusMatch && ratingMatch && categoryMatch && publicMatch;
   });
 
@@ -267,27 +268,31 @@ export default function FeedbackPage() {
     setFilter({
       ...filter,
       [field]:
-        value === "all" ? "all" : field === "rating" ? parseInt(value) : value,
+        value === "all"
+          ? "all"
+          : field === "rating"
+          ? parseInt(value)
+          : field === "isPublic"
+          ? value === "true"
+          : value,
     });
   };
 
-  // 피드백 응답 제출 핸들러
+  // 응답 제출 핸들러
   const handleResponseSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!selectedFeedback) return;
 
     try {
-      // 실제 환경에서는 API 호출로 응답 저장
-      const now = new Date().toISOString();
       const updatedFeedbacks = feedbacks.map((feedback) => {
         if (feedback.id === selectedFeedback.id) {
           return {
             ...feedback,
+            status: "처리중" as const,
             response: responseText,
-            responseAt: now,
-            status: "처리중" as Feedback["status"],
-            updatedAt: now,
+            responseAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
           };
         }
         return feedback;
@@ -296,79 +301,103 @@ export default function FeedbackPage() {
       setFeedbacks(updatedFeedbacks);
       setSelectedFeedback(null);
       setResponseText("");
-      toast.success("응답이 저장되었습니다.");
+      toast.success("피드백에 대한 응답이 처리되었습니다.");
     } catch (error) {
       console.error("응답 저장 오류:", error);
       toast.error("응답 저장에 실패했습니다.");
     }
   };
 
-  // 피드백 상태 변경 핸들러
+  // 상태 변경 핸들러
   const handleStatusChange = (id: string, newStatus: Feedback["status"]) => {
     try {
-      // 실제 환경에서는 API 호출로 상태 변경
-      const now = new Date().toISOString();
       const updatedFeedbacks = feedbacks.map((feedback) => {
         if (feedback.id === id) {
           return {
             ...feedback,
             status: newStatus,
-            updatedAt: now,
+            updatedAt: new Date().toISOString(),
           };
         }
         return feedback;
       });
 
       setFeedbacks(updatedFeedbacks);
-      toast.success("상태가 변경되었습니다.");
+      toast.success(`피드백 상태가 "${newStatus}"로 변경되었습니다.`);
     } catch (error) {
       console.error("상태 변경 오류:", error);
       toast.error("상태 변경에 실패했습니다.");
     }
   };
 
-  // 피드백 공개 여부 변경 핸들러
+  // 공개 설정 변경 핸들러
   const handlePublicChange = (id: string) => {
     try {
-      // 실제 환경에서는 API 호출로 공개 여부 변경
-      const now = new Date().toISOString();
       const updatedFeedbacks = feedbacks.map((feedback) => {
         if (feedback.id === id) {
           return {
             ...feedback,
             isPublic: !feedback.isPublic,
-            updatedAt: now,
+            updatedAt: new Date().toISOString(),
           };
         }
         return feedback;
       });
 
       setFeedbacks(updatedFeedbacks);
-      toast.success("공개 설정이 변경되었습니다.");
+      toast.success(
+        `피드백이 ${
+          updatedFeedbacks.find((f) => f.id === id)?.isPublic
+            ? "공개"
+            : "비공개"
+        }로 설정되었습니다.`
+      );
     } catch (error) {
       console.error("공개 설정 변경 오류:", error);
       toast.error("공개 설정 변경에 실패했습니다.");
     }
   };
 
+  // 날짜 포맷팅
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
+      2,
+      "0"
+    )}-${String(date.getDate()).padStart(2, "0")} ${String(
+      date.getHours()
+    ).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
-      <PageHeader
-        title="고객 피드백 관리"
-        description="서비스에 대한 고객의 피드백과 평가를 관리합니다."
-      />
+      <PageHeader title="고객 피드백" />
 
-      {/* 필터 */}
+      <div className="mb-6 flex justify-between items-center">
+        <div>
+          <h2 className="text-2xl font-bold text-black">피드백 관리</h2>
+          <p className="text-black mt-1">
+            고객의 피드백을 확인하고 응답합니다.
+          </p>
+        </div>
+      </div>
+
+      {/* 필터링 */}
       <div className="bg-white rounded-lg shadow-md p-4 mb-6">
-        <div className="flex flex-wrap gap-4 items-center">
+        <h3 className="text-lg font-bold text-black mb-4">필터</h3>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="statusFilter"
+              className="block text-sm font-medium text-black mb-1"
+            >
               상태
             </label>
             <select
+              id="statusFilter"
+              className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
               value={filter.status}
               onChange={(e) => handleFilterChange(e, "status")}
-              className="border-gray-300 rounded-md shadow-sm focus:border-orange-500 focus:ring-orange-500"
             >
               <option value="all">모든 상태</option>
               <option value="신규">신규</option>
@@ -378,31 +407,41 @@ export default function FeedbackPage() {
               <option value="무시">무시</option>
             </select>
           </div>
+
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              별점
+            <label
+              htmlFor="ratingFilter"
+              className="block text-sm font-medium text-black mb-1"
+            >
+              평점
             </label>
             <select
+              id="ratingFilter"
+              className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
               value={filter.rating}
               onChange={(e) => handleFilterChange(e, "rating")}
-              className="border-gray-300 rounded-md shadow-sm focus:border-orange-500 focus:ring-orange-500"
             >
-              <option value="all">모든 별점</option>
-              <option value="5">5점</option>
-              <option value="4">4점</option>
-              <option value="3">3점</option>
-              <option value="2">2점</option>
-              <option value="1">1점</option>
+              <option value="all">모든 평점</option>
+              <option value="5">⭐⭐⭐⭐⭐ (5)</option>
+              <option value="4">⭐⭐⭐⭐ (4)</option>
+              <option value="3">⭐⭐⭐ (3)</option>
+              <option value="2">⭐⭐ (2)</option>
+              <option value="1">⭐ (1)</option>
             </select>
           </div>
+
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="categoryFilter"
+              className="block text-sm font-medium text-black mb-1"
+            >
               카테고리
             </label>
             <select
+              id="categoryFilter"
+              className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
               value={filter.category}
               onChange={(e) => handleFilterChange(e, "category")}
-              className="border-gray-300 rounded-md shadow-sm focus:border-orange-500 focus:ring-orange-500"
             >
               <option value="all">모든 카테고리</option>
               <option value="서비스">서비스</option>
@@ -412,30 +451,21 @@ export default function FeedbackPage() {
               <option value="기타">기타</option>
             </select>
           </div>
+
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="publicFilter"
+              className="block text-sm font-medium text-black mb-1"
+            >
               공개 여부
             </label>
             <select
-              value={
-                filter.isPublic === "all"
-                  ? "all"
-                  : filter.isPublic
-                  ? "true"
-                  : "false"
-              }
-              onChange={(e) =>
-                setFilter({
-                  ...filter,
-                  isPublic:
-                    e.target.value === "all"
-                      ? "all"
-                      : e.target.value === "true",
-                })
-              }
-              className="border-gray-300 rounded-md shadow-sm focus:border-orange-500 focus:ring-orange-500"
+              id="publicFilter"
+              className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
+              value={String(filter.isPublic)}
+              onChange={(e) => handleFilterChange(e, "isPublic")}
             >
-              <option value="all">모두</option>
+              <option value="all">모든 피드백</option>
               <option value="true">공개</option>
               <option value="false">비공개</option>
             </select>
@@ -443,336 +473,232 @@ export default function FeedbackPage() {
         </div>
       </div>
 
-      {/* 피드백 응답 모달 */}
-      {selectedFeedback && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl p-6 max-w-2xl w-full">
-            <div className="flex justify-between items-start">
-              <h3 className="text-lg font-semibold">피드백 응답</h3>
-              <button
-                onClick={() => {
-                  setSelectedFeedback(null);
-                  setResponseText("");
-                }}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                <svg
-                  className="w-6 h-6"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              </button>
-            </div>
-
-            <div className="mt-4 p-4 bg-gray-50 rounded-md">
-              <div className="flex justify-between items-start">
+      {/* 피드백 목록 */}
+      {isLoading ? (
+        <div className="text-center py-12">
+          <svg
+            className="animate-spin h-8 w-8 text-orange-500 mx-auto"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <circle
+              className="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              strokeWidth="4"
+            ></circle>
+            <path
+              className="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+            ></path>
+          </svg>
+          <p className="mt-2 text-black">로딩 중...</p>
+        </div>
+      ) : filteredFeedbacks.length === 0 ? (
+        <div className="bg-white rounded-lg shadow-md p-6 text-center">
+          <p className="text-black">피드백 데이터가 없습니다.</p>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {filteredFeedbacks.map((feedback) => (
+            <div
+              key={feedback.id}
+              className="bg-white rounded-lg shadow-md p-6 transition-all hover:shadow-lg"
+            >
+              <div className="flex justify-between items-start mb-4">
                 <div>
-                  <h4 className="font-medium">
-                    {selectedFeedback.customerName}
-                  </h4>
-                  <p className="text-sm text-gray-500">
-                    {new Date(selectedFeedback.createdAt).toLocaleDateString()}{" "}
-                    ·
-                    {selectedFeedback.singerName &&
-                      ` 가수: ${selectedFeedback.singerName} · `}
-                    <CategoryBadge category={selectedFeedback.category} />
-                  </p>
+                  <div className="flex items-center space-x-2">
+                    <h3 className="text-lg font-bold text-black">
+                      {feedback.customerName}
+                    </h3>
+                    <StatusBadge status={feedback.status} />
+                    <CategoryBadge category={feedback.category} />
+                    <span
+                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                        feedback.isPublic
+                          ? "bg-green-100 text-green-800"
+                          : "bg-gray-100 text-gray-800"
+                      }`}
+                    >
+                      {feedback.isPublic ? "공개" : "비공개"}
+                    </span>
+                  </div>
+                  <div className="text-sm text-black mt-1">
+                    가수: {feedback.singerName || "정보 없음"} | 계약:{" "}
+                    {feedback.contractId || "정보 없음"}
+                  </div>
+                  <div className="flex items-center space-x-2 mt-1">
+                    <StarRating rating={feedback.rating} />
+                    <span className="text-sm text-black">
+                      {formatDate(feedback.createdAt)}
+                    </span>
+                  </div>
                 </div>
-                <StarRating rating={selectedFeedback.rating} />
+                <div className="flex space-x-2">
+                  <div className="dropdown dropdown-end">
+                    <button className="bg-white border border-gray-300 rounded-md py-1 px-3 text-xs font-medium text-black hover:bg-gray-50">
+                      상태 변경
+                    </button>
+                    <div className="dropdown-content z-10 hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1">
+                      <button
+                        onClick={() => handleStatusChange(feedback.id, "신규")}
+                        className="block w-full text-left px-4 py-2 text-sm text-black hover:bg-gray-100"
+                      >
+                        신규
+                      </button>
+                      <button
+                        onClick={() => handleStatusChange(feedback.id, "확인")}
+                        className="block w-full text-left px-4 py-2 text-sm text-black hover:bg-gray-100"
+                      >
+                        확인
+                      </button>
+                      <button
+                        onClick={() =>
+                          handleStatusChange(feedback.id, "처리중")
+                        }
+                        className="block w-full text-left px-4 py-2 text-sm text-black hover:bg-gray-100"
+                      >
+                        처리중
+                      </button>
+                      <button
+                        onClick={() => handleStatusChange(feedback.id, "완료")}
+                        className="block w-full text-left px-4 py-2 text-sm text-black hover:bg-gray-100"
+                      >
+                        완료
+                      </button>
+                      <button
+                        onClick={() => handleStatusChange(feedback.id, "무시")}
+                        className="block w-full text-left px-4 py-2 text-sm text-black hover:bg-gray-100"
+                      >
+                        무시
+                      </button>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => handlePublicChange(feedback.id)}
+                    className="bg-white border border-gray-300 rounded-md py-1 px-3 text-xs font-medium text-black hover:bg-gray-50"
+                  >
+                    {feedback.isPublic ? "비공개로 변경" : "공개로 변경"}
+                  </button>
+                  <button
+                    onClick={() => {
+                      setSelectedFeedback(feedback);
+                      setResponseText(feedback.response || "");
+                    }}
+                    className="bg-orange-500 border border-transparent rounded-md py-1 px-3 text-xs font-medium text-white hover:bg-orange-600"
+                  >
+                    응답
+                  </button>
+                </div>
               </div>
-              <p className="mt-2">{selectedFeedback.content}</p>
+
+              <div className="bg-gray-50 rounded p-4 text-black">
+                {feedback.content}
+              </div>
+
+              {feedback.response && (
+                <div className="mt-4">
+                  <h4 className="text-sm font-medium text-black mb-1">
+                    응답
+                    {feedback.responseAt &&
+                      ` (${formatDate(feedback.responseAt)})`}
+                  </h4>
+                  <div className="bg-orange-50 rounded p-4 text-black">
+                    {feedback.response}
+                  </div>
+                </div>
+              )}
             </div>
+          ))}
+        </div>
+      )}
 
-            <form onSubmit={handleResponseSubmit} className="mt-4">
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  응답
-                </label>
-                <textarea
-                  value={responseText}
-                  onChange={(e) => setResponseText(e.target.value)}
-                  rows={4}
-                  className="w-full border-gray-300 rounded-md shadow-sm focus:border-orange-500 focus:ring-orange-500"
-                  placeholder="고객에게 응답할 내용을 입력하세요."
-                  required
-                />
-              </div>
-
-              <div className="flex justify-end space-x-3">
+      {/* 응답 모달 */}
+      {selectedFeedback && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg w-full max-w-2xl">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-bold text-black">피드백 응답</h3>
                 <button
-                  type="button"
                   onClick={() => {
                     setSelectedFeedback(null);
                     setResponseText("");
                   }}
-                  className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200"
+                  className="text-gray-400 hover:text-gray-500"
                 >
-                  취소
+                  <svg
+                    className="w-6 h-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
                 </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600"
-                >
-                  응답 저장
-                </button>
               </div>
-            </form>
-          </div>
-        </div>
-      )}
 
-      {/* 피드백 목록 */}
-      {isLoading ? (
-        <div className="flex justify-center items-center h-64">
-          <p className="text-gray-500">데이터를 불러오는 중...</p>
-        </div>
-      ) : filteredFeedbacks.length === 0 ? (
-        <div className="bg-white rounded-lg shadow-md p-8 text-center">
-          <p className="text-gray-500">조건에 맞는 피드백이 없습니다.</p>
-        </div>
-      ) : (
-        <div className="bg-white rounded-lg shadow-md">
-          {filteredFeedbacks.map((feedback) => (
-            <div
-              key={feedback.id}
-              className="p-6 border-b border-gray-200 last:border-b-0 hover:bg-gray-50"
-            >
-              <div className="flex justify-between items-start">
-                <div className="flex items-start space-x-4">
-                  <div className="flex-shrink-0">
-                    <div className="h-10 w-10 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center">
-                      <span className="text-white font-bold">
-                        {feedback.customerName.charAt(0)}
-                      </span>
-                    </div>
+              <div className="mb-4">
+                <div className="bg-gray-50 rounded p-4 text-black">
+                  <div className="flex items-center space-x-2 mb-2">
+                    <span className="font-medium">
+                      {selectedFeedback.customerName}
+                    </span>
+                    <StarRating rating={selectedFeedback.rating} />
+                    <CategoryBadge category={selectedFeedback.category} />
                   </div>
-                  <div>
-                    <h3 className="font-medium">{feedback.customerName}</h3>
-                    <div className="flex flex-wrap items-center text-sm text-gray-500 space-x-2 mt-1">
-                      <span>
-                        {new Date(feedback.createdAt).toLocaleDateString()}
-                      </span>
-                      <span>·</span>
-                      <StarRating rating={feedback.rating} />
-                      <span>·</span>
-                      <CategoryBadge category={feedback.category} />
-                      <span>·</span>
-                      <StatusBadge status={feedback.status} />
-                      {feedback.isPublic ? (
-                        <span className="inline-flex items-center text-green-600 text-xs">
-                          <svg
-                            className="w-4 h-4 mr-1"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                            />
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                            />
-                          </svg>
-                          공개
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center text-gray-400 text-xs">
-                          <svg
-                            className="w-4 h-4 mr-1"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18"
-                            />
-                          </svg>
-                          비공개
-                        </span>
-                      )}
-                    </div>
-                  </div>
+                  {selectedFeedback.content}
                 </div>
-                <div className="flex space-x-2">
-                  <button
-                    onClick={() => handlePublicChange(feedback.id)}
-                    className="text-gray-400 hover:text-gray-600"
-                    title={feedback.isPublic ? "비공개로 변경" : "공개로 변경"}
+              </div>
+
+              <form onSubmit={handleResponseSubmit}>
+                <div className="mb-4">
+                  <label
+                    htmlFor="response"
+                    className="block text-sm font-medium text-black mb-1"
                   >
-                    {feedback.isPublic ? (
-                      <svg
-                        className="w-5 h-5"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18"
-                        />
-                      </svg>
-                    ) : (
-                      <svg
-                        className="w-5 h-5"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                        />
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                        />
-                      </svg>
-                    )}
-                  </button>
-
-                  <div className="relative group">
-                    <button
-                      className="text-gray-400 hover:text-gray-600"
-                      title="상태 변경"
-                    >
-                      <svg
-                        className="w-5 h-5"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
-                        />
-                      </svg>
-                    </button>
-                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg hidden group-hover:block z-10">
-                      <div className="py-1">
-                        <button
-                          onClick={() =>
-                            handleStatusChange(feedback.id, "신규")
-                          }
-                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
-                        >
-                          신규로 변경
-                        </button>
-                        <button
-                          onClick={() =>
-                            handleStatusChange(feedback.id, "확인")
-                          }
-                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
-                        >
-                          확인으로 변경
-                        </button>
-                        <button
-                          onClick={() =>
-                            handleStatusChange(feedback.id, "처리중")
-                          }
-                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
-                        >
-                          처리중으로 변경
-                        </button>
-                        <button
-                          onClick={() =>
-                            handleStatusChange(feedback.id, "완료")
-                          }
-                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
-                        >
-                          완료로 변경
-                        </button>
-                        <button
-                          onClick={() =>
-                            handleStatusChange(feedback.id, "무시")
-                          }
-                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
-                        >
-                          무시로 변경
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-3">
-                <p className="text-gray-700">{feedback.content}</p>
-              </div>
-
-              {feedback.response && (
-                <div className="mt-4 pl-4 border-l-4 border-orange-200">
-                  <div className="flex justify-between items-center">
-                    <p className="text-sm font-medium">담당자 응답</p>
-                    <p className="text-xs text-gray-500">
-                      {new Date(feedback.responseAt || "").toLocaleDateString()}
-                    </p>
-                  </div>
-                  <p className="text-sm mt-1 text-gray-600">
-                    {feedback.response}
-                  </p>
-                </div>
-              )}
-
-              <div className="mt-4 flex justify-between items-center">
-                <div>
-                  {feedback.singerId && (
-                    <div className="text-sm text-gray-500">
-                      가수: {feedback.singerName}
-                    </div>
-                  )}
+                    응답 내용
+                  </label>
+                  <textarea
+                    id="response"
+                    rows={5}
+                    className="block w-full rounded-md border-gray-300 shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
+                    value={responseText}
+                    onChange={(e) => setResponseText(e.target.value)}
+                    required
+                  ></textarea>
                 </div>
 
-                {!feedback.response && (
+                <div className="flex justify-end space-x-3">
                   <button
+                    type="button"
                     onClick={() => {
-                      setSelectedFeedback(feedback);
-                      setResponseText(feedback.response || "");
+                      setSelectedFeedback(null);
+                      setResponseText("");
                     }}
-                    className="text-sm text-orange-600 hover:text-orange-700 font-medium"
+                    className="bg-white border border-gray-300 rounded-md shadow-sm py-2 px-4 text-sm font-medium text-black hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
                   >
-                    응답하기
+                    취소
                   </button>
-                )}
-
-                {feedback.response && (
                   <button
-                    onClick={() => {
-                      setSelectedFeedback(feedback);
-                      setResponseText(feedback.response || "");
-                    }}
-                    className="text-sm text-gray-600 hover:text-gray-700"
+                    type="submit"
+                    className="bg-orange-500 border border-transparent rounded-md shadow-sm py-2 px-4 text-sm font-medium text-white hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
                   >
-                    응답 수정
+                    응답 저장
                   </button>
-                )}
-              </div>
+                </div>
+              </form>
             </div>
-          ))}
+          </div>
         </div>
       )}
     </div>

@@ -24,10 +24,38 @@ export default function CustomerCard({
       : "bg-red-100 text-red-800";
   };
 
-  const getGradeColor = (grade: string) => {
-    return grade === "일반"
-      ? "bg-blue-100 text-blue-800"
-      : "bg-yellow-100 text-yellow-800";
+  const getGradeColor = (grade: number) => {
+    switch (grade) {
+      case 1:
+        return "bg-gray-100 text-gray-800";
+      case 2:
+        return "bg-blue-100 text-blue-800";
+      case 3:
+        return "bg-green-100 text-green-800";
+      case 4:
+        return "bg-purple-100 text-purple-800";
+      case 5:
+        return "bg-orange-100 text-orange-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
+  };
+
+  const getGradeText = (grade: number) => {
+    switch (grade) {
+      case 1:
+        return "1등급 (최하)";
+      case 2:
+        return "2등급 (하)";
+      case 3:
+        return "3등급 (중)";
+      case 4:
+        return "4등급 (상)";
+      case 5:
+        return "5등급 (최상)";
+      default:
+        return `${grade}등급`;
+    }
   };
 
   const getTypeColor = (type: string) => {
@@ -92,7 +120,7 @@ export default function CustomerCard({
               entity.grade
             )}`}
           >
-            {entity.grade}
+            {getGradeText(entity.grade)}
           </span>
         </div>
 

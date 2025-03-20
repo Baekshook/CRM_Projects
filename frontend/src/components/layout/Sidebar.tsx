@@ -33,6 +33,28 @@ export default function Sidebar({
     if (path === "/admin") {
       return pathname === "/admin";
     }
+
+    // 서브메뉴 경로인 경우 정확히 일치할 때만 활성화
+    if (path.includes("/admin/customers/")) {
+      return pathname === path;
+    }
+
+    // 요청서 서브메뉴 경로인 경우 정확히 일치할 때만 활성화
+    if (path.includes("/admin/requests/")) {
+      return pathname === path;
+    }
+
+    // 메인 메뉴 경로인 경우
+    // 'admin/customers'처럼 정확히 일치하거나, 서브메뉴가 없는 경우 해당 경로로 시작하는 모든 페이지 활성화
+    if (path === "/admin/customers") {
+      return pathname === path;
+    }
+
+    // 요청서 메인 메뉴 경로인 경우
+    if (path === "/admin/requests") {
+      return pathname === path;
+    }
+
     // 그 외 메뉴의 경우 기존과 같이 처리
     return pathname === path || pathname.startsWith(`${path}/`);
   };

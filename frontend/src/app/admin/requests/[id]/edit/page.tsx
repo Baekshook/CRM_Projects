@@ -1,13 +1,19 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Customer } from "@/types/customer";
+import {
+  requests as dummyRequests,
+  customers as dummyCustomers,
+  singers as dummySingers,
+  Customer,
+} from "@/utils/dummyData";
 
 interface Request {
   id: string;
   customerId: string;
   customerName: string;
   customerCompany: string;
+  title: string;
   eventType: string;
   eventDate: string;
   venue: string;
@@ -15,6 +21,8 @@ interface Request {
   requirements: string;
   status: string;
   createdAt: string;
+  singerId?: string;
+  singerName?: string;
 }
 
 export default function RequestEditPage({
@@ -25,11 +33,13 @@ export default function RequestEditPage({
   const router = useRouter();
   const requestId = params.id;
   const [customers, setCustomers] = useState<Customer[]>([]);
+  const [singers, setSingers] = useState<any[]>([]);
   const [requestData, setRequestData] = useState<Request>({
     id: "",
     customerId: "",
     customerName: "",
     customerCompany: "",
+    title: "",
     eventType: "",
     eventDate: "",
     venue: "",
@@ -37,45 +47,43 @@ export default function RequestEditPage({
     requirements: "",
     status: "",
     createdAt: "",
+    singerId: "",
+    singerName: "",
   });
 
   // 고객 목록 로드
   useEffect(() => {
-    // 실제로는 API 호출로 처리
-    const loadCustomers = async () => {
-      // 임시 데이터
-      const dummyCustomers = [
-        { id: "CUST-001", name: "김민수", company: "(주)이벤트 플래닝" },
-        { id: "CUST-002", name: "이지영", company: "웨딩 홀 A" },
-        { id: "CUST-003", name: "박준호", company: "대학 축제 위원회" },
-      ];
-      setCustomers(dummyCustomers);
-    };
-    loadCustomers();
+    setCustomers(dummyCustomers);
+    setSingers(dummySingers);
   }, []);
 
   // 요청서 데이터 로드
   useEffect(() => {
-    // 실제로는 API 호출로 처리
-    const loadRequest = async () => {
-      // 임시 데이터
-      const dummyRequest = {
-        id: requestId,
-        customerId: "CUST-001",
-        customerName: "김민수",
-        customerCompany: "(주)이벤트 플래닝",
-        eventType: "웨딩",
-        eventDate: "2024-06-15",
-        venue: "웨딩홀 A",
-        budget: "5000000",
-        requirements: "축가 2곡, 축하공연 30분",
-        status: "pending",
-        createdAt: "2024-03-20",
-      };
-      setRequestData(dummyRequest);
-    };
-    loadRequest();
-  }, [requestId]);
+    const foundRequest = dummyRequests.find((req) => req.id === requestId);
+
+    if (foundRequest) {
+      setRequestData({
+        id: foundRequest.id,
+        customerId: foundRequest.customerId,
+        customerName: foundRequest.customerName,
+        customerCompany: foundRequest.customerCompany,
+        title: foundRequest.title || "",
+        eventType: foundRequest.eventType,
+        eventDate: foundRequest.eventDate,
+        venue: foundRequest.venue,
+        budget: foundRequest.budget,
+        requirements: foundRequest.requirements || "",
+        status: foundRequest.status,
+        createdAt: foundRequest.createdAt,
+        singerId: foundRequest.singerId || "",
+        singerName: foundRequest.singerName || "",
+      });
+    } else {
+      // 요청서를 찾을 수 없으면 목록 페이지로 리다이렉트
+      alert("요청서를 찾을 수 없습니다.");
+      router.push("/admin/requests");
+    }
+  }, [requestId, router]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -90,6 +98,35 @@ export default function RequestEditPage({
     }
   };
 
+  const handleCustomerChange = (customerId: string) => {
+    const selectedCustomer = customers.find((c) => c.id === customerId);
+    if (selectedCustomer) {
+      setRequestData({
+        ...requestData,
+        customerId,
+        customerName: selectedCustomer.name,
+        customerCompany: selectedCustomer.company || "",
+      });
+    }
+  };
+
+  const handleSingerChange = (singerId: string) => {
+    const selectedSinger = singers.find((s) => s.id === singerId);
+    if (selectedSinger) {
+      setRequestData({
+        ...requestData,
+        singerId,
+        singerName: selectedSinger.name,
+      });
+    } else {
+      setRequestData({
+        ...requestData,
+        singerId: "",
+        singerName: "",
+      });
+    }
+  };
+
   return (
     <div className="pb-10">
       <div className="mb-6">
@@ -100,6 +137,22 @@ export default function RequestEditPage({
       <div className="bg-white rounded-lg shadow p-8">
         <form onSubmit={handleSubmit}>
           <div className="space-y-6">
+            {/* 제목 */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                제목 <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                value={requestData.title}
+                onChange={(e) =>
+                  setRequestData({ ...requestData, title: e.target.value })
+                }
+                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-900 font-medium"
+                required
+              />
+            </div>
+
             {/* 고객 선택 */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -107,9 +160,7 @@ export default function RequestEditPage({
               </label>
               <select
                 value={requestData.customerId}
-                onChange={(e) =>
-                  setRequestData({ ...requestData, customerId: e.target.value })
-                }
+                onChange={(e) => handleCustomerChange(e.target.value)}
                 className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-900 font-medium"
                 required
               >
@@ -117,6 +168,25 @@ export default function RequestEditPage({
                 {customers.map((customer) => (
                   <option key={customer.id} value={customer.id}>
                     {customer.name} ({customer.company})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* 가수 선택 */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                가수
+              </label>
+              <select
+                value={requestData.singerId || ""}
+                onChange={(e) => handleSingerChange(e.target.value)}
+                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-900 font-medium"
+              >
+                <option value="">가수를 선택하세요</option>
+                {singers.map((singer) => (
+                  <option key={singer.id} value={singer.id}>
+                    {singer.name} ({singer.agency})
                   </option>
                 ))}
               </select>
@@ -136,11 +206,11 @@ export default function RequestEditPage({
                 required
               >
                 <option value="">이벤트 유형을 선택하세요</option>
-                <option value="wedding">웨딩</option>
-                <option value="corporate">기업 행사</option>
-                <option value="festival">축제</option>
-                <option value="concert">콘서트</option>
-                <option value="other">기타</option>
+                <option value="웨딩">웨딩</option>
+                <option value="기업 행사">기업 행사</option>
+                <option value="축제">축제</option>
+                <option value="콘서트">콘서트</option>
+                <option value="기타">기타</option>
               </select>
             </div>
 

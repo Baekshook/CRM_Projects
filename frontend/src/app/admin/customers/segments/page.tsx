@@ -223,342 +223,423 @@ export default function SegmentsPage() {
 
   // 세그먼트 프리뷰 - 해당 세그먼트 조건에 맞는 엔티티 개수 계산
   const calculateEntityCount = (criteria: Segment["criteria"]): number => {
-    let allEntities: Entity[] = [];
+    let filteredEntities: any[] = [];
 
     // 타입에 따라 엔티티 필터링
     if (criteria.type === "all" || !criteria.type) {
-      allEntities = [...dummyCustomers, ...dummySingers];
+      filteredEntities = [...dummyCustomers, ...dummySingers];
     } else if (criteria.type === "customer") {
-      allEntities = [...dummyCustomers];
+      filteredEntities = [...dummyCustomers];
     } else if (criteria.type === "singer") {
-      allEntities = [...dummySingers];
+      filteredEntities = [...dummySingers];
     }
 
     // 상태에 따라 필터링
     if (criteria.status && criteria.status !== "all") {
-      allEntities = allEntities.filter((e) => e.status === criteria.status);
+      filteredEntities = filteredEntities.filter(
+        (e) => e.status === criteria.status
+      );
     }
 
     // 등급에 따라 필터링
     if (criteria.grade && criteria.grade !== "all") {
-      allEntities = allEntities.filter((e) => e.grade === criteria.grade);
+      filteredEntities = filteredEntities.filter(
+        (e) => e.grade === criteria.grade
+      );
     }
 
     // 계약 수에 따라 필터링
     if (criteria.minContractCount) {
-      allEntities = allEntities.filter(
+      filteredEntities = filteredEntities.filter(
         (e) => (e.contractCount || 0) >= (criteria.minContractCount || 0)
       );
     }
 
     if (criteria.maxContractCount) {
-      allEntities = allEntities.filter(
+      filteredEntities = filteredEntities.filter(
         (e) => (e.contractCount || 0) <= (criteria.maxContractCount || 0)
       );
     }
 
-    // 날짜에 따라 필터링 (간단한 구현)
+    // 최근 요청일에 따라 필터링
+    if (criteria.lastRequestDate) {
+      const compareDate = new Date(criteria.lastRequestDate);
+      filteredEntities = filteredEntities.filter((e) => {
+        if (!e.lastRequestDate) return false;
+        const lastRequestDate = new Date(e.lastRequestDate);
+        return lastRequestDate <= compareDate;
+      });
+    }
+
+    // 등록일에 따라 필터링
     if (criteria.registrationDateStart) {
       const startDate = new Date(criteria.registrationDateStart);
-      allEntities = allEntities.filter(
-        (e) => new Date(e.registrationDate) >= startDate
-      );
+      filteredEntities = filteredEntities.filter((e) => {
+        if (!e.registrationDate) return false;
+        const registrationDate = new Date(e.registrationDate);
+        return registrationDate >= startDate;
+      });
     }
 
     if (criteria.registrationDateEnd) {
       const endDate = new Date(criteria.registrationDateEnd);
-      allEntities = allEntities.filter(
-        (e) => new Date(e.registrationDate) <= endDate
-      );
+      filteredEntities = filteredEntities.filter((e) => {
+        if (!e.registrationDate) return false;
+        const registrationDate = new Date(e.registrationDate);
+        return registrationDate <= endDate;
+      });
     }
 
-    return allEntities.length;
+    return filteredEntities.length;
+  };
+
+  // 세그먼트 프리뷰 데이터 업데이트
+  const updateSegmentPreview = () => {
+    const count = calculateEntityCount(newSegment.criteria || {});
+    return count;
   };
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <PageHeader
-        title="고객 세그먼트 관리"
-        description="고객을 특정 기준으로 분류하여 효과적으로 관리합니다."
-        actions={
-          <button
-            onClick={() => setShowAddForm(!showAddForm)}
-            className="px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600 flex items-center"
-          >
-            <svg
-              className="w-5 h-5 mr-2"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-              />
-            </svg>
-            세그먼트 추가
-          </button>
-        }
-      />
+      <PageHeader title="고객 세그먼트" />
 
-      {/* 추가 폼 */}
+      <div className="mb-6 flex justify-between items-center">
+        <div>
+          <h2 className="text-2xl font-bold text-black">세그먼트 관리</h2>
+          <p className="text-black mt-1">
+            고객과 가수를 세그먼트로 분류하여 관리합니다.
+          </p>
+        </div>
+        <button
+          onClick={() => setShowAddForm(!showAddForm)}
+          className="bg-orange-500 hover:bg-orange-600 text-white font-medium py-2 px-4 rounded-lg flex items-center transition duration-200"
+        >
+          <svg
+            className="w-5 h-5 mr-2"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+            />
+          </svg>
+          {showAddForm ? "취소" : "세그먼트 추가"}
+        </button>
+      </div>
+
       {showAddForm && (
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-          <h2 className="text-lg font-semibold mb-4">새 세그먼트 추가</h2>
+          <h3 className="text-lg font-bold text-black mb-4">세그먼트 추가</h3>
           <form onSubmit={handleAddSegment}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="name"
+                  className="block text-sm font-medium text-black mb-1"
+                >
                   세그먼트 이름
                 </label>
                 <input
                   type="text"
+                  id="name"
                   name="name"
                   value={newSegment.name}
                   onChange={handleInputChange}
-                  className="w-full border-gray-300 rounded-md shadow-sm focus:border-orange-500 focus:ring-orange-500"
+                  className="mt-1 focus:ring-orange-500 focus:border-orange-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
                   required
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="color"
+                  className="block text-sm font-medium text-black mb-1"
+                >
                   색상
                 </label>
-                <div className="flex space-x-2">
+                <select
+                  id="color"
+                  name="color"
+                  value={newSegment.color}
+                  onChange={handleInputChange}
+                  className="mt-1 block w-full pl-3 pr-10 py-2 text-black border-gray-300 focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm rounded-md"
+                >
                   {colorOptions.map((color) => (
-                    <div
-                      key={color.value}
-                      onClick={() =>
-                        setNewSegment({ ...newSegment, color: color.value })
-                      }
-                      className={`w-8 h-8 rounded-full cursor-pointer border-2 ${
-                        newSegment.color === color.value
-                          ? "border-gray-900"
-                          : "border-transparent"
-                      }`}
-                      style={{ backgroundColor: color.value }}
-                      title={color.name}
-                    />
+                    <option key={color.value} value={color.value}>
+                      {color.name}
+                    </option>
                   ))}
+                </select>
+              </div>
+              <div className="md:col-span-2">
+                <label
+                  htmlFor="description"
+                  className="block text-sm font-medium text-black mb-1"
+                >
+                  설명
+                </label>
+                <textarea
+                  id="description"
+                  name="description"
+                  rows={2}
+                  value={newSegment.description}
+                  onChange={handleInputChange}
+                  className="mt-1 focus:ring-orange-500 focus:border-orange-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                />
+              </div>
+            </div>
+
+            <div className="bg-gray-50 p-4 rounded-lg mb-4">
+              <h4 className="text-md font-medium text-black mb-3">조건 설정</h4>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label
+                    htmlFor="criteria.type"
+                    className="block text-sm font-medium text-black mb-1"
+                  >
+                    유형
+                  </label>
+                  <select
+                    id="criteria.type"
+                    name="criteria.type"
+                    value={newSegment.criteria?.type || "all"}
+                    onChange={handleInputChange}
+                    className="mt-1 block w-full pl-3 pr-10 py-2 text-black border-gray-300 focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm rounded-md"
+                  >
+                    <option value="all">모든 유형</option>
+                    <option value="customer">고객</option>
+                    <option value="singer">가수</option>
+                  </select>
+                </div>
+                <div>
+                  <label
+                    htmlFor="criteria.status"
+                    className="block text-sm font-medium text-black mb-1"
+                  >
+                    상태
+                  </label>
+                  <select
+                    id="criteria.status"
+                    name="criteria.status"
+                    value={newSegment.criteria?.status || "all"}
+                    onChange={handleInputChange}
+                    className="mt-1 block w-full pl-3 pr-10 py-2 text-black border-gray-300 focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm rounded-md"
+                  >
+                    <option value="all">모든 상태</option>
+                    <option value="active">활성</option>
+                    <option value="inactive">비활성</option>
+                  </select>
+                </div>
+                <div>
+                  <label
+                    htmlFor="criteria.grade"
+                    className="block text-sm font-medium text-black mb-1"
+                  >
+                    등급
+                  </label>
+                  <select
+                    id="criteria.grade"
+                    name="criteria.grade"
+                    value={newSegment.criteria?.grade || "all"}
+                    onChange={handleInputChange}
+                    className="mt-1 block w-full pl-3 pr-10 py-2 text-black border-gray-300 focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm rounded-md"
+                  >
+                    <option value="all">모든 등급</option>
+                    <option value="일반">일반</option>
+                    <option value="VIP">VIP</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
+                <div>
+                  <label
+                    htmlFor="criteria.minContractCount"
+                    className="block text-sm font-medium text-black mb-1"
+                  >
+                    최소 계약 수
+                  </label>
+                  <input
+                    type="number"
+                    id="criteria.minContractCount"
+                    name="criteria.minContractCount"
+                    value={newSegment.criteria?.minContractCount || ""}
+                    onChange={handleInputChange}
+                    className="mt-1 focus:ring-orange-500 focus:border-orange-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                    min="0"
+                  />
+                </div>
+                <div>
+                  <label
+                    htmlFor="criteria.maxContractCount"
+                    className="block text-sm font-medium text-black mb-1"
+                  >
+                    최대 계약 수
+                  </label>
+                  <input
+                    type="number"
+                    id="criteria.maxContractCount"
+                    name="criteria.maxContractCount"
+                    value={newSegment.criteria?.maxContractCount || ""}
+                    onChange={handleInputChange}
+                    className="mt-1 focus:ring-orange-500 focus:border-orange-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                    min="0"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
+                <div>
+                  <label
+                    htmlFor="criteria.registrationDateStart"
+                    className="block text-sm font-medium text-black mb-1"
+                  >
+                    등록일 시작
+                  </label>
+                  <input
+                    type="date"
+                    id="criteria.registrationDateStart"
+                    name="criteria.registrationDateStart"
+                    value={
+                      newSegment.criteria?.registrationDateStart
+                        ? new Date(newSegment.criteria.registrationDateStart)
+                            .toISOString()
+                            .split("T")[0]
+                        : ""
+                    }
+                    onChange={handleInputChange}
+                    className="mt-1 focus:ring-orange-500 focus:border-orange-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                  />
+                </div>
+                <div>
+                  <label
+                    htmlFor="criteria.registrationDateEnd"
+                    className="block text-sm font-medium text-black mb-1"
+                  >
+                    등록일 종료
+                  </label>
+                  <input
+                    type="date"
+                    id="criteria.registrationDateEnd"
+                    name="criteria.registrationDateEnd"
+                    value={
+                      newSegment.criteria?.registrationDateEnd
+                        ? new Date(newSegment.criteria.registrationDateEnd)
+                            .toISOString()
+                            .split("T")[0]
+                        : ""
+                    }
+                    onChange={handleInputChange}
+                    className="mt-1 focus:ring-orange-500 focus:border-orange-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                  />
+                </div>
+              </div>
+
+              <div className="mt-3">
+                <label
+                  htmlFor="criteria.lastRequestDate"
+                  className="block text-sm font-medium text-black mb-1"
+                >
+                  마지막 요청일 이전
+                </label>
+                <input
+                  type="date"
+                  id="criteria.lastRequestDate"
+                  name="criteria.lastRequestDate"
+                  value={
+                    newSegment.criteria?.lastRequestDate
+                      ? new Date(newSegment.criteria.lastRequestDate)
+                          .toISOString()
+                          .split("T")[0]
+                      : ""
+                  }
+                  onChange={handleInputChange}
+                  className="mt-1 focus:ring-orange-500 focus:border-orange-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                />
+              </div>
+
+              <div className="mt-4 p-3 bg-orange-50 rounded-lg">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium text-black">
+                    예상 일치 항목:
+                  </span>
+                  <span className="text-lg font-bold text-orange-600">
+                    {updateSegmentPreview()} 명
+                  </span>
                 </div>
               </div>
             </div>
 
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                설명
-              </label>
-              <textarea
-                name="description"
-                value={newSegment.description}
-                onChange={handleInputChange}
-                rows={2}
-                className="w-full border-gray-300 rounded-md shadow-sm focus:border-orange-500 focus:ring-orange-500"
-              />
-            </div>
-
-            <h3 className="text-md font-medium text-gray-700 mb-2">
-              세그먼트 조건
-            </h3>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  유형
-                </label>
-                <select
-                  name="criteria.type"
-                  value={newSegment.criteria?.type}
-                  onChange={handleInputChange}
-                  className="w-full border-gray-300 rounded-md shadow-sm focus:border-orange-500 focus:ring-orange-500"
-                >
-                  <option value="all">모든 유형</option>
-                  <option value="customer">고객</option>
-                  <option value="singer">가수</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  상태
-                </label>
-                <select
-                  name="criteria.status"
-                  value={newSegment.criteria?.status}
-                  onChange={handleInputChange}
-                  className="w-full border-gray-300 rounded-md shadow-sm focus:border-orange-500 focus:ring-orange-500"
-                >
-                  <option value="all">모든 상태</option>
-                  <option value="active">활성</option>
-                  <option value="inactive">비활성</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  등급
-                </label>
-                <select
-                  name="criteria.grade"
-                  value={newSegment.criteria?.grade}
-                  onChange={handleInputChange}
-                  className="w-full border-gray-300 rounded-md shadow-sm focus:border-orange-500 focus:ring-orange-500"
-                >
-                  <option value="all">모든 등급</option>
-                  <option value="일반">일반</option>
-                  <option value="VIP">VIP</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  최소 계약 수
-                </label>
-                <input
-                  type="number"
-                  name="criteria.minContractCount"
-                  value={newSegment.criteria?.minContractCount || ""}
-                  onChange={handleInputChange}
-                  min="0"
-                  className="w-full border-gray-300 rounded-md shadow-sm focus:border-orange-500 focus:ring-orange-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  최대 계약 수
-                </label>
-                <input
-                  type="number"
-                  name="criteria.maxContractCount"
-                  value={newSegment.criteria?.maxContractCount || ""}
-                  onChange={handleInputChange}
-                  min="0"
-                  className="w-full border-gray-300 rounded-md shadow-sm focus:border-orange-500 focus:ring-orange-500"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  등록일 시작
-                </label>
-                <input
-                  type="date"
-                  name="criteria.registrationDateStart"
-                  value={
-                    newSegment.criteria?.registrationDateStart
-                      ? new Date(newSegment.criteria.registrationDateStart)
-                          .toISOString()
-                          .split("T")[0]
-                      : ""
-                  }
-                  onChange={handleInputChange}
-                  className="w-full border-gray-300 rounded-md shadow-sm focus:border-orange-500 focus:ring-orange-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  등록일 종료
-                </label>
-                <input
-                  type="date"
-                  name="criteria.registrationDateEnd"
-                  value={
-                    newSegment.criteria?.registrationDateEnd
-                      ? new Date(newSegment.criteria.registrationDateEnd)
-                          .toISOString()
-                          .split("T")[0]
-                      : ""
-                  }
-                  onChange={handleInputChange}
-                  className="w-full border-gray-300 rounded-md shadow-sm focus:border-orange-500 focus:ring-orange-500"
-                />
-              </div>
-            </div>
-
-            {/* 프리뷰 결과 */}
-            <div className="bg-gray-50 p-4 rounded-md mb-4">
-              <p className="text-sm text-gray-700">
-                <span className="font-medium">예상 결과:</span> 현재 조건에
-                해당하는 엔티티는 약{" "}
-                <span className="font-bold text-orange-600">
-                  {calculateEntityCount(newSegment.criteria || {})}
-                </span>
-                개 입니다.
-              </p>
-            </div>
-
-            <div className="flex justify-end space-x-3 mt-6">
+            <div className="flex justify-end">
               <button
                 type="button"
                 onClick={() => setShowAddForm(false)}
-                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200"
+                className="mr-2 bg-white border border-gray-300 rounded-md shadow-sm py-2 px-4 text-sm font-medium text-black hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
               >
                 취소
               </button>
               <button
                 type="submit"
-                className="px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600"
+                className="bg-orange-500 border border-transparent rounded-md shadow-sm py-2 px-4 text-sm font-medium text-white hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
               >
-                저장
+                세그먼트 저장
               </button>
             </div>
           </form>
         </div>
       )}
 
-      {/* 세그먼트 목록 */}
       {isLoading ? (
-        <div className="flex justify-center items-center h-64">
-          <p className="text-gray-500">데이터를 불러오는 중...</p>
+        <div className="text-center py-12">
+          <svg
+            className="animate-spin h-8 w-8 text-orange-500 mx-auto"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <circle
+              className="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              strokeWidth="4"
+            ></circle>
+            <path
+              className="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+            ></path>
+          </svg>
+          <p className="mt-2 text-black">로딩 중...</p>
         </div>
       ) : segments.length === 0 ? (
-        <div className="bg-white rounded-lg shadow-md p-8 text-center">
-          <p className="text-gray-500 mb-4">세그먼트가 없습니다.</p>
-          <button
-            onClick={() => setShowAddForm(true)}
-            className="px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600"
-          >
-            첫 세그먼트 추가하기
-          </button>
+        <div className="bg-white rounded-lg shadow-md p-6 text-center">
+          <p className="text-black">세그먼트 데이터가 없습니다.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {segments.map((segment) => (
             <div
               key={segment.id}
-              className="bg-white rounded-lg shadow-md overflow-hidden border-t-4"
-              style={{ borderTopColor: segment.color }}
+              className="bg-white rounded-lg shadow-md overflow-hidden transition-all hover:shadow-lg"
             >
-              <div className="p-4">
+              <div
+                className="h-2"
+                style={{ backgroundColor: segment.color }}
+              ></div>
+              <div className="p-5">
                 <div className="flex justify-between items-start">
-                  <h3 className="text-lg font-semibold">{segment.name}</h3>
+                  <h3 className="text-lg font-bold text-black">
+                    {segment.name}
+                  </h3>
                   <div className="flex space-x-2">
                     <button
-                      className="text-gray-400 hover:text-gray-600"
-                      title="편집"
-                    >
-                      <svg
-                        className="w-5 h-5"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                        />
-                      </svg>
-                    </button>
-                    <button
-                      className="text-gray-400 hover:text-red-600"
-                      title="삭제"
                       onClick={() => handleDeleteSegment(segment.id)}
+                      className="text-red-600 hover:text-red-900"
                     >
                       <svg
                         className="w-5 h-5"
@@ -576,99 +657,127 @@ export default function SegmentsPage() {
                     </button>
                   </div>
                 </div>
-                <p className="text-sm text-gray-600 mt-1">
-                  {segment.description}
+                <p className="text-sm text-black mt-1">
+                  {segment.description || "설명이 없습니다."}
                 </p>
 
-                <div className="flex items-center mt-3">
-                  <svg
-                    className="w-5 h-5 text-gray-400 mr-1"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-                    />
-                  </svg>
-                  <span className="text-sm font-medium">
-                    {segment.entityCount} 명
-                  </span>
-                </div>
-              </div>
+                <div className="mt-4">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium text-black">
+                      엔티티 수:
+                    </span>
+                    <span className="text-sm font-bold text-black">
+                      {segment.entityCount}
+                    </span>
+                  </div>
 
-              <div className="px-4 py-3 bg-gray-50 border-t border-gray-100">
-                <h4 className="text-xs font-medium text-gray-500 uppercase mb-2">
-                  세그먼트 조건
-                </h4>
-                <div className="space-y-1">
-                  {segment.criteria.type && segment.criteria.type !== "all" && (
-                    <div className="flex items-center">
-                      <span className="text-xs text-gray-500 w-24">유형:</span>
-                      <span className="text-xs font-medium">
+                  {segment.criteria.type !== "all" && (
+                    <div className="flex justify-between items-center mt-1">
+                      <span className="text-sm font-medium text-black">
+                        유형:
+                      </span>
+                      <span className="text-sm text-black">
                         {segment.criteria.type === "customer" ? "고객" : "가수"}
                       </span>
                     </div>
                   )}
-                  {segment.criteria.status &&
-                    segment.criteria.status !== "all" && (
-                      <div className="flex items-center">
-                        <span className="text-xs text-gray-500 w-24">
-                          상태:
-                        </span>
-                        <span className="text-xs font-medium">
-                          {segment.criteria.status === "active"
-                            ? "활성"
-                            : "비활성"}
-                        </span>
-                      </div>
-                    )}
+
+                  {segment.criteria.status !== "all" && (
+                    <div className="flex justify-between items-center mt-1">
+                      <span className="text-sm font-medium text-black">
+                        상태:
+                      </span>
+                      <span className="text-sm text-black">
+                        {segment.criteria.status === "active"
+                          ? "활성"
+                          : "비활성"}
+                      </span>
+                    </div>
+                  )}
+
                   {segment.criteria.grade &&
                     segment.criteria.grade !== "all" && (
-                      <div className="flex items-center">
-                        <span className="text-xs text-gray-500 w-24">
+                      <div className="flex justify-between items-center mt-1">
+                        <span className="text-sm font-medium text-black">
                           등급:
                         </span>
-                        <span className="text-xs font-medium">
+                        <span className="text-sm text-black">
                           {segment.criteria.grade}
                         </span>
                       </div>
                     )}
+
                   {segment.criteria.minContractCount && (
-                    <div className="flex items-center">
-                      <span className="text-xs text-gray-500 w-24">
-                        최소 계약:
+                    <div className="flex justify-between items-center mt-1">
+                      <span className="text-sm font-medium text-black">
+                        최소 계약 수:
                       </span>
-                      <span className="text-xs font-medium">
-                        {segment.criteria.minContractCount}개
+                      <span className="text-sm text-black">
+                        {segment.criteria.minContractCount}
                       </span>
                     </div>
                   )}
-                  {segment.criteria.registrationDateStart && (
-                    <div className="flex items-center">
-                      <span className="text-xs text-gray-500 w-24">
-                        등록일 이후:
+
+                  {segment.criteria.maxContractCount && (
+                    <div className="flex justify-between items-center mt-1">
+                      <span className="text-sm font-medium text-black">
+                        최대 계약 수:
                       </span>
-                      <span className="text-xs font-medium">
+                      <span className="text-sm text-black">
+                        {segment.criteria.maxContractCount}
+                      </span>
+                    </div>
+                  )}
+
+                  {segment.criteria.lastRequestDate && (
+                    <div className="flex justify-between items-center mt-1">
+                      <span className="text-sm font-medium text-black">
+                        마지막 요청일:
+                      </span>
+                      <span className="text-sm text-black">
+                        {new Date(
+                          segment.criteria.lastRequestDate
+                        ).toLocaleDateString()}{" "}
+                        이전
+                      </span>
+                    </div>
+                  )}
+
+                  {segment.criteria.registrationDateStart && (
+                    <div className="flex justify-between items-center mt-1">
+                      <span className="text-sm font-medium text-black">
+                        등록일 시작:
+                      </span>
+                      <span className="text-sm text-black">
                         {new Date(
                           segment.criteria.registrationDateStart
                         ).toLocaleDateString()}
                       </span>
                     </div>
                   )}
-                </div>
-              </div>
 
-              <div className="bg-white px-4 py-3 border-t border-gray-100 flex justify-between items-center">
-                <span className="text-xs text-gray-500">
-                  {new Date(segment.updatedAt).toLocaleDateString()} 업데이트
-                </span>
-                <button className="text-sm text-orange-600 hover:text-orange-800 font-medium">
-                  목록 보기
-                </button>
+                  {segment.criteria.registrationDateEnd && (
+                    <div className="flex justify-between items-center mt-1">
+                      <span className="text-sm font-medium text-black">
+                        등록일 종료:
+                      </span>
+                      <span className="text-sm text-black">
+                        {new Date(
+                          segment.criteria.registrationDateEnd
+                        ).toLocaleDateString()}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="mt-4 pt-4 border-t border-gray-100 flex justify-between items-center">
+                  <span className="text-xs text-black">
+                    생성일: {new Date(segment.createdAt).toLocaleDateString()}
+                  </span>
+                  <button className="text-orange-600 hover:text-orange-900 text-sm font-medium">
+                    엔티티 보기
+                  </button>
+                </div>
               </div>
             </div>
           ))}

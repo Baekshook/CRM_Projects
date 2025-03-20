@@ -14,7 +14,7 @@ export interface BaseEntity {
   phone: string;
   profileImage: string;
   status: "active" | "inactive";
-  grade: "일반" | "신규";
+  grade: 1 | 2 | 3 | 4 | 5;
   role: string;
   statusMessage: string;
   memo: string;
@@ -54,7 +54,7 @@ export type SortableField = keyof BaseEntity;
 export type ViewMode = "table" | "card";
 
 export type CustomerStatus = "active" | "inactive";
-export type CustomerGrade = "일반" | "신규";
+export type CustomerGrade = 1 | 2 | 3 | 4 | 5;
 export type CustomerRole = "customer" | "singer";
 
 export interface CustomerActionProps {
@@ -92,7 +92,7 @@ export interface CustomerCardProps {
 export interface CustomerFilters {
   search: string;
   status: "all" | "active" | "inactive";
-  grade: "all" | "일반" | "신규";
+  grade: "all" | 1 | 2 | 3 | 4 | 5;
   role: "all" | "customer" | "singer";
   sortBy: keyof BaseEntity;
   sortOrder: "asc" | "desc";

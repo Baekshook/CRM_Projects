@@ -31,14 +31,14 @@ export const menuItems: MenuItem[] = [
     ],
   },
   {
-    name: "요청서 관리",
+    name: "견적 요청서 관리",
     path: "/admin/requests",
     icon: <RequestIcon />,
     subMenus: [
       { name: "전체 요청서", path: "/admin/requests" },
       { name: "진행 중", path: "/admin/requests/in-progress" },
       { name: "완료", path: "/admin/requests/completed" },
-      { name: "취소", path: "/admin/requests/canceled" },
+      { name: "취소", path: "/admin/requests/cancelled" },
     ],
   },
   {
