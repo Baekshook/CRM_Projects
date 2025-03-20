@@ -1,201 +1,387 @@
 "use client";
-import { Customer } from "./types";
 
-interface CustomerTableProps {
-  customers: Customer[];
-  selectedCustomers: string[];
-  selectAll: boolean;
-  onSelectAll: () => void;
-  onSelectCustomer: (id: string) => void;
-  onViewDetail: (id: string) => void;
-  onEdit: (id: string) => void;
-  onDelete: (id: string) => void;
-}
+import { useState } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import {
+  CustomerTableProps,
+  Entity,
+  CustomerEntity,
+  SingerEntity,
+  SortableField,
+} from "./types";
+import { formatDate } from "../../utils/dateUtils";
 
-export const CustomerTable: React.FC<CustomerTableProps> = ({
-  customers,
-  selectedCustomers,
-  selectAll,
+export default function CustomerTable({
+  entities = [],
+  selectedEntities = [],
   onSelectAll,
-  onSelectCustomer,
-  onViewDetail,
+  onSelectEntity,
   onEdit,
   onDelete,
-}) => {
-  // 상태에 따른 배지 색상
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "active":
-        return "bg-green-100 text-green-800";
-      case "inactive":
-        return "bg-gray-100 text-gray-800";
-      default:
-        return "bg-gray-100 text-gray-800";
+  type,
+}: CustomerTableProps) {
+  const [sortField, setSortField] = useState<SortableField>("name");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+  const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
+
+  const handleSort = (field: SortableField) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+    } else {
+      setSortField(field);
+      setSortDirection("asc");
     }
   };
 
-  // 등급에 따른 배지 색상
+  const getStatusColor = (status: string) => {
+    return status === "active"
+      ? "bg-green-100 text-green-800"
+      : "bg-red-100 text-red-800";
+  };
+
   const getGradeColor = (grade: string) => {
-    switch (grade) {
-      case "VVIP":
-        return "bg-red-100 text-red-800";
-      case "VIP":
-        return "bg-purple-100 text-purple-800";
-      case "일반":
-        return "bg-blue-100 text-blue-800";
-      default:
-        return "bg-gray-100 text-gray-800";
+    return grade === "일반"
+      ? "bg-blue-100 text-blue-800"
+      : "bg-yellow-100 text-yellow-800";
+  };
+
+  const getTypeColor = (type: string) => {
+    return type === "customer"
+      ? "bg-indigo-100 text-indigo-800"
+      : "bg-purple-100 text-purple-800";
+  };
+
+  const isCustomer = (entity: Entity): entity is CustomerEntity => {
+    return entity.type === "customer";
+  };
+
+  const isSinger = (entity: Entity): entity is SingerEntity => {
+    return entity.type === "singer";
+  };
+
+  const handleImageError = (id: string) => {
+    setImageErrors((prev) => ({ ...prev, [id]: true }));
+  };
+
+  const renderAvatar = (entity: Entity) => {
+    if (entity.profileImage && !imageErrors[entity.id]) {
+      return (
+        <div className="h-10 w-10 rounded-full bg-gray-200 relative overflow-hidden">
+          <Image
+            src={entity.profileImage}
+            alt={entity.name}
+            fill
+            className="object-cover"
+            onError={() => handleImageError(entity.id)}
+          />
+        </div>
+      );
+    } else {
+      // 이미지가 없거나 오류가 발생한 경우 이니셜 표시
+      return (
+        <div className="h-10 w-10 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center">
+          <span className="text-white font-bold">{entity.name.charAt(0)}</span>
+        </div>
+      );
     }
   };
+
+  const sortedEntities = [...entities].sort((a, b) => {
+    const aValue = a[sortField];
+    const bValue = b[sortField];
+
+    if (typeof aValue === "string" && typeof bValue === "string") {
+      return sortDirection === "asc"
+        ? aValue.localeCompare(bValue)
+        : bValue.localeCompare(aValue);
+    }
+
+    if (typeof aValue === "number" && typeof bValue === "number") {
+      return sortDirection === "asc" ? aValue - bValue : bValue - aValue;
+    }
+
+    if (sortField === "lastRequestDate" || sortField === "registrationDate") {
+      const aDate = new Date(aValue as string);
+      const bDate = new Date(bValue as string);
+      return sortDirection === "asc"
+        ? aDate.getTime() - bDate.getTime()
+        : bDate.getTime() - aDate.getTime();
+    }
+
+    return 0;
+  });
 
   return (
-    <div className="overflow-x-auto bg-white rounded-lg shadow mb-6">
+    <div className="overflow-x-auto rounded-lg shadow">
       <table className="min-w-full divide-y divide-gray-200">
         <thead className="bg-gray-50">
           <tr>
-            <th scope="col" className="px-6 py-3 w-10">
+            <th scope="col" className="px-6 py-3 text-left">
               <input
                 type="checkbox"
                 className="h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded"
-                checked={selectAll}
-                onChange={onSelectAll}
+                checked={
+                  selectedEntities.length === entities.length &&
+                  entities.length > 0
+                }
+                onChange={(e) => onSelectAll(e.target.checked)}
               />
             </th>
             <th
               scope="col"
-              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer group hover:bg-gray-100"
+              onClick={() => handleSort("name")}
             >
-              고객 정보
+              <div className="flex items-center">
+                이름
+                {sortField === "name" && (
+                  <span className="ml-1">
+                    {sortDirection === "asc" ? "↑" : "↓"}
+                  </span>
+                )}
+              </div>
             </th>
             <th
               scope="col"
               className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
             >
-              연락처
+              유형
             </th>
             <th
               scope="col"
               className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
             >
-              등록일
+              {type === "customer" ? "회사" : "소속사"}
             </th>
             <th
               scope="col"
-              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer group hover:bg-gray-100"
+              onClick={() => handleSort("email")}
             >
-              상태
+              <div className="flex items-center">
+                이메일
+                {sortField === "email" && (
+                  <span className="ml-1">
+                    {sortDirection === "asc" ? "↑" : "↓"}
+                  </span>
+                )}
+              </div>
             </th>
             <th
               scope="col"
-              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer group hover:bg-gray-100"
+              onClick={() => handleSort("status")}
             >
-              등급
+              <div className="flex items-center">
+                상태
+                {sortField === "status" && (
+                  <span className="ml-1">
+                    {sortDirection === "asc" ? "↑" : "↓"}
+                  </span>
+                )}
+              </div>
             </th>
             <th
               scope="col"
-              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer group hover:bg-gray-100"
+              onClick={() => handleSort("grade")}
             >
-              요청 내역
+              <div className="flex items-center">
+                등급
+                {sortField === "grade" && (
+                  <span className="ml-1">
+                    {sortDirection === "asc" ? "↑" : "↓"}
+                  </span>
+                )}
+              </div>
             </th>
             <th
               scope="col"
-              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer group hover:bg-gray-100"
+              onClick={() => handleSort("contractCount")}
             >
-              작업
+              <div className="flex items-center">
+                계약 수
+                {sortField === "contractCount" && (
+                  <span className="ml-1">
+                    {sortDirection === "asc" ? "↑" : "↓"}
+                  </span>
+                )}
+              </div>
+            </th>
+            <th
+              scope="col"
+              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer group hover:bg-gray-100"
+              onClick={() => handleSort("lastRequestDate")}
+            >
+              <div className="flex items-center">
+                마지막 요청일
+                {sortField === "lastRequestDate" && (
+                  <span className="ml-1">
+                    {sortDirection === "asc" ? "↑" : "↓"}
+                  </span>
+                )}
+              </div>
+            </th>
+            <th
+              scope="col"
+              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer group hover:bg-gray-100"
+              onClick={() => handleSort("registrationDate")}
+            >
+              <div className="flex items-center">
+                등록일
+                {sortField === "registrationDate" && (
+                  <span className="ml-1">
+                    {sortDirection === "asc" ? "↑" : "↓"}
+                  </span>
+                )}
+              </div>
+            </th>
+            <th scope="col" className="relative px-6 py-3">
+              <span className="sr-only">Actions</span>
             </th>
           </tr>
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
-          {customers.map((customer) => (
-            <tr
-              key={customer.id}
-              className={
-                selectedCustomers.includes(customer.id)
-                  ? "bg-orange-50"
-                  : "hover:bg-gray-50"
-              }
-            >
-              <td className="px-6 py-4 whitespace-nowrap w-10">
+          {sortedEntities.map((entity) => (
+            <tr key={entity.id} className="hover:bg-gray-50 transition-colors">
+              <td className="px-6 py-4 whitespace-nowrap">
                 <input
                   type="checkbox"
                   className="h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded"
-                  checked={selectedCustomers.includes(customer.id)}
-                  onChange={() => onSelectCustomer(customer.id)}
+                  checked={selectedEntities.includes(entity.id)}
+                  onChange={() => onSelectEntity(entity.id)}
                 />
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
                 <div className="flex items-center">
-                  <div>
+                  <div className="flex-shrink-0">{renderAvatar(entity)}</div>
+                  <div className="ml-4">
                     <div className="text-sm font-medium text-gray-900">
-                      {customer.name}
+                      {entity.name}
                     </div>
-                    <div className="text-sm text-gray-500">
-                      {customer.email}
-                    </div>
-                    <div className="text-sm text-gray-500">
-                      {customer.company}
-                    </div>
+                    <div className="text-sm text-gray-500">{entity.phone}</div>
                   </div>
                 </div>
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {customer.phone}
+              <td className="px-6 py-4 whitespace-nowrap">
+                <span
+                  className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getTypeColor(
+                    entity.type
+                  )}`}
+                >
+                  {entity.type === "customer" ? "고객" : "가수"}
+                </span>
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {customer.registrationDate}
+              <td className="px-6 py-4 whitespace-nowrap">
+                <div className="text-sm text-gray-900">
+                  {isCustomer(entity) ? entity.company : entity.agency}
+                </div>
+                <div className="text-sm text-gray-500">
+                  {isCustomer(entity) ? entity.department || "-" : entity.genre}
+                </div>
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap">
+                <div className="text-sm text-gray-900">{entity.email}</div>
+                {entity.statusMessage && (
+                  <div className="text-xs text-gray-500 mt-1 italic">
+                    {entity.statusMessage}
+                  </div>
+                )}
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
                 <span
-                  className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(
-                    customer.status
+                  className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(
+                    entity.status
                   )}`}
                 >
-                  {customer.status === "active" ? "활성" : "비활성"}
+                  {entity.status === "active" ? "활성" : "비활성"}
                 </span>
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
                 <span
-                  className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getGradeColor(
-                    customer.grade
+                  className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getGradeColor(
+                    entity.grade
                   )}`}
                 >
-                  {customer.grade}
+                  {entity.grade}
                 </span>
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                <div>
-                  <div>
-                    {customer.requestCount > 0
-                      ? `${customer.requestCount}건`
-                      : "없음"}
-                  </div>
-                  {customer.requestCount > 0 && (
-                    <div className="text-xs text-gray-400">
-                      최근: {customer.lastRequestDate}
-                    </div>
-                  )}
-                </div>
+                {entity.contractCount}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                <div className="flex space-x-2">
+                {formatDate(entity.lastRequestDate)}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {formatDate(entity.registrationDate)}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                <div className="flex items-center justify-end space-x-3">
                   <button
-                    onClick={() => onViewDetail(customer.id)}
-                    className="text-blue-600 hover:text-blue-800"
+                    onClick={() => onEdit(entity)}
+                    className="text-orange-600 hover:text-orange-900"
+                    title="수정"
                   >
-                    상세
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                      />
+                    </svg>
                   </button>
                   <button
-                    onClick={() => onEdit(customer.id)}
-                    className="text-green-600 hover:text-green-800"
+                    onClick={() => onDelete(entity.id)}
+                    className="text-red-600 hover:text-red-900"
+                    title="삭제"
                   >
-                    수정
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                      />
+                    </svg>
                   </button>
-                  <button
-                    onClick={() => onDelete(customer.id)}
-                    className="text-red-600 hover:text-red-800"
+                  <Link
+                    href={`/${type}s/${entity.id}`}
+                    className="text-blue-600 hover:text-blue-900"
+                    title="상세"
                   >
-                    삭제
-                  </button>
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                      />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                      />
+                    </svg>
+                  </Link>
                 </div>
               </td>
             </tr>
@@ -204,6 +390,4 @@ export const CustomerTable: React.FC<CustomerTableProps> = ({
       </table>
     </div>
   );
-};
-
-export default CustomerTable;
+}

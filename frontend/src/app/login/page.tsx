@@ -4,20 +4,22 @@ import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import BottomNav from "@/components/BottomNav";
-import { api } from "@/utils/api";
-import { API_ENDPOINTS } from "@/config/api";
+import api from "@/lib/api";
+import { toast } from "react-hot-toast";
 
 interface LoginResponse {
-  accessToken: string;
+  access_token: string;
   user: {
     id: string;
+    email: string;
     name: string;
+    role: string;
   };
 }
 
 const LoginPage = () => {
   const router = useRouter();
-  const [id, setId] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [saveId, setSaveId] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -26,7 +28,7 @@ const LoginPage = () => {
     // 저장된 아이디 불러오기
     const savedId = localStorage.getItem("savedId");
     if (savedId) {
-      setId(savedId);
+      setEmail(savedId);
       setSaveId(true);
     }
   }, []);
@@ -41,24 +43,33 @@ const LoginPage = () => {
   const handleLogin = async () => {
     try {
       if (saveId) {
-        localStorage.setItem("savedId", id);
+        localStorage.setItem("savedId", email);
       }
 
-      const response = await api.post<LoginResponse>(API_ENDPOINTS.LOGIN, {
-        id,
+      console.log("로그인 시도:", { email, password });
+
+      const response = await api.post<LoginResponse>("/auth/login", {
+        email,
         password,
       });
 
-      if (response.success && response.data) {
-        // 로그인 성공 시 토큰 저장
-        localStorage.setItem("accessToken", response.data.accessToken);
-        // 홈 화면으로 이동
-        router.push("/");
+      console.log("로그인 응답:", response.data);
+
+      // 로그인 성공 시 토큰 저장
+      localStorage.setItem("token", response.data.access_token);
+
+      toast.success("로그인에 성공했습니다!");
+
+      // admin 역할이라면 어드민 페이지로, 그렇지 않으면 홈 화면으로 이동
+      if (response.data.user.role === "admin") {
+        router.push("/admin");
       } else {
-        setError(response.error || "로그인에 실패했습니다.");
+        router.push("/");
       }
     } catch (error) {
-      setError("서버 오류가 발생했습니다.");
+      console.error("로그인 오류:", error);
+      toast.error("로그인에 실패했습니다.");
+      setError("이메일 또는 비밀번호가 올바르지 않습니다.");
     }
   };
 
@@ -74,10 +85,10 @@ const LoginPage = () => {
           )}
           <div className="space-y-4">
             <input
-              type="text"
-              placeholder="아이디"
-              value={id}
-              onChange={(e) => setId(e.target.value)}
+              type="email"
+              placeholder="이메일"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-black placeholder-gray-400"
             />
             <input

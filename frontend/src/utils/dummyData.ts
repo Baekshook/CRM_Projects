@@ -1,0 +1,657 @@
+// 고객 데이터
+export interface Customer {
+  id: string;
+  type: "customer" | "singer";
+  name: string;
+  company: string;
+  email: string;
+  phone: string;
+  profileImage?: string;
+  statusMessage?: string;
+  address: string;
+  department?: string; // for customers
+  genre?: string; // for singers
+  agency?: string; // for singers
+  grade: "일반" | "신규";
+  memo?: string;
+  assignedTo?: string;
+  status: "active" | "inactive";
+  createdAt: string;
+  requestCount: number;
+  lastRequestDate: string;
+  contractCount: number;
+  reviewCount: number;
+  registrationDate: string;
+  updatedAt: string;
+  role: string;
+}
+
+// 요청서 데이터
+export interface Request {
+  id: string;
+  customerId: string;
+  customerName: string;
+  customerCompany: string;
+  eventType: string;
+  eventDate: string;
+  venue: string;
+  budget: string;
+  requirements: string;
+  status: "pending" | "in_progress" | "completed" | "cancelled";
+  createdAt: string;
+  updatedAt: string;
+  customer: Customer | null;
+  title: string;
+  description: string;
+  eventTime: string;
+}
+
+// 가수 데이터
+export interface Singer {
+  id: string;
+  name: string;
+  agency: string;
+  genre: string;
+  email: string;
+  phone: string;
+  profileImage?: string;
+  statusMessage?: string;
+  address: string;
+  grade: "일반" | "신규";
+  rating: number;
+  status: "active" | "inactive";
+  createdAt: string;
+  contractCount: number;
+  lastRequestDate: string;
+  reviewCount: number;
+  registrationDate: string;
+  updatedAt: string;
+  role: string;
+  genres: string[];
+  experience: number;
+  price: number;
+}
+
+// 매칭 데이터
+export interface Match {
+  id: string;
+  requestId: string;
+  requestTitle: string;
+  customerId: string;
+  customerName: string;
+  customerCompany: string;
+  singerId: string;
+  singerName: string;
+  singerAgency: string;
+  eventDate: string;
+  venue: string;
+  status: "pending" | "negotiating" | "confirmed" | "cancelled";
+  budget: string;
+  requirements: string;
+  createdAt: string;
+  updatedAt: string;
+  request: Request | null;
+  singer: Singer | null;
+  notes: string;
+  price: number;
+}
+
+// 스케줄 데이터
+export interface Schedule {
+  id: string;
+  matchId: string;
+  requestId: string;
+  customerId: string;
+  customerName: string;
+  customerCompany: string;
+  singerId: string;
+  singerName: string;
+  singerAgency: string;
+  eventTitle: string;
+  eventDate: string;
+  startTime: string;
+  endTime: string;
+  venue: string;
+  status: "scheduled" | "in_progress" | "completed" | "cancelled" | "changed";
+  details: string;
+  createdAt: string;
+  updatedAt: string;
+  request: Request | null;
+  match: Match | null;
+  customer: Customer | null;
+  singer: Singer | null;
+}
+
+// 계약 데이터
+export interface Contract {
+  id: string;
+  matchId: string;
+  scheduleId: string;
+  requestId: string;
+  customerId: string;
+  customerName: string;
+  customerCompany: string;
+  singerId: string;
+  singerName: string;
+  singerAgency: string;
+  eventTitle: string;
+  eventDate: string;
+  venue: string;
+  contractAmount: string;
+  paymentStatus: "unpaid" | "partial" | "paid";
+  contractStatus: "draft" | "sent" | "signed" | "completed" | "cancelled";
+  createdAt: string;
+  signedAt?: string;
+}
+
+// 협상 로그 데이터
+export interface NegotiationLog {
+  id: string;
+  matchId: string;
+  date: string;
+  type: string;
+  content: string;
+  user: string;
+}
+
+// 결제 데이터
+export interface Payment {
+  id: string;
+  contractId: string;
+  customerId: string;
+  customerName: string;
+  amount: string;
+  paymentMethod: string;
+  paymentDate: string;
+  status: "pending" | "completed" | "failed" | "refunded";
+}
+
+// 리뷰 데이터
+export interface Review {
+  id: string;
+  contractId: string;
+  customerId: string;
+  customerName: string;
+  singerId: string;
+  singerName: string;
+  rating: number;
+  content: string;
+  createdAt: string;
+  status: "published" | "hidden";
+}
+
+// 실제 더미 데이터
+export const customers: Customer[] = [
+  {
+    id: "CUST-001",
+    type: "customer",
+    name: "김민수",
+    company: "(주)이벤트 플래닝",
+    email: "minsu.kim@eventplanning.com",
+    phone: "010-1234-5678",
+    profileImage: "/images/customers/customer1.jpg",
+    statusMessage: "웨딩 및 기업 행사 전문",
+    address: "서울시 강남구 테헤란로 123",
+    department: "기획팀",
+    grade: "일반",
+    memo: "웨딩 행사를 주로 담당하며 VIP 고객",
+    assignedTo: "이영희 매니저",
+    status: "active",
+    createdAt: "2023-12-15",
+    requestCount: 5,
+    lastRequestDate: "2024-03-15",
+    contractCount: 3,
+    reviewCount: 2,
+    registrationDate: "2023-12-15",
+    updatedAt: "2024-03-15",
+    role: "고객",
+  },
+  {
+    id: "CUST-002",
+    type: "customer",
+    name: "이지영",
+    company: "웨딩 홀 A",
+    email: "jiyoung.lee@weddinghall.com",
+    phone: "010-2345-6789",
+    statusMessage: "월 2-3회 웨딩 행사",
+    address: "서울시 서초구 반포대로 45",
+    department: "웨딩사업부",
+    grade: "일반",
+    memo: "매달 정기적으로 가수 섭외 요청",
+    assignedTo: "김철수 매니저",
+    status: "active",
+    createdAt: "2024-01-05",
+    requestCount: 3,
+    lastRequestDate: "2024-03-10",
+    contractCount: 1,
+    reviewCount: 1,
+    registrationDate: "2024-01-10",
+    updatedAt: "2024-03-10",
+    role: "고객",
+  },
+  {
+    id: "CUST-003",
+    type: "customer",
+    name: "박준호",
+    company: "대학 축제 위원회",
+    email: "junho.park@university.edu",
+    phone: "010-3456-7890",
+    statusMessage: "대학 축제 위원회",
+    address: "서울시 서초구 반포대로 45",
+    department: "축제 위원회",
+    grade: "신규",
+    memo: "대학 축제 위원회",
+    assignedTo: "축제 위원회",
+    status: "active",
+    createdAt: "2024-02-15",
+    requestCount: 1,
+    lastRequestDate: "2024-03-05",
+    contractCount: 0,
+    reviewCount: 0,
+    registrationDate: "2024-02-15",
+    updatedAt: "2024-03-05",
+    role: "고객",
+  },
+  {
+    id: "CUST-004",
+    type: "customer",
+    name: "최유진",
+    company: "(주)테크놀로지",
+    email: "yujin.choi@tech.com",
+    phone: "010-4567-8901",
+    statusMessage: "(주)테크놀로지",
+    address: "서울시 서초구 반포대로 45",
+    department: "기술개발부",
+    grade: "신규",
+    memo: "(주)테크놀로지",
+    assignedTo: "기술개발부",
+    status: "active",
+    createdAt: "2024-02-20",
+    requestCount: 1,
+    lastRequestDate: "2024-03-01",
+    contractCount: 0,
+    reviewCount: 0,
+    registrationDate: "2024-02-20",
+    updatedAt: "2024-03-01",
+    role: "고객",
+  },
+  {
+    id: "CUST-005",
+    type: "customer",
+    name: "권나은",
+    company: "(주)코스메틱 브랜드",
+    email: "naeun.kwon@cosmetic.com",
+    phone: "010-5678-9012",
+    profileImage: "/images/customers/customer5.jpg",
+    statusMessage: "(주)코스메틱 브랜드",
+    address: "서울시 서초구 반포대로 45",
+    department: "마케팅부",
+    grade: "일반",
+    memo: "(주)코스메틱 브랜드",
+    assignedTo: "마케팅부",
+    status: "active",
+    createdAt: "2023-11-20",
+    requestCount: 3,
+    lastRequestDate: "2024-02-28",
+    contractCount: 2,
+    reviewCount: 1,
+    registrationDate: "2023-11-20",
+    updatedAt: "2024-02-28",
+    role: "고객",
+  },
+];
+
+export const singers: Singer[] = [
+  {
+    id: "SINGER-001",
+    name: "김태희",
+    agency: "스타 엔터테인먼트",
+    genre: "발라드",
+    email: "taehee.kim@singers.com",
+    phone: "010-9876-5432",
+    profileImage: "/images/singers/singer1.jpg",
+    statusMessage: "웨딩 축가 전문",
+    address: "서울시 마포구 월드컵북로 50",
+    grade: "일반",
+    rating: 4.8,
+    status: "active",
+    createdAt: "2023-10-01",
+    contractCount: 6,
+    lastRequestDate: "2024-03-15",
+    reviewCount: 5,
+    registrationDate: "2023-10-01",
+    updatedAt: "2024-03-15",
+    role: "가수",
+    genres: ["발라드", "팝"],
+    experience: 5,
+    price: 2000000,
+  },
+  {
+    id: "SINGER-002",
+    name: "이준호",
+    agency: "뮤직 프로덕션",
+    genre: "팝",
+    email: "junho.lee@singers.com",
+    phone: "010-8765-4321",
+    profileImage: "/images/singers/singer2.jpg",
+    statusMessage: "기업 행사 및 축제 전문",
+    address: "서울시 용산구 이태원로 30",
+    grade: "신규",
+    rating: 4.5,
+    status: "active",
+    createdAt: "2024-01-15",
+    contractCount: 2,
+    lastRequestDate: "2024-03-10",
+    reviewCount: 2,
+    registrationDate: "2024-01-15",
+    updatedAt: "2024-03-10",
+    role: "가수",
+    genres: ["힙합", "R&B"],
+    experience: 3,
+    price: 1500000,
+  },
+  {
+    id: "SINGER-003",
+    name: "박서연",
+    agency: "아티스트 매니지먼트",
+    genre: "재즈",
+    email: "seoyeon.park@singers.com",
+    phone: "010-7654-3210",
+    profileImage: "/images/singers/singer3.jpg",
+    statusMessage: "재즈 전문",
+    address: "서울시 강남구 테헤란로 123",
+    grade: "일반",
+    rating: 4.2,
+    status: "active",
+    createdAt: "2023-08-20",
+    contractCount: 10,
+    lastRequestDate: "2024-03-12",
+    reviewCount: 8,
+    registrationDate: "2023-08-20",
+    updatedAt: "2024-03-12",
+    role: "가수",
+    genres: ["재즈", "블루스"],
+    experience: 8,
+    price: 2500000,
+  },
+];
+
+export const requests: Request[] = [
+  {
+    id: "REQ-001",
+    customerId: "CUST-001",
+    customerName: "김민수",
+    customerCompany: "(주)이벤트 플래닝",
+    eventType: "웨딩 축가",
+    eventDate: "2024-05-15",
+    venue: "웨딩홀 A",
+    budget: "3000000",
+    requirements: "축가 2곡, 축하공연 30분",
+    status: "pending",
+    createdAt: "2024-03-15T00:00:00Z",
+    updatedAt: "2024-03-15T00:00:00Z",
+    customer: customers.find((c) => c.id === "CUST-001") || null,
+    title: "웨딩 행사 공연 요청",
+    description: "2024년 5월 웨딩 행사에서 2시간 공연 필요",
+    eventTime: "18:00",
+  },
+  {
+    id: "REQ-002",
+    customerId: "CUST-002",
+    customerName: "이지영",
+    customerCompany: "웨딩 홀 A",
+    eventType: "기업 행사",
+    eventDate: "2024-12-20",
+    venue: "호텔 B 컨퍼런스홀",
+    budget: "2000000",
+    requirements: "연말 파티에서 1시간 공연 필요",
+    status: "pending",
+    createdAt: "2024-03-10T00:00:00Z",
+    updatedAt: "2024-03-10T00:00:00Z",
+    customer: customers.find((c) => c.id === "CUST-002") || null,
+    title: "기업 행사 공연 요청",
+    description: "연말 파티에서 1시간 공연 필요",
+    eventTime: "19:00",
+  },
+  {
+    id: "REQ-003",
+    customerId: "CUST-003",
+    customerName: "박준호",
+    customerCompany: "대학 축제 위원회",
+    eventType: "대학 축제",
+    eventDate: "2024-04-10",
+    venue: "대학 운동장",
+    budget: "1500000",
+    requirements: "봄 축제에서 2시간 공연 필요",
+    status: "pending",
+    createdAt: "2024-03-05T00:00:00Z",
+    updatedAt: "2024-03-05T00:00:00Z",
+    customer: customers.find((c) => c.id === "CUST-003") || null,
+    title: "대학 축제 공연 요청",
+    description: "봄 축제에서 2시간 공연 필요",
+    eventTime: "14:00",
+  },
+  {
+    id: "REQ-004",
+    customerId: "CUST-004",
+    customerName: "최유진",
+    customerCompany: "(주)테크놀로지",
+    eventType: "신제품 런칭",
+    eventDate: "2024-06-01",
+    venue: "컨벤션센터 C",
+    budget: "2500000",
+    requirements: "신제품 런칭 행사에서 1시간 공연 필요",
+    status: "pending",
+    createdAt: "2024-03-01T00:00:00Z",
+    updatedAt: "2024-03-01T00:00:00Z",
+    customer: customers.find((c) => c.id === "CUST-004") || null,
+    title: "제품 런칭 행사 공연 요청",
+    description: "신제품 런칭 행사에서 1시간 공연 필요",
+    eventTime: "15:00",
+  },
+  {
+    id: "REQ-005",
+    customerId: "CUST-005",
+    customerName: "권나은",
+    customerCompany: "(주)코스메틱 브랜드",
+    eventType: "기업 행사",
+    eventDate: "2024-07-15",
+    venue: "호텔 D 컨퍼런스홀",
+    budget: "2000000",
+    requirements: "연간 컨퍼런스에서 1시간 공연 필요",
+    status: "pending",
+    createdAt: "2024-02-28T00:00:00Z",
+    updatedAt: "2024-02-28T00:00:00Z",
+    customer: customers.find((c) => c.id === "CUST-005") || null,
+    title: "기업 컨퍼런스 공연 요청",
+    description: "연간 컨퍼런스에서 1시간 공연 필요",
+    eventTime: "16:00",
+  },
+];
+
+export const matches: Match[] = [
+  {
+    id: "MATCH-001",
+    requestId: "REQ-001",
+    requestTitle: "웨딩 행사 공연 요청",
+    customerId: "CUST-001",
+    customerName: "김민수",
+    customerCompany: "(주)이벤트 플래닝",
+    singerId: "SINGER-001",
+    singerName: "김태희",
+    singerAgency: "스타 엔터테인먼트",
+    eventDate: "2024-05-15",
+    venue: "웨딩홀 A",
+    status: "pending",
+    budget: "2500000",
+    requirements: "축가 2곡, 축하공연 30분",
+    createdAt: "2024-03-15T00:00:00Z",
+    updatedAt: "2024-03-15T00:00:00Z",
+    request: requests.find((r) => r.id === "REQ-001") || null,
+    singer: singers.find((s) => s.id === "SINGER-001") || null,
+    notes: "가수 김태희가 적합해 보입니다.",
+    price: 2500000,
+  },
+  {
+    id: "MATCH-002",
+    requestId: "REQ-002",
+    requestTitle: "기업 행사 공연 요청",
+    customerId: "CUST-002",
+    customerName: "이지영",
+    customerCompany: "웨딩 홀 A",
+    singerId: "SINGER-002",
+    singerName: "이준호",
+    singerAgency: "뮤직 프로덕션",
+    eventDate: "2024-12-20",
+    venue: "호텔 B 컨퍼런스홀",
+    status: "pending",
+    budget: "1800000",
+    requirements: "연말 파티에서 1시간 공연 필요",
+    createdAt: "2024-03-10T00:00:00Z",
+    updatedAt: "2024-03-10T00:00:00Z",
+    request: requests.find((r) => r.id === "REQ-002") || null,
+    singer: singers.find((s) => s.id === "SINGER-002") || null,
+    notes: "가수 이준호가 적합해 보입니다.",
+    price: 1800000,
+  },
+];
+
+export const negotiationLogs: NegotiationLog[] = [
+  {
+    id: "LOG-001",
+    matchId: "MATCH-001",
+    date: "2024-03-20 14:30",
+    type: "price",
+    content: "가격 협상: 5,000,000원 → 4,800,000원",
+    user: "관리자",
+  },
+  {
+    id: "LOG-002",
+    matchId: "MATCH-001",
+    date: "2024-03-19 11:20",
+    type: "note",
+    content: "고객과 통화 완료. 축가 2곡으로 확정",
+    user: "관리자",
+  },
+];
+
+export const schedules: Schedule[] = [
+  {
+    id: "SCHED-001",
+    matchId: "MATCH-001",
+    requestId: "REQ-001",
+    customerId: "CUST-001",
+    customerName: "김민수",
+    customerCompany: "(주)이벤트 플래닝",
+    singerId: "SINGER-001",
+    singerName: "김태희",
+    singerAgency: "스타 엔터테인먼트",
+    eventTitle: "웨딩 축가",
+    eventDate: "2024-05-15",
+    startTime: "13:00",
+    endTime: "14:00",
+    venue: "웨딩홀 A",
+    status: "scheduled",
+    details: "리허설 12:00부터, 웨딩홀 3층 그랜드볼룸",
+    createdAt: "2024-03-22T00:00:00Z",
+    updatedAt: "2024-03-22T00:00:00Z",
+    request: requests.find((r) => r.id === "REQ-001") || null,
+    match: matches.find((m) => m.id === "MATCH-001") || null,
+    customer: customers.find((c) => c.id === "CUST-001") || null,
+    singer: singers.find((s) => s.id === "SINGER-001") || null,
+  },
+  {
+    id: "SCHED-002",
+    matchId: "MATCH-002",
+    requestId: "REQ-002",
+    customerId: "CUST-002",
+    customerName: "이지영",
+    customerCompany: "웨딩 홀 A",
+    singerId: "SINGER-002",
+    singerName: "이준호",
+    singerAgency: "뮤직 프로덕션",
+    eventTitle: "기업 행사",
+    eventDate: "2024-12-20",
+    startTime: "18:00",
+    endTime: "20:00",
+    venue: "호텔 B 컨퍼런스홀",
+    status: "scheduled",
+    details: "무대 세팅 16:00부터, 사인회 20:30~21:00",
+    createdAt: "2024-03-21T00:00:00Z",
+    updatedAt: "2024-03-21T00:00:00Z",
+    request: requests.find((r) => r.id === "REQ-002") || null,
+    match: matches.find((m) => m.id === "MATCH-002") || null,
+    customer: customers.find((c) => c.id === "CUST-002") || null,
+    singer: singers.find((s) => s.id === "SINGER-002") || null,
+  },
+];
+
+export const contracts: Contract[] = [
+  {
+    id: "CONT-001",
+    matchId: "MATCH-001",
+    scheduleId: "SCHED-001",
+    requestId: "REQ-001",
+    customerId: "CUST-001",
+    customerName: "김민수",
+    customerCompany: "(주)이벤트 플래닝",
+    singerId: "SINGER-001",
+    singerName: "가수 A",
+    singerAgency: "엔터테인먼트 A",
+    eventTitle: "웨딩 축가",
+    eventDate: "2024-06-15",
+    venue: "웨딩홀 A",
+    contractAmount: "4800000",
+    paymentStatus: "partial",
+    contractStatus: "signed",
+    createdAt: "2024-03-23",
+    signedAt: "2024-03-25",
+  },
+  {
+    id: "CONT-002",
+    matchId: "MATCH-002",
+    scheduleId: "SCHED-002",
+    requestId: "REQ-002",
+    customerId: "CUST-002",
+    customerName: "이지영",
+    customerCompany: "웨딩 홀 A",
+    singerId: "SINGER-002",
+    singerName: "가수 B",
+    singerAgency: "엔터테인먼트 B",
+    eventTitle: "기업 행사",
+    eventDate: "2024-07-01",
+    venue: "컨퍼런스 센터",
+    contractAmount: "8000000",
+    paymentStatus: "unpaid",
+    contractStatus: "sent",
+    createdAt: "2024-03-22",
+  },
+];
+
+export const payments: Payment[] = [
+  {
+    id: "PAY-001",
+    contractId: "CONT-001",
+    customerId: "CUST-001",
+    customerName: "김민수",
+    amount: "2400000",
+    paymentMethod: "신용카드",
+    paymentDate: "2024-03-26",
+    status: "completed",
+  },
+];
+
+export const reviews: Review[] = [
+  {
+    id: "REV-001",
+    contractId: "CONT-001",
+    customerId: "CUST-001",
+    customerName: "김민수",
+    singerId: "SINGER-001",
+    singerName: "가수 A",
+    rating: 5,
+    content: "매우 만족스러운 공연이었습니다. 추천합니다!",
+    createdAt: "2024-03-30",
+    status: "published",
+  },
+];

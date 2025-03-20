@@ -111,12 +111,11 @@ export default function CustomerDetailPage({
     grade:
       customerId === "CUST-001" ||
       customerId === "CUST-004" ||
+      customerId === "CUST-006" ||
       customerId === "CUST-007" ||
       customerId === "CUST-010"
-        ? "VIP"
-        : customerId === "CUST-006" || customerId === "CUST-011"
-        ? "VVIP"
-        : "일반",
+        ? "일반"
+        : "신규",
     address: "서울특별시 강남구 테헤란로 123",
     contactHistory: [
       {
@@ -203,11 +202,9 @@ export default function CustomerDetailPage({
   // 등급에 따른 배지 색상
   const getGradeColor = (grade: string) => {
     switch (grade) {
-      case "VVIP":
-        return "bg-red-100 text-red-800";
-      case "VIP":
-        return "bg-purple-100 text-purple-800";
       case "일반":
+        return "bg-green-100 text-green-800";
+      case "신규":
         return "bg-blue-100 text-blue-800";
       default:
         return "bg-gray-100 text-gray-800";

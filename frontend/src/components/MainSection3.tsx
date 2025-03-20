@@ -2,9 +2,18 @@ import Image from "next/image";
 
 const MainSection3 = () => {
   const services = [
-    { title: "맞춤 추천", image: "/recommend.jpg" },
-    { title: "실시간 상담", image: "/consult.jpg" },
-    { title: "후기 확인", image: "/review.jpg" },
+    {
+      title: "맞춤 추천",
+      image: "https://via.placeholder.com/300x200?text=Recommend",
+    },
+    {
+      title: "실시간 상담",
+      image: "https://via.placeholder.com/300x200?text=Consult",
+    },
+    {
+      title: "후기 확인",
+      image: "https://via.placeholder.com/300x200?text=Review",
+    },
   ];
 
   return (
@@ -22,6 +31,7 @@ const MainSection3 = () => {
                   alt={service.title}
                   fill
                   className="object-cover"
+                  unoptimized
                 />
               </div>
             </div>

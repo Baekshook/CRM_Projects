@@ -1,139 +1,158 @@
 "use client";
-import { useState, ChangeEvent } from "react";
+import { useState } from "react";
+import { CustomerFilters, EntityType } from "./types";
 
 interface CustomerFilterProps {
-  statusFilter: string;
-  setStatusFilter: (status: string) => void;
-  gradeFilter: string;
-  setGradeFilter: (grade: string) => void;
-  searchQuery: string;
-  setSearchQuery: (query: string) => void;
+  onFilterChange: (filters: CustomerFilters) => void;
+  type: EntityType;
 }
 
-export const CustomerFilter: React.FC<CustomerFilterProps> = ({
-  statusFilter,
-  setStatusFilter,
-  gradeFilter,
-  setGradeFilter,
-  searchQuery,
-  setSearchQuery,
-}) => {
-  const handleSearchChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(e.target.value);
+export default function CustomerFilter({
+  onFilterChange,
+  type,
+}: CustomerFilterProps) {
+  const [filters, setFilters] = useState<CustomerFilters>({
+    search: "",
+    status: "all",
+    grade: "all",
+    role: "all",
+    sortBy: "name",
+    sortOrder: "asc",
+  });
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    const { name, value } = e.target;
+    const newFilters = { ...filters, [name]: value };
+    setFilters(newFilters);
+    onFilterChange(newFilters);
   };
 
   return (
-    <div className="flex flex-col md:flex-row justify-between mb-6">
-      <div className="flex flex-wrap items-center mb-4 md:mb-0">
-        {/* 상태 필터 버튼 */}
+    <div className="bg-white p-4 rounded-lg shadow-md">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <div>
-          <span className="text-sm font-medium text-gray-700 mr-2">상태:</span>
-          <button
-            className={`px-4 py-2 rounded-md text-sm font-medium ${
-              statusFilter === "all"
-                ? "bg-orange-500 text-white"
-                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-            }`}
-            onClick={() => setStatusFilter("all")}
+          <label
+            htmlFor="search"
+            className="block text-sm font-medium text-gray-700"
           >
-            전체
-          </button>
-          <button
-            className={`ml-2 px-4 py-2 rounded-md text-sm font-medium ${
-              statusFilter === "active"
-                ? "bg-green-500 text-white"
-                : "bg-green-100 text-green-800 hover:bg-green-200"
-            }`}
-            onClick={() => setStatusFilter("active")}
-          >
-            활성
-          </button>
-          <button
-            className={`ml-2 px-4 py-2 rounded-md text-sm font-medium ${
-              statusFilter === "inactive"
-                ? "bg-gray-500 text-white"
-                : "bg-gray-100 text-gray-800 hover:bg-gray-200"
-            }`}
-            onClick={() => setStatusFilter("inactive")}
-          >
-            비활성
-          </button>
+            검색
+          </label>
+          <input
+            type="text"
+            id="search"
+            name="search"
+            value={filters.search}
+            onChange={handleChange}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm"
+            placeholder="이름, 이메일, 전화번호..."
+          />
         </div>
 
-        {/* 등급 필터 버튼 */}
-        <div className="ml-4">
-          <span className="text-sm font-medium text-gray-700 mr-2">등급:</span>
-          <button
-            className={`px-4 py-2 rounded-md text-sm font-medium ${
-              gradeFilter === "all"
-                ? "bg-orange-500 text-white"
-                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-            }`}
-            onClick={() => setGradeFilter("all")}
+        <div>
+          <label
+            htmlFor="status"
+            className="block text-sm font-medium text-gray-700"
           >
-            전체
-          </button>
-          <button
-            className={`ml-2 px-4 py-2 rounded-md text-sm font-medium ${
-              gradeFilter === "일반"
-                ? "bg-blue-500 text-white"
-                : "bg-blue-100 text-blue-800 hover:bg-blue-200"
-            }`}
-            onClick={() => setGradeFilter("일반")}
+            상태
+          </label>
+          <select
+            id="status"
+            name="status"
+            value={filters.status}
+            onChange={handleChange}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm"
           >
-            일반
-          </button>
-          <button
-            className={`ml-2 px-4 py-2 rounded-md text-sm font-medium ${
-              gradeFilter === "VIP"
-                ? "bg-purple-500 text-white"
-                : "bg-purple-100 text-purple-800 hover:bg-purple-200"
-            }`}
-            onClick={() => setGradeFilter("VIP")}
-          >
-            VIP
-          </button>
-          <button
-            className={`ml-2 px-4 py-2 rounded-md text-sm font-medium ${
-              gradeFilter === "VVIP"
-                ? "bg-red-500 text-white"
-                : "bg-red-100 text-red-800 hover:bg-red-200"
-            }`}
-            onClick={() => setGradeFilter("VVIP")}
-          >
-            VVIP
-          </button>
+            <option value="all">전체</option>
+            <option value="active">활성</option>
+            <option value="inactive">비활성</option>
+          </select>
         </div>
-      </div>
 
-      {/* 검색 */}
-      <div className="relative w-full md:w-96">
-        <input
-          type="text"
-          placeholder="고객명, 이메일, 회사명 검색"
-          className="w-full rounded-md border border-gray-300 py-2 pl-10 pr-3 focus:outline-none focus:ring-2 focus:ring-orange-500"
-          value={searchQuery}
-          onChange={handleSearchChange}
-        />
-        <div className="absolute left-3 top-2.5 text-gray-400">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-5 w-5"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
+        <div>
+          <label
+            htmlFor="grade"
+            className="block text-sm font-medium text-gray-700"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-            />
-          </svg>
+            등급
+          </label>
+          <select
+            id="grade"
+            name="grade"
+            value={filters.grade}
+            onChange={handleChange}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm"
+          >
+            <option value="all">전체</option>
+            <option value="일반">일반</option>
+            <option value="신규">신규</option>
+          </select>
+        </div>
+
+        <div>
+          <label
+            htmlFor="role"
+            className="block text-sm font-medium text-gray-700"
+          >
+            유형
+          </label>
+          <select
+            id="role"
+            name="role"
+            value={filters.role}
+            onChange={handleChange}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm"
+          >
+            <option value="all">전체</option>
+            <option value="customer">고객</option>
+            <option value="singer">가수</option>
+          </select>
+        </div>
+
+        <div>
+          <label
+            htmlFor="sortBy"
+            className="block text-sm font-medium text-gray-700"
+          >
+            정렬 기준
+          </label>
+          <select
+            id="sortBy"
+            name="sortBy"
+            value={filters.sortBy}
+            onChange={handleChange}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm"
+          >
+            <option value="name">이름</option>
+            <option value="email">이메일</option>
+            <option value="status">상태</option>
+            <option value="grade">등급</option>
+            <option value="contractCount">계약 수</option>
+            <option value="lastRequestDate">마지막 요청일</option>
+            <option value="registrationDate">등록일</option>
+          </select>
+        </div>
+
+        <div>
+          <label
+            htmlFor="sortOrder"
+            className="block text-sm font-medium text-gray-700"
+          >
+            정렬 순서
+          </label>
+          <select
+            id="sortOrder"
+            name="sortOrder"
+            value={filters.sortOrder}
+            onChange={handleChange}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm"
+          >
+            <option value="asc">오름차순</option>
+            <option value="desc">내림차순</option>
+          </select>
         </div>
       </div>
     </div>
   );
-};
-
-export default CustomerFilter;
+}

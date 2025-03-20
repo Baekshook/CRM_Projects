@@ -2,14 +2,29 @@ import Image from "next/image";
 
 const MainSection2 = () => {
   const items = [
-    { title: "공연팀 MC", image: "/mc.jpg" },
-    { title: "연예인", image: "/celebrity.jpg" },
-    { title: "결혼식 MC", image: "/wedding.jpg" },
-    { title: "돌잔치 MC", image: "/dol.jpg" },
-    { title: "시스템", image: "/system.jpg" },
-    { title: "음향", image: "/sound.jpg" },
-    { title: "조명", image: "/light.jpg" },
-    { title: "기타", image: "/etc.jpg" },
+    {
+      title: "공연팀 MC",
+      image: "https://via.placeholder.com/300x200?text=MC",
+    },
+    {
+      title: "연예인",
+      image: "https://via.placeholder.com/300x200?text=Celebrity",
+    },
+    {
+      title: "결혼식 MC",
+      image: "https://via.placeholder.com/300x200?text=Wedding",
+    },
+    {
+      title: "돌잔치 MC",
+      image: "https://via.placeholder.com/300x200?text=Dol",
+    },
+    {
+      title: "시스템",
+      image: "https://via.placeholder.com/300x200?text=System",
+    },
+    { title: "음향", image: "https://via.placeholder.com/300x200?text=Sound" },
+    { title: "조명", image: "https://via.placeholder.com/300x200?text=Light" },
+    { title: "기타", image: "https://via.placeholder.com/300x200?text=Etc" },
   ];
 
   return (
@@ -24,6 +39,7 @@ const MainSection2 = () => {
                   alt={item.title}
                   fill
                   className="object-cover"
+                  unoptimized
                 />
               </div>
             </div>

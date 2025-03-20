@@ -23,9 +23,11 @@ export const menuItems: MenuItem[] = [
     path: "/admin/customers",
     icon: <CustomerIcon />,
     subMenus: [
-      { name: "고객 목록", path: "/admin/customers" },
-      { name: "활성 고객", path: "/admin/customers?status=active" },
-      { name: "VIP 고객", path: "/admin/customers?grade=VIP" },
+      { name: "고객/가수 목록", path: "/admin/customers" },
+      { name: "고객 상호작용", path: "/admin/customers/interactions" },
+      { name: "고객 세그먼트", path: "/admin/customers/segments" },
+      { name: "계약 분석", path: "/admin/customers/contract-analysis" },
+      { name: "고객 피드백", path: "/admin/customers/feedback" },
     ],
   },
   {

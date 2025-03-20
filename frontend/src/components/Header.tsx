@@ -36,17 +36,20 @@ const Header = ({
           </button>
         ) : (
           <Image
-            src="/logo.png"
+            src="https://via.placeholder.com/40x40?text=CRM"
             alt="로고"
             width={40}
             height={40}
             className="rounded-full"
+            unoptimized
           />
         )}
       </div>
       {title && (
         <div className="absolute left-1/2 transform -translate-x-1/2">
-          <h1 className={`text-lg font-semibold text-black ${titleColor}`}>{title}</h1>
+          <h1 className={`text-lg font-semibold text-black ${titleColor}`}>
+            {title}
+          </h1>
         </div>
       )}
       <div className="flex items-center">
