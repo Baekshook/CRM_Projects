@@ -2,25 +2,13 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-
-// 협상 타입 정의
-interface Negotiation {
-  id: string;
-  requestId: string;
-  requestTitle: string;
-  customer: string;
-  customerContact: string;
-  singer: string;
-  agency: string;
-  agencyContact: string;
-  price: string;
-  status: string;
-  lastUpdate: string;
-  dueDate: string;
-  eventDate: string;
-  eventLocation: string;
-  details: string;
-}
+import {
+  matches,
+  negotiationLogs,
+  customers,
+  singers,
+  requests,
+} from "@/utils/dummyData";
 
 // 메시지 타입 정의
 interface Message {
@@ -38,138 +26,92 @@ export default function NegotiationDetailPage() {
   const negotiationId = params.id as string;
 
   // 상태
-  const [negotiation, setNegotiation] = useState<Negotiation | null>(null);
+  const [match, setMatch] = useState<any | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState<string>("");
   const [activeTab, setActiveTab] = useState<string>("details");
   const [statusOptions] = useState<string[]>([
-    "견적 제안",
-    "협상 중",
-    "계약 대기",
-    "계약 완료",
-    "취소",
+    "pending",
+    "negotiating",
+    "confirmed",
+    "cancelled",
   ]);
   const [newStatus, setNewStatus] = useState<string>("");
   const [newPrice, setNewPrice] = useState<string>("");
-
-  // 샘플 협상 데이터
-  const sampleNegotiations: Negotiation[] = [
-    {
-      id: "NEG-001",
-      requestId: "REQ-001",
-      requestTitle: "2023 연말 기업 행사",
-      customer: "(주)이벤트 플래닝",
-      customerContact: "김담당 / 010-1234-5678 / event@planning.com",
-      singer: "가수 A",
-      agency: "엔터테인먼트 A",
-      agencyContact: "박매니저 / 010-8765-4321 / manager@entA.com",
-      price: "3,000,000원",
-      status: "협상 중",
-      lastUpdate: "2023-11-16",
-      dueDate: "2023-11-20",
-      eventDate: "2023-12-20",
-      eventLocation: "서울 강남구 삼성동 OO호텔",
-      details:
-        "연말 기업 행사로, 직원들을 위한 공연이 필요합니다. 가요, 댄스 등 다양한 장르의 공연을 원합니다. 행사 시간은 약 2시간이며, 사회자도 함께 요청합니다.",
-    },
-    {
-      id: "NEG-002",
-      requestId: "REQ-002",
-      requestTitle: "12월 결혼식 축가",
-      customer: "웨딩 홀 A",
-      customerContact: "이담당 / 010-2345-6789 / wedding@hallA.com",
-      singer: "가수 B",
-      agency: "엔터테인먼트 B",
-      agencyContact: "최매니저 / 010-9876-5432 / manager@entB.com",
-      price: "1,200,000원",
-      status: "계약 대기",
-      lastUpdate: "2023-11-15",
-      dueDate: "2023-11-18",
-      eventDate: "2023-12-10",
-      eventLocation: "서울 서초구 반포동 OO웨딩홀",
-      details:
-        "결혼식 축가로 발라드 2곡을 요청합니다. 신랑 신부 입장 시와 케이크 커팅 시간에 각각 한 곡씩 불러주시면 됩니다.",
-    },
-  ];
-
-  // 샘플 메시지 데이터
-  const sampleMessages: Message[] = [
-    {
-      id: "MSG-001",
-      sender: "관리자",
-      senderType: "admin",
-      content:
-        "안녕하세요, 요청하신 공연에 대한 견적을 전달드립니다. 가수 A의 공연료는 3,000,000원입니다.",
-      timestamp: "2023-11-14 10:30",
-      isRead: true,
-    },
-    {
-      id: "MSG-002",
-      sender: "김담당 (고객)",
-      senderType: "customer",
-      content:
-        "안녕하세요, 견적 감사합니다. 예산이 조금 부족한데, 2,800,000원으로 가능할까요?",
-      timestamp: "2023-11-14 14:20",
-      isRead: true,
-    },
-    {
-      id: "MSG-003",
-      sender: "박매니저 (소속사)",
-      senderType: "agency",
-      content:
-        "안녕하세요, 문의 주셔서 감사합니다. 공연 시간이 2시간이라 조정이 어렵습니다. 다만, 사회자 비용을 조정해서 2,900,000원까지는 가능합니다.",
-      timestamp: "2023-11-15 09:45",
-      isRead: true,
-    },
-    {
-      id: "MSG-004",
-      sender: "관리자",
-      senderType: "admin",
-      content:
-        "소속사에서 2,900,000원으로 조정 가능하다고 합니다. 어떻게 생각하시나요?",
-      timestamp: "2023-11-15 10:30",
-      isRead: true,
-    },
-    {
-      id: "MSG-005",
-      sender: "김담당 (고객)",
-      senderType: "customer",
-      content: "네, 2,900,000원이면 괜찮을 것 같습니다. 진행해주세요.",
-      timestamp: "2023-11-16 11:15",
-      isRead: false,
-    },
-  ];
+  const [logs, setLogs] = useState<any[]>([]);
 
   // 협상 데이터 로드
   useEffect(() => {
-    // 실제 구현에서는 API 호출로 데이터를 가져옴
-    const foundNegotiation = sampleNegotiations.find(
-      (neg) => neg.id === negotiationId
-    );
-    if (foundNegotiation) {
-      setNegotiation(foundNegotiation);
-      setNewStatus(foundNegotiation.status);
-      setNewPrice(foundNegotiation.price.replace("원", ""));
-      // 메시지 데이터 로드
-      setMessages(sampleMessages);
+    // dummyData.ts에서 매칭 데이터 찾기
+    const foundMatch = matches.find((m) => m.id === negotiationId);
+    if (foundMatch) {
+      setMatch(foundMatch);
+      setNewStatus(foundMatch.status);
+      setNewPrice(foundMatch.price.toString());
+
+      // 해당 매칭의 로그 데이터 조회
+      const matchLogs = negotiationLogs.filter(
+        (log) => log.matchId === negotiationId
+      );
+      setLogs(matchLogs);
+
+      // 메시지 데이터 생성
+      const generatedMessages: Message[] = [];
+
+      // 로그를 기반으로 메시지 생성
+      matchLogs.forEach((log, index) => {
+        const message: Message = {
+          id: `MSG-${index + 1}`,
+          sender: log.user,
+          senderType:
+            log.user === "관리자"
+              ? "admin"
+              : log.user.includes("소속사")
+              ? "agency"
+              : "customer",
+          content: log.content,
+          timestamp: log.date,
+          isRead: true,
+        };
+        generatedMessages.push(message);
+      });
+
+      // 기본 메시지 추가
+      if (generatedMessages.length === 0) {
+        generatedMessages.push({
+          id: "MSG-001",
+          sender: "관리자",
+          senderType: "admin",
+          content: `안녕하세요, 요청하신 공연에 대한 견적을 검토중입니다. 가수 ${
+            foundMatch.singerName
+          }의 공연료는 ${foundMatch.price.toLocaleString()}원 입니다.`,
+          timestamp: new Date().toLocaleString(),
+          isRead: true,
+        });
+      }
+
+      setMessages(generatedMessages);
     } else {
       // 협상이 없으면 목록 페이지로 리다이렉트
+      alert("매칭/협상 정보를 찾을 수 없습니다.");
       router.push("/admin/negotiations");
     }
   }, [negotiationId, router]);
 
   // 상태 변경 처리
   const handleStatusChange = () => {
-    if (negotiation && newStatus && newStatus !== negotiation.status) {
+    if (match && newStatus && newStatus !== match.status) {
       // 실제 구현에서는 API 호출로 상태 업데이트
-      setNegotiation({ ...negotiation, status: newStatus });
+      setMatch({ ...match, status: newStatus });
 
       // 메시지에 상태 변경 기록 추가
       const statusMessage: Message = {
         id: `MSG-${messages.length + 1}`,
         sender: "관리자",
         senderType: "admin",
-        content: `상태가 "${negotiation.status}"에서 "${newStatus}"(으)로 변경되었습니다.`,
+        content: `상태가 "${getStatusText(match.status)}"에서 "${getStatusText(
+          newStatus
+        )}"(으)로 변경되었습니다.`,
         timestamp: new Date().toLocaleString(),
         isRead: true,
       };
@@ -179,18 +121,18 @@ export default function NegotiationDetailPage() {
 
   // 가격 변경 처리
   const handlePriceChange = () => {
-    if (negotiation && newPrice) {
-      const formattedPrice = `${newPrice}원`;
-      if (formattedPrice !== negotiation.price) {
+    if (match && newPrice) {
+      const priceValue = parseInt(newPrice.replace(/,/g, ""));
+      if (priceValue !== match.price) {
         // 실제 구현에서는 API 호출로 가격 업데이트
-        setNegotiation({ ...negotiation, price: formattedPrice });
+        setMatch({ ...match, price: priceValue });
 
         // 메시지에 가격 변경 기록 추가
         const priceMessage: Message = {
           id: `MSG-${messages.length + 1}`,
           sender: "관리자",
           senderType: "admin",
-          content: `제안 금액이 "${negotiation.price}"에서 "${formattedPrice}"(으)로 변경되었습니다.`,
+          content: `제안 금액이 "${match.price.toLocaleString()}원"에서 "${priceValue.toLocaleString()}원"(으)로 변경되었습니다.`,
           timestamp: new Date().toLocaleString(),
           isRead: true,
         };
@@ -218,18 +160,32 @@ export default function NegotiationDetailPage() {
   // 상태에 따른 배지 색상
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "견적 제안":
-        return "bg-blue-100 text-blue-800";
-      case "협상 중":
+      case "pending":
         return "bg-yellow-100 text-yellow-800";
-      case "계약 대기":
-        return "bg-purple-100 text-purple-800";
-      case "계약 완료":
+      case "negotiating":
+        return "bg-blue-100 text-blue-800";
+      case "confirmed":
         return "bg-green-100 text-green-800";
-      case "취소":
+      case "cancelled":
         return "bg-red-100 text-red-800";
       default:
         return "bg-gray-100 text-gray-800";
+    }
+  };
+
+  // 협상 상태 텍스트 변환
+  const getStatusText = (status: string): string => {
+    switch (status) {
+      case "pending":
+        return "견적 검토";
+      case "negotiating":
+        return "협상 중";
+      case "confirmed":
+        return "계약 확정";
+      case "cancelled":
+        return "취소";
+      default:
+        return "알 수 없음";
     }
   };
 
@@ -247,13 +203,28 @@ export default function NegotiationDetailPage() {
     }
   };
 
-  if (!negotiation) {
+  // 날짜 포맷팅 함수
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("ko-KR");
+  };
+
+  if (!match) {
     return (
       <div className="flex justify-center items-center h-64">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-orange-500"></div>
       </div>
     );
   }
+
+  // 매칭에 연결된 요청서 조회
+  const relatedRequest = requests.find((req) => req.id === match.requestId);
+
+  // 관련 고객 정보 조회
+  const customer = customers.find((c) => c.id === match.customerId);
+
+  // 관련 가수 정보 조회
+  const singer = singers.find((s) => s.id === match.singerId);
 
   return (
     <div>
@@ -279,19 +250,19 @@ export default function NegotiationDetailPage() {
               />
             </svg>
           </Link>
-          <h1 className="text-2xl font-bold text-gray-800">협상 상세</h1>
+          <h1 className="text-2xl font-bold text-gray-800">협상 상세 정보</h1>
         </div>
         <div className="flex justify-between items-center">
           <p className="text-gray-600">
-            협상 ID: {negotiation.id} | 마지막 업데이트:{" "}
-            {negotiation.lastUpdate}
+            매칭 ID: {match.id} | 요청서 ID: {match.requestId} | 최근 수정:{" "}
+            {formatDate(match.updatedAt)}
           </p>
           <span
             className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(
-              negotiation.status
+              match.status
             )}`}
           >
-            {negotiation.status}
+            {getStatusText(match.status)}
           </span>
         </div>
       </div>
@@ -307,7 +278,7 @@ export default function NegotiationDetailPage() {
             }`}
             onClick={() => setActiveTab("details")}
           >
-            협상 정보
+            매칭/협상 정보
           </button>
           <button
             className={`py-4 px-1 border-b-2 font-medium text-sm ${
@@ -317,11 +288,17 @@ export default function NegotiationDetailPage() {
             }`}
             onClick={() => setActiveTab("messages")}
           >
-            메시지 (
-            {messages.filter((m) => !m.isRead).length > 0
-              ? `${messages.filter((m) => !m.isRead).length}`
-              : messages.length}
-            )
+            메시지 ({messages.length})
+          </button>
+          <button
+            className={`py-4 px-1 border-b-2 font-medium text-sm ${
+              activeTab === "logs"
+                ? "border-orange-500 text-orange-600"
+                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+            }`}
+            onClick={() => setActiveTab("logs")}
+          >
+            협상 이력
           </button>
         </nav>
       </div>
@@ -331,73 +308,72 @@ export default function NegotiationDetailPage() {
         <div className="bg-white rounded-lg shadow overflow-hidden">
           <div className="p-6">
             <h2 className="text-xl font-bold text-gray-800 mb-4">
-              {negotiation.requestTitle}
+              {match.requestTitle}
             </h2>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
               <div>
                 <h3 className="text-sm font-medium text-gray-500 mb-1">
-                  요청 ID
-                </h3>
-                <p className="text-gray-900">
-                  <Link
-                    href={`/admin/requests/${negotiation.requestId}`}
-                    className="text-orange-600 hover:text-orange-800"
-                  >
-                    {negotiation.requestId}
-                  </Link>
-                </p>
-              </div>
-              <div>
-                <h3 className="text-sm font-medium text-gray-500 mb-1">
-                  현재 제안 금액
-                </h3>
-                <p className="text-gray-900 font-bold">{negotiation.price}</p>
-              </div>
-              <div>
-                <h3 className="text-sm font-medium text-gray-500 mb-1">
-                  행사 일자
-                </h3>
-                <p className="text-gray-900">{negotiation.eventDate}</p>
-              </div>
-              <div>
-                <h3 className="text-sm font-medium text-gray-500 mb-1">
-                  행사 장소
-                </h3>
-                <p className="text-gray-900">{negotiation.eventLocation}</p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-              <div className="bg-blue-50 p-4 rounded-lg">
-                <h3 className="text-sm font-medium text-blue-700 mb-2">
                   고객 정보
                 </h3>
-                <p className="text-gray-900 mb-1">{negotiation.customer}</p>
-                <p className="text-gray-600 text-sm">
-                  {negotiation.customerContact}
-                </p>
+                <div className="text-gray-900">
+                  <p>{match.customerName}</p>
+                  <p className="text-sm text-gray-600">
+                    {match.customerCompany}
+                  </p>
+                  {customer && (
+                    <p className="text-sm text-gray-600 mt-1">
+                      연락처: {customer.phone} | 이메일: {customer.email}
+                    </p>
+                  )}
+                </div>
               </div>
-              <div className="bg-purple-50 p-4 rounded-lg">
-                <h3 className="text-sm font-medium text-purple-700 mb-2">
-                  가수/소속사 정보
+              <div>
+                <h3 className="text-sm font-medium text-gray-500 mb-1">
+                  가수 정보
                 </h3>
-                <p className="text-gray-900 mb-1">
-                  {negotiation.singer} / {negotiation.agency}
-                </p>
-                <p className="text-gray-600 text-sm">
-                  {negotiation.agencyContact}
+                <div className="text-gray-900">
+                  <p>{match.singerName}</p>
+                  <p className="text-sm text-gray-600">{match.singerAgency}</p>
+                  {singer && (
+                    <p className="text-sm text-gray-600 mt-1">
+                      연락처: {singer.phone} | 이메일: {singer.email}
+                    </p>
+                  )}
+                </div>
+              </div>
+              <div>
+                <h3 className="text-sm font-medium text-gray-500 mb-1">
+                  행사 정보
+                </h3>
+                <div className="text-gray-900">
+                  <p>날짜: {formatDate(match.eventDate)}</p>
+                  <p className="text-sm text-gray-600">장소: {match.venue}</p>
+                </div>
+              </div>
+              <div>
+                <h3 className="text-sm font-medium text-gray-500 mb-1">
+                  제안 금액
+                </h3>
+                <p className="text-gray-900 font-semibold">
+                  {match.price.toLocaleString()}원
                 </p>
               </div>
             </div>
 
             <div className="mb-6">
               <h3 className="text-sm font-medium text-gray-500 mb-1">
-                요청 상세 내용
+                요구사항 및 상세 내용
               </h3>
               <p className="text-gray-900 whitespace-pre-line">
-                {negotiation.details}
+                {match.requirements || "요구사항이 없습니다."}
               </p>
+              {match.notes && (
+                <p className="text-gray-900 whitespace-pre-line mt-2">
+                  <strong>메모: </strong>
+                  {match.notes}
+                </p>
+              )}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -407,6 +383,12 @@ export default function NegotiationDetailPage() {
                 </h3>
                 <div className="flex items-end space-x-4">
                   <div className="flex-1">
+                    <label
+                      htmlFor="status"
+                      className="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                      상태
+                    </label>
                     <select
                       id="status"
                       className="w-full rounded-md border border-gray-300 py-2 px-3 focus:outline-none focus:ring-2 focus:ring-orange-500"
@@ -415,7 +397,7 @@ export default function NegotiationDetailPage() {
                     >
                       {statusOptions.map((option) => (
                         <option key={option} value={option}>
-                          {option}
+                          {getStatusText(option)}
                         </option>
                       ))}
                     </select>
@@ -424,7 +406,7 @@ export default function NegotiationDetailPage() {
                     className="bg-orange-500 hover:bg-orange-600 text-white py-2 px-4 rounded-md"
                     onClick={handleStatusChange}
                   >
-                    변경
+                    상태 변경
                   </button>
                 </div>
               </div>
@@ -435,27 +417,26 @@ export default function NegotiationDetailPage() {
                 </h3>
                 <div className="flex items-end space-x-4">
                   <div className="flex-1">
-                    <div className="relative rounded-md shadow-sm">
-                      <input
-                        type="text"
-                        id="price"
-                        className="w-full rounded-md border border-gray-300 py-2 pl-3 pr-12 focus:outline-none focus:ring-2 focus:ring-orange-500"
-                        value={newPrice}
-                        onChange={(e) =>
-                          setNewPrice(e.target.value.replace(/[^0-9,]/g, ""))
-                        }
-                        placeholder="금액 입력"
-                      />
-                      <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                        <span className="text-gray-500 sm:text-sm">원</span>
-                      </div>
-                    </div>
+                    <label
+                      htmlFor="price"
+                      className="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                      제안 금액
+                    </label>
+                    <input
+                      type="text"
+                      id="price"
+                      className="w-full rounded-md border border-gray-300 py-2 px-3 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                      value={newPrice}
+                      onChange={(e) => setNewPrice(e.target.value)}
+                      placeholder="금액 (원)"
+                    />
                   </div>
                   <button
                     className="bg-orange-500 hover:bg-orange-600 text-white py-2 px-4 rounded-md"
                     onClick={handlePriceChange}
                   >
-                    변경
+                    금액 변경
                   </button>
                 </div>
               </div>
@@ -469,61 +450,77 @@ export default function NegotiationDetailPage() {
         <div className="bg-white rounded-lg shadow overflow-hidden">
           <div className="p-6">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg font-bold text-gray-800">메시지 내역</h2>
-              <div className="flex space-x-2">
-                <button className="bg-blue-500 hover:bg-blue-600 text-white py-1 px-3 rounded-md text-sm">
-                  고객에게 메시지
-                </button>
-                <button className="bg-purple-500 hover:bg-purple-600 text-white py-1 px-3 rounded-md text-sm">
-                  소속사에게 메시지
-                </button>
-              </div>
+              <h2 className="text-lg font-bold text-gray-800">
+                커뮤니케이션 기록
+              </h2>
             </div>
 
-            {/* 메시지 목록 */}
-            <div className="space-y-4 mb-6 max-h-96 overflow-y-auto">
-              {messages.map((message) => (
-                <div
-                  key={message.id}
-                  className={`border rounded-lg p-4 ${getMessageStyle(
-                    message.senderType
-                  )}`}
-                >
-                  <div className="flex justify-between items-start mb-2">
-                    <span className="font-medium">{message.sender}</span>
-                    <span className="text-xs text-gray-500">
-                      {message.timestamp}
-                    </span>
+            <div className="mb-6 h-96 overflow-y-auto p-4 border border-gray-200 rounded-lg">
+              <div className="space-y-4">
+                {messages.map((message) => (
+                  <div
+                    key={message.id}
+                    className={`rounded-lg border p-4 ${getMessageStyle(
+                      message.senderType
+                    )}`}
+                  >
+                    <div className="flex justify-between mb-2">
+                      <span className="font-medium">{message.sender}</span>
+                      <span className="text-xs text-gray-500">
+                        {message.timestamp}
+                      </span>
+                    </div>
+                    <p className="text-gray-800">{message.content}</p>
                   </div>
-                  <p className="text-gray-800 whitespace-pre-line">
-                    {message.content}
-                  </p>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
 
-            {/* 메시지 입력 */}
-            <div className="mt-4">
-              <div className="flex items-end space-x-2">
-                <div className="flex-1">
-                  <textarea
-                    className="w-full rounded-md border border-gray-300 py-2 px-3 focus:outline-none focus:ring-2 focus:ring-orange-500"
-                    rows={3}
-                    placeholder="메시지를 입력하세요..."
-                    value={newMessage}
-                    onChange={(e) => setNewMessage(e.target.value)}
-                  ></textarea>
-                </div>
-                <button
-                  className="bg-orange-500 hover:bg-orange-600 text-white py-2 px-4 rounded-md h-12"
-                  onClick={handleSendMessage}
-                >
-                  전송
-                </button>
-              </div>
-              <p className="text-xs text-gray-500 mt-1">
-                * 이 메시지는 고객과 소속사 모두에게 전송됩니다.
-              </p>
+            <div className="flex space-x-2">
+              <input
+                type="text"
+                className="flex-1 rounded-md border border-gray-300 py-2 px-3 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                placeholder="메시지를 입력하세요..."
+                onKeyPress={(e) => {
+                  if (e.key === "Enter") handleSendMessage();
+                }}
+              />
+              <button
+                className="px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
+                onClick={handleSendMessage}
+              >
+                전송
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 협상 이력 탭 */}
+      {activeTab === "logs" && (
+        <div className="bg-white rounded-lg shadow overflow-hidden">
+          <div className="p-6">
+            <h2 className="text-lg font-bold text-gray-800 mb-4">협상 이력</h2>
+
+            <div className="space-y-4">
+              {logs.length > 0 ? (
+                logs.map((log) => (
+                  <div
+                    key={log.id}
+                    className="border-l-4 border-gray-300 pl-4 py-2"
+                  >
+                    <p className="text-gray-900">{log.content}</p>
+                    <div className="flex text-sm text-gray-500 mt-1">
+                      <p>{log.date}</p>
+                      <p className="ml-4">처리자: {log.user}</p>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p className="text-gray-500">협상 이력이 없습니다.</p>
+              )}
             </div>
           </div>
         </div>

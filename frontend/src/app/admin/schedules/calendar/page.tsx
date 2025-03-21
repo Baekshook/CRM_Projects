@@ -41,7 +41,12 @@ export default function CalendarPage() {
     const dateStr = `${currentDate.getFullYear()}-${String(
       currentDate.getMonth() + 1
     ).padStart(2, "0")}-${String(date).padStart(2, "0")}`;
-    return schedules.filter((schedule) => schedule.eventDate === dateStr);
+    return schedules.filter((schedule) => {
+      const scheduleDate = schedule.eventDate.includes("T")
+        ? schedule.eventDate.split("T")[0]
+        : schedule.eventDate;
+      return scheduleDate === dateStr;
+    });
   };
 
   const getStatusBadgeClass = (status: string) => {

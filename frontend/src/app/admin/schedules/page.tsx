@@ -4,20 +4,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { schedules as dummySchedules, Schedule } from "@/utils/dummyData";
 
-// 스케줄/계약 타입 정의
-interface Schedule {
-  id: string;
-  title: string;
-  customer: string;
-  singer: string;
-  date: string;
-  time: string;
-  location: string;
-  status: string;
-  contractStatus: string;
-  paymentStatus: string;
-}
-
 export default function SchedulesPage() {
   const router = useRouter();
   const [schedules, setSchedules] = useState<Schedule[]>([]);
@@ -50,9 +36,11 @@ export default function SchedulesPage() {
     // 검색어 필터
     if (
       searchQuery &&
-      !schedule.title.toLowerCase().includes(searchQuery.toLowerCase()) &&
-      !schedule.customer.toLowerCase().includes(searchQuery.toLowerCase()) &&
-      !schedule.singer.toLowerCase().includes(searchQuery.toLowerCase()) &&
+      !schedule.eventTitle.toLowerCase().includes(searchQuery.toLowerCase()) &&
+      !schedule.customerName
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase()) &&
+      !schedule.singerName.toLowerCase().includes(searchQuery.toLowerCase()) &&
       !schedule.id.toLowerCase().includes(searchQuery.toLowerCase())
     ) {
       return false;
@@ -123,7 +111,9 @@ export default function SchedulesPage() {
     // 해당 날짜의 스케줄 필터링
     const eventsOnDate = schedules.filter((schedule) => {
       // 날짜만 비교 (YYYY-MM-DD)
-      const scheduleDate = schedule.date.split(" ")[0];
+      const scheduleDate = schedule.eventDate.includes("T")
+        ? schedule.eventDate.split("T")[0]
+        : schedule.eventDate;
       return scheduleDate === dateStr;
     });
 
@@ -137,7 +127,9 @@ export default function SchedulesPage() {
       .padStart(2, "0")}-${date.toString().padStart(2, "0")}`;
 
     return schedules.filter((schedule) => {
-      const scheduleDate = schedule.date.split(" ")[0];
+      const scheduleDate = schedule.eventDate.includes("T")
+        ? schedule.eventDate.split("T")[0]
+        : schedule.eventDate;
       return scheduleDate === dateStr;
     });
   };
@@ -259,6 +251,12 @@ export default function SchedulesPage() {
     return monthNames[month - 1];
   };
 
+  // 날짜 포맷팅 함수
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("ko-KR");
+  };
+
   return (
     <div className="pb-10">
       <div className="flex justify-between items-center mb-6">
@@ -310,64 +308,82 @@ export default function SchedulesPage() {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {schedules.map((schedule) => (
-              <tr key={schedule.id}>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                  {schedule.id}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-900">{schedule.title}</div>
-                  <div className="text-sm text-gray-500">
-                    매칭: {schedule.customer}
-                  </div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-900">
-                    {schedule.customer}
-                  </div>
-                  <div className="text-sm text-gray-500">{schedule.singer}</div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-900">{schedule.singer}</div>
-                  <div className="text-sm text-gray-500">
-                    {schedule.location}
-                  </div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-900">{schedule.date}</div>
-                  <div className="text-sm text-gray-500">{schedule.time}</div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {schedule.location}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span
-                    className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusBadgeClass(
-                      schedule.status
-                    )}`}
-                  >
-                    {getStatusText(schedule.status)}
-                  </span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {schedule.date}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <Link
-                    href={`/admin/schedules/${schedule.id}`}
-                    className="text-orange-600 hover:text-orange-900 mr-3"
-                  >
-                    상세
-                  </Link>
-                  <Link
-                    href={`/admin/schedules/${schedule.id}/edit`}
-                    className="text-orange-600 hover:text-orange-900"
-                  >
-                    수정
-                  </Link>
+            {schedules.length === 0 ? (
+              <tr>
+                <td colSpan={9} className="px-6 py-4 text-center text-gray-500">
+                  등록된 일정이 없습니다.
                 </td>
               </tr>
-            ))}
+            ) : (
+              schedules.map((schedule) => (
+                <tr key={schedule.id}>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    {schedule.id}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-900">
+                      {schedule.eventTitle}
+                    </div>
+                    <div className="text-sm text-gray-500">
+                      매칭: {schedule.matchId}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-900">
+                      {schedule.customerName}
+                    </div>
+                    <div className="text-sm text-gray-500">
+                      {schedule.customerCompany}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-900">
+                      {schedule.singerName}
+                    </div>
+                    <div className="text-sm text-gray-500">
+                      {schedule.singerAgency}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-900">
+                      {formatDate(schedule.eventDate)}
+                    </div>
+                    <div className="text-sm text-gray-500">
+                      {schedule.startTime} - {schedule.endTime}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {schedule.venue}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span
+                      className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusBadgeClass(
+                        schedule.status
+                      )}`}
+                    >
+                      {getStatusText(schedule.status)}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {formatDate(schedule.createdAt)}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <Link
+                      href={`/admin/schedules/${schedule.id}`}
+                      className="text-orange-600 hover:text-orange-900 mr-3"
+                    >
+                      상세
+                    </Link>
+                    <Link
+                      href={`/admin/schedules/${schedule.id}/edit`}
+                      className="text-orange-600 hover:text-orange-900"
+                    >
+                      수정
+                    </Link>
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>

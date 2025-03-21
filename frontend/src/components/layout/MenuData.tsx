@@ -47,8 +47,8 @@ export const menuItems: MenuItem[] = [
     icon: <NegotiationIcon />,
     subMenus: [
       { name: "매칭 관리", path: "/admin/negotiations" },
-      { name: "협상 진행", path: "/admin/negotiations/negotiations" },
-      { name: "최종 견적서", path: "/admin/negotiations/final-quotes" },
+      { name: "협상 진행", path: "/admin/negotiations/in-progress" },
+      { name: "최종 견적서", path: "/admin/negotiations/final-quote" },
     ],
   },
   {
