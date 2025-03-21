@@ -5,6 +5,26 @@ import {
 
 export type EntityType = "customer" | "singer";
 
+// 자료 타입 정의
+export type ResourceType = "image" | "document" | "audio" | "video" | "other";
+
+// 자료 항목 인터페이스
+export interface ResourceItem {
+  id: string;
+  entityId: string; // 고객 또는 가수 ID
+  name: string;
+  type: ResourceType;
+  fileUrl: string;
+  fileSize: number;
+  uploadedAt: string;
+  description?: string;
+  category?: string;
+  tags?: string[];
+}
+
+// 가수별 자료 카테고리
+export type SingerResourceCategory = "photo" | "songList" | "mrTrack" | "other";
+
 // 공통 필드 정의
 export interface BaseEntity {
   id: string;
@@ -25,6 +45,7 @@ export interface BaseEntity {
   registrationDate: string;
   updatedAt: string;
   address: string;
+  resources?: ResourceItem[]; // 연결된 자료 목록
 }
 
 // 고객 전용 필드
@@ -43,9 +64,23 @@ export interface SingerEntity extends BaseEntity {
   genres: string[];
   experience: number;
   price: number;
+  highResPhotos?: ResourceItem[]; // 고화질 사진
+  songLists?: ResourceItem[]; // 자기선곡리스트
+  mrTracks?: ResourceItem[]; // MR자료
+  otherResources?: ResourceItem[]; // 기타 자료
 }
 
 export type Entity = CustomerEntity | SingerEntity;
+
+// 자료 필터 인터페이스
+export interface ResourceFilters {
+  search: string;
+  type?: ResourceType;
+  category?: string;
+  entityId?: string;
+  sortBy: "name" | "uploadedAt" | "fileSize";
+  sortOrder: "asc" | "desc";
+}
 
 // 정렬 가능한 필드 타입
 export type SortableField = keyof BaseEntity;

@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import StatCard from "@/components/dashboard/StatCard";
 import DateFilter from "@/components/dashboard/DateFilter";
@@ -18,93 +18,197 @@ import {
   ContractIcon,
   TimeIcon,
 } from "@/components/common/DashboardIcons";
+import {
+  requests,
+  schedules,
+  matches,
+  contracts,
+  negotiationLogs,
+} from "@/utils/dummyData";
 
 export default function AdminDashboard() {
   // 날짜 필터 상태
   const [dateFilter, setDateFilter] = useState<string>("today");
+  const [customStartDate, setCustomStartDate] = useState<string>("");
+  const [customEndDate, setCustomEndDate] = useState<string>("");
+  const [filteredRequests, setFilteredRequests] = useState<typeof requests>([]);
+  const [filteredSchedules, setFilteredSchedules] = useState<typeof schedules>(
+    []
+  );
+  const [filteredMatches, setFilteredMatches] = useState<typeof matches>([]);
+  const [filteredContracts, setFilteredContracts] = useState<typeof contracts>(
+    []
+  );
+  const [requestCount, setRequestCount] = useState<number>(0);
+  const [negotiationCount, setNegotiationCount] = useState<number>(0);
+  const [contractCount, setContractCount] = useState<number>(0);
+  const [avgNegotiationDays, setAvgNegotiationDays] = useState<number>(0);
 
-  // 더미 요청서 데이터
-  const recentRequests: RecentRequestProps[] = [
-    {
-      id: "REQ-018",
-      title: "뮤직 페스티벌 게스트",
-      customer: "OO엔터테인먼트",
-      date: "2025-05-05",
-      status: "검토중",
-    },
-    {
-      id: "REQ-020",
-      title: "IT 컨퍼런스 클로징 공연",
-      customer: "테크 얼라이언스",
-      date: "2025-05-15",
-      status: "요청중",
-    },
-    {
-      id: "REQ-014",
-      title: "브랜드 팝업스토어 이벤트",
-      customer: "(주)패션 그룹",
-      date: "2025-04-30",
-      status: "협상 진행",
-    },
-    {
-      id: "REQ-015",
-      title: "어린이날 특별공연",
-      customer: "OO테마파크",
-      date: "2025-04-20",
-      status: "견적 완료",
-    },
-    {
-      id: "REQ-017",
-      title: "스포츠 브랜드 런칭쇼",
-      customer: "글로벌 스포츠",
-      date: "2025-04-01",
-      status: "협상 진행",
-    },
-  ];
+  // 날짜에 따른 필터링 로직
+  const filterDataByDate = (date: string) => {
+    const today = new Date();
+    const startOfDay = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate()
+    );
+    const endOfDay = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate(),
+      23,
+      59,
+      59
+    );
+
+    let startDate: Date;
+    let endDate: Date;
+
+    switch (dateFilter) {
+      case "today":
+        startDate = startOfDay;
+        endDate = endOfDay;
+        break;
+      case "week":
+        // 현재 날짜부터 7일 전까지
+        startDate = new Date(today);
+        startDate.setDate(today.getDate() - 7);
+        endDate = endOfDay;
+        break;
+      case "month":
+        // 현재 날짜부터 30일 전까지
+        startDate = new Date(today);
+        startDate.setDate(today.getDate() - 30);
+        endDate = endOfDay;
+        break;
+      case "custom":
+        // 사용자 지정 날짜
+        if (customStartDate && customEndDate) {
+          startDate = new Date(customStartDate);
+          endDate = new Date(customEndDate);
+          endDate.setHours(23, 59, 59);
+        } else {
+          return true; // 날짜가 설정되지 않은 경우 모든 데이터 표시
+        }
+        break;
+      default:
+        return true; // 기본값은 모든 데이터 표시
+    }
+
+    const itemDate = new Date(date);
+    return itemDate >= startDate && itemDate <= endDate;
+  };
+
+  // 최근 요청서 데이터
+  const recentRequests: RecentRequestProps[] = filteredRequests
+    .sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    )
+    .slice(0, 5)
+    .map((request) => ({
+      id: request.id,
+      title: request.title,
+      customer: request.customerName,
+      date: new Date(request.createdAt).toLocaleDateString("ko-KR"),
+      status:
+        request.status === "pending"
+          ? "요청 접수"
+          : request.status === "in_progress"
+          ? "협상 진행"
+          : request.status === "completed"
+          ? "계약 완료"
+          : "요청 취소",
+    }));
 
   // 오늘의 스케줄 데이터
-  const todaySchedules: ScheduleItemProps[] = [
-    {
-      id: "REQ-015",
-      title: "어린이날 특별공연 최종 점검",
-      time: "10:00 - 11:00",
-      customer: "OO테마파크",
-      location: "서울 특별시",
-    },
-    {
-      id: "REQ-020",
-      title: "IT 컨퍼런스 견적 논의",
-      time: "13:30 - 14:30",
-      customer: "테크 얼라이언스",
-      location: "부산 광역시",
-    },
-    {
-      id: "REQ-014",
-      title: "팝업스토어 계약서 서명",
-      time: "16:00 - 17:00",
-      customer: "(주)패션 그룹",
-      location: "대구 광역시",
-    },
-  ];
+  const todaySchedules: ScheduleItemProps[] = filteredSchedules.map(
+    (schedule) => ({
+      id: schedule.id,
+      title: schedule.eventTitle,
+      time: `${schedule.startTime} - ${schedule.endTime}`,
+      customer: schedule.customerName,
+      location: schedule.venue,
+    })
+  );
 
-  // 최근 알림 데이터
-  const notifications = [
-    {
-      message: "어린이날 특별공연 계약서 서명이 필요합니다",
-      time: "10분 전",
-      color: "orange" as const,
-    },
-    {
-      message: "스포츠 브랜드 런칭쇼 협상 미팅 요청",
-      time: "1시간 전",
-      color: "blue" as const,
-    },
-    {
-      message: "IT 컨퍼런스 클로징 공연 견적서 검토 완료",
-      time: "3시간 전",
-      color: "green" as const,
-    },
-  ];
+  // 최근 알림 데이터 (협상 로그에서 추출)
+  const notifications = negotiationLogs
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    .slice(0, 5)
+    .map((log) => {
+      let color: "orange" | "blue" | "green" | "red" | "purple" | "gray" =
+        "gray";
+
+      switch (log.type) {
+        case "status_change":
+          color = "blue";
+          break;
+        case "price_change":
+          color = "green";
+          break;
+        case "message":
+          color = "orange";
+          break;
+        default:
+          color = "gray";
+      }
+
+      return {
+        message: log.content,
+        time: new Date(log.date).toLocaleDateString("ko-KR"),
+        color: color,
+      };
+    });
+
+  useEffect(() => {
+    // 날짜 필터에 따라 데이터 필터링
+    const filteredReq = requests.filter((req) =>
+      filterDataByDate(req.createdAt)
+    );
+    const filteredSch = schedules.filter((sch) =>
+      filterDataByDate(sch.eventDate)
+    );
+    const filteredMat = matches.filter((match) =>
+      filterDataByDate(match.createdAt)
+    );
+    const filteredCon = contracts.filter((contract) =>
+      filterDataByDate(contract.createdAt)
+    );
+
+    setFilteredRequests(filteredReq);
+    setFilteredSchedules(filteredSch);
+    setFilteredMatches(filteredMat);
+    setFilteredContracts(filteredCon);
+
+    // 통계 데이터 계산
+    setRequestCount(filteredReq.length);
+    setNegotiationCount(
+      filteredMat.filter((match) => match.status === "negotiating").length
+    );
+    setContractCount(filteredCon.length);
+
+    // 평균 협상 기간 계산 (샘플)
+    const negotiationDays = filteredMat
+      .filter((match) => match.status !== "pending")
+      .map((match) => {
+        const startDate = new Date(match.createdAt);
+        const endDate = new Date(match.updatedAt);
+        const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        return diffDays;
+      });
+
+    const avgDays =
+      negotiationDays.length > 0
+        ? Math.round(
+            negotiationDays.reduce((sum, days) => sum + days, 0) /
+              negotiationDays.length
+          )
+        : 0;
+
+    setAvgNegotiationDays(avgDays);
+  }, [dateFilter, customStartDate, customEndDate]);
 
   return (
     <>
@@ -115,14 +219,21 @@ export default function AdminDashboard() {
       />
 
       {/* 날짜 필터 */}
-      <DateFilter dateFilter={dateFilter} setDateFilter={setDateFilter} />
+      <DateFilter
+        dateFilter={dateFilter}
+        setDateFilter={setDateFilter}
+        customStartDate={customStartDate}
+        customEndDate={customEndDate}
+        setCustomStartDate={setCustomStartDate}
+        setCustomEndDate={setCustomEndDate}
+      />
 
       {/* 통계 카드 */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
         <Link href="/admin/requests">
           <StatCard
             title="전체 요청"
-            value="20건"
+            value={`${requestCount}건`}
             color="border-blue-500"
             icon={<RequestIcon />}
           />
@@ -130,7 +241,7 @@ export default function AdminDashboard() {
         <Link href="/admin/negotiations">
           <StatCard
             title="진행 중인 협상"
-            value="7건"
+            value={`${negotiationCount}건`}
             color="border-yellow-500"
             icon={<NegotiationIcon />}
           />
@@ -138,14 +249,14 @@ export default function AdminDashboard() {
         <Link href="/admin/schedules">
           <StatCard
             title="완료된 계약"
-            value="12건"
+            value={`${contractCount}건`}
             color="border-green-500"
             icon={<ContractIcon />}
           />
         </Link>
         <StatCard
           title="평균 협상 시간"
-          value="5일"
+          value={`${avgNegotiationDays}일`}
           color="border-purple-500"
           icon={<TimeIcon />}
         />

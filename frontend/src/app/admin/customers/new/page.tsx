@@ -14,7 +14,7 @@ export default function NewCustomerPage() {
     phone: "",
     address: "",
     status: "active",
-    grade: "신규",
+    grade: 3, // 1-5 등급으로 변경
     profileImage: "",
     customerType: "customer", // customer 또는 singer
     statusMessage: "",
@@ -84,6 +84,14 @@ export default function NewCustomerPage() {
     if (confirm("입력 중인 정보가 사라집니다. 취소하시겠습니까?")) {
       router.back();
     }
+  };
+
+  // 고객 자료 저장소로 이동
+  const handleResourcesPage = () => {
+    // 실제 앱에서는 고객 ID를 포함하여 이동
+    // 데모에서는 경로만 표시
+    alert("고객 자료 저장소로 이동합니다.");
+    router.push("/admin/customers/resources");
   };
 
   return (
@@ -211,6 +219,29 @@ export default function NewCustomerPage() {
                 <div className="text-right text-sm text-gray-500 mt-1">
                   {customerData.statusMessage.length}/100
                 </div>
+              </div>
+
+              {/* 등급 */}
+              <div className="mb-6">
+                <label
+                  htmlFor="grade"
+                  className="block text-sm font-semibold text-gray-700 mb-2"
+                >
+                  등급
+                </label>
+                <select
+                  id="grade"
+                  name="grade"
+                  value={customerData.grade}
+                  onChange={handleChange}
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-900 font-medium"
+                >
+                  <option value={1}>1등급 (최우수)</option>
+                  <option value={2}>2등급 (우수)</option>
+                  <option value={3}>3등급 (일반)</option>
+                  <option value={4}>4등급 (관심)</option>
+                  <option value={5}>5등급 (신규)</option>
+                </select>
               </div>
             </div>
 
@@ -397,24 +428,133 @@ export default function NewCustomerPage() {
                   className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-900 font-medium h-24 resize-none"
                 />
               </div>
+
+              {/* 가수 관련 추가 정보 */}
+              {customerData.customerType === "singer" && (
+                <div className="mt-8">
+                  <h2 className="text-xl font-bold text-gray-800 mb-6 pb-2 border-b border-gray-200">
+                    가수 자료 관리
+                  </h2>
+
+                  <div className="mb-6">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      고화질 사진
+                    </label>
+                    <div className="flex items-center justify-between border border-gray-300 rounded-lg p-3">
+                      <span className="text-gray-500">
+                        고화질 프로필 사진 업로드
+                      </span>
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/png"
+                        className="hidden"
+                        id="highResPhoto"
+                      />
+                      <label
+                        htmlFor="highResPhoto"
+                        className="cursor-pointer px-3 py-1.5 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200"
+                      >
+                        파일 선택
+                      </label>
+                    </div>
+                  </div>
+
+                  <div className="mb-6">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      자기선곡리스트
+                    </label>
+                    <div className="flex items-center justify-between border border-gray-300 rounded-lg p-3">
+                      <span className="text-gray-500">
+                        가수 선곡 목록 업로드
+                      </span>
+                      <input
+                        type="file"
+                        accept=".pdf,.doc,.docx,.xls,.xlsx"
+                        className="hidden"
+                        id="songList"
+                      />
+                      <label
+                        htmlFor="songList"
+                        className="cursor-pointer px-3 py-1.5 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200"
+                      >
+                        파일 선택
+                      </label>
+                    </div>
+                  </div>
+
+                  <div className="mb-6">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      MR자료
+                    </label>
+                    <div className="flex items-center justify-between border border-gray-300 rounded-lg p-3">
+                      <span className="text-gray-500">MR 파일 업로드</span>
+                      <input
+                        type="file"
+                        accept="audio/*"
+                        className="hidden"
+                        id="mrFile"
+                      />
+                      <label
+                        htmlFor="mrFile"
+                        className="cursor-pointer px-3 py-1.5 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200"
+                      >
+                        파일 선택
+                      </label>
+                    </div>
+                  </div>
+
+                  <div className="mb-6">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      기타 자료
+                    </label>
+                    <div className="flex items-center justify-between border border-gray-300 rounded-lg p-3">
+                      <span className="text-gray-500">추가 자료 업로드</span>
+                      <input
+                        type="file"
+                        className="hidden"
+                        id="otherFiles"
+                        multiple
+                      />
+                      <label
+                        htmlFor="otherFiles"
+                        className="cursor-pointer px-3 py-1.5 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200"
+                      >
+                        파일 선택
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
-          {/* 폼 제출 버튼 */}
-          <div className="flex justify-end space-x-3 pt-6 mt-6 border-t border-gray-200">
-            <button
-              type="button"
-              onClick={handleCancel}
-              className="px-6 py-2.5 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
-            >
-              취소
-            </button>
-            <button
-              type="submit"
-              className="px-6 py-2.5 bg-orange-600 text-white rounded-lg font-medium hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
-            >
-              등록
-            </button>
+          {/* 버튼 영역 */}
+          <div className="flex justify-between mt-10">
+            <div>
+              <button
+                type="button"
+                onClick={handleResourcesPage}
+                className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 mr-4"
+              >
+                {customerData.customerType === "singer" ? "가수" : "고객"} 자료
+                관리
+              </button>
+            </div>
+            <div className="flex gap-4">
+              <button
+                type="button"
+                onClick={handleCancel}
+                className="px-6 py-3 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+              >
+                취소
+              </button>
+              <button
+                type="submit"
+                className="px-6 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
+              >
+                등록하기
+              </button>
+            </div>
           </div>
         </form>
       </div>
