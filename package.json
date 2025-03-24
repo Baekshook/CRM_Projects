@@ -10,11 +10,13 @@
   },
   "private": true,
   "devDependencies": {
+    "@types/node": "^22.13.10",
     "concurrently": "^8.2.2"
   },
   "dependencies": {
     "@nivo/bar": "^0.88.0",
     "@nivo/core": "^0.88.0",
-    "@nivo/pie": "^0.88.0"
+    "@nivo/pie": "^0.88.0",
+    "mysql2": "^3.14.0"
   }
 }
