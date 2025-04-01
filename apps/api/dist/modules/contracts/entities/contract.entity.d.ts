@@ -1,0 +1,34 @@
+import { Customer } from "../../customers/entities/customer.entity";
+import { Singer } from "../../singers/entities/singer.entity";
+import { Request } from "../../requests/entities/request.entity";
+import { Match } from "../../matches/entities/match.entity";
+import { Schedule } from "../../schedules/entities/schedule.entity";
+import { Payment } from "../../payments/entities/payment.entity";
+import { Review } from "../../reviews/entities/review.entity";
+export declare class Contract {
+    id: string;
+    matchId: string;
+    scheduleId: string;
+    requestId: string;
+    customerId: string;
+    customerName: string;
+    customerCompany: string;
+    singerId: string;
+    singerName: string;
+    singerAgency: string;
+    eventTitle: string;
+    eventDate: string;
+    venue: string;
+    contractAmount: string;
+    paymentStatus: "unpaid" | "partial" | "paid";
+    contractStatus: "draft" | "sent" | "signed" | "completed" | "cancelled";
+    createdAt: Date;
+    signedAt: string;
+    customer: Customer;
+    singer: Singer;
+    request: Request;
+    match: Match;
+    schedule: Schedule;
+    payments: Payment[];
+    reviews: Review[];
+}

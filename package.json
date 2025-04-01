@@ -3,10 +3,13 @@
   "version": "1.0.0",
   "description": "CRM 프로젝트",
   "scripts": {
-    "start:backend": "cd backend && npm run start",
-    "start:frontend": "cd frontend && npm run dev",
-    "dev": "concurrently \"npm run start:backend\" \"npm run start:frontend\"",
-    "install:all": "npm install && cd backend && npm install && cd ../frontend && npm install"
+    "start:api": "cd apps/api && npm run start:dev",
+    "start:web": "cd apps/web && npm run dev",
+    "dev": "concurrently \"npm run start:api\" \"npm run start:web\"",
+    "setup:db": "docker-compose up -d postgres",
+    "seed": "cd apps/api && npm run seed",
+    "build": "concurrently \"cd apps/api && npm run build\" \"cd apps/web && npm run build\"",
+    "install:all": "npm install && cd apps/api && npm install && cd ../web && npm install"
   },
   "private": true,
   "devDependencies": {

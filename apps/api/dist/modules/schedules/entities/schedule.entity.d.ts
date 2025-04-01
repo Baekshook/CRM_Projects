@@ -1,0 +1,33 @@
+import { Customer } from "../../customers/entities/customer.entity";
+import { Singer } from "../../singers/entities/singer.entity";
+import { Request } from "../../requests/entities/request.entity";
+import { Match } from "../../matches/entities/match.entity";
+import { Contract } from "../../contracts/entities/contract.entity";
+export declare class Schedule {
+    id: string;
+    scheduledDate: Date;
+    location: string;
+    description: string;
+    matchId: string;
+    requestId: string;
+    customerId: string;
+    customerName: string;
+    customerCompany: string;
+    singerId: string;
+    singerName: string;
+    singerAgency: string;
+    eventTitle: string;
+    eventDate: string;
+    startTime: string;
+    endTime: string;
+    venue: string;
+    status: "scheduled" | "in_progress" | "completed" | "cancelled" | "changed";
+    details: string;
+    request: Request;
+    match: Match;
+    customer: Customer;
+    singer: Singer;
+    contracts: Contract[];
+    createdAt: Date;
+    updatedAt: Date;
+}

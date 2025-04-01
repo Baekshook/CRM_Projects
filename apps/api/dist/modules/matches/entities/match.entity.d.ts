@@ -1,0 +1,32 @@
+import { Customer } from "../../customers/entities/customer.entity";
+import { Singer } from "../../singers/entities/singer.entity";
+import { Request } from "../../requests/entities/request.entity";
+import { Schedule } from "../../schedules/entities/schedule.entity";
+import { Contract } from "../../contracts/entities/contract.entity";
+import { NegotiationLog } from "../../negotiations/entities/negotiation-log.entity";
+export declare class Match {
+    id: string;
+    requestId: string;
+    requestTitle: string;
+    customerId: string;
+    customerName: string;
+    customerCompany: string;
+    singerId: string;
+    singerName: string;
+    singerAgency: string;
+    eventDate: string;
+    venue: string;
+    status: "pending" | "negotiating" | "confirmed" | "cancelled";
+    budget: string;
+    requirements: string;
+    notes: string;
+    price: number;
+    createdAt: Date;
+    updatedAt: Date;
+    request: Request;
+    customer: Customer;
+    singer: Singer;
+    schedules: Schedule[];
+    contracts: Contract[];
+    negotiationLogs: NegotiationLog[];
+}
