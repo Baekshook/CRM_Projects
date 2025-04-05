@@ -3,18 +3,41 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { schedules as dummySchedules, Schedule } from "@/utils/dummyData";
+import { Schedule } from "@/utils/dummyData";
+import { getScheduleByIdTemp, deleteSchedule } from "@/services/schedulesApi";
 
 export default function ScheduleDetailPage() {
   const params = useParams();
   const router = useRouter();
   const [schedule, setSchedule] = useState<Schedule | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState<boolean>(false);
 
   useEffect(() => {
-    // 실제로는 API 호출로 처리
-    const scheduleData = dummySchedules.find((s) => s.id === params.id);
-    if (scheduleData) {
-      setSchedule(scheduleData);
+    const fetchSchedule = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        // 실제 API 연동 시: const data = await getScheduleById(params.id as string);
+        const data = await getScheduleByIdTemp(params.id as string);
+
+        if (!data) {
+          setError("일정 정보를 찾을 수 없습니다.");
+          return;
+        }
+
+        setSchedule(data);
+      } catch (err) {
+        console.error("일정 상세 조회 오류:", err);
+        setError("일정 정보를 불러오는데 실패했습니다.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (params.id) {
+      fetchSchedule();
     }
   }, [params.id]);
 
@@ -52,8 +75,81 @@ export default function ScheduleDetailPage() {
     }
   };
 
+  const handleDelete = async () => {
+    if (!schedule) return;
+
+    const confirmed = window.confirm("정말로 이 일정을 삭제하시겠습니까?");
+    if (!confirmed) return;
+
+    try {
+      setDeleteLoading(true);
+      await deleteSchedule(schedule.id);
+      alert("일정이 삭제되었습니다.");
+      router.push("/admin/schedules");
+    } catch (err) {
+      console.error("일정 삭제 오류:", err);
+      alert("일정 삭제에 실패했습니다.");
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="text-center">
+          <div
+            className="spinner-border inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent"
+            role="status"
+          >
+            <span className="sr-only">로딩중...</span>
+          </div>
+          <p className="mt-2 text-gray-600">일정 정보를 불러오는 중...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="text-center">
+          <div className="text-red-500 text-xl mb-2">⚠️ 오류</div>
+          <p className="text-gray-700">{error}</p>
+          <div className="mt-4 flex justify-center space-x-3">
+            <button
+              className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700"
+              onClick={() => window.location.reload()}
+            >
+              새로고침
+            </button>
+            <Link
+              href="/admin/schedules"
+              className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
+            >
+              목록으로
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (!schedule) {
-    return <div>Loading...</div>;
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="text-center">
+          <div className="text-yellow-500 text-xl mb-2">⚠️ 알림</div>
+          <p className="text-gray-700">존재하지 않는 일정입니다.</p>
+          <Link
+            href="/admin/schedules"
+            className="mt-4 inline-block px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
+          >
+            목록으로
+          </Link>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -70,6 +166,13 @@ export default function ScheduleDetailPage() {
           >
             일정 수정
           </Link>
+          <button
+            onClick={handleDelete}
+            disabled={deleteLoading}
+            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50"
+          >
+            {deleteLoading ? "삭제 중..." : "일정 삭제"}
+          </button>
           <Link
             href="/admin/schedules"
             className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"

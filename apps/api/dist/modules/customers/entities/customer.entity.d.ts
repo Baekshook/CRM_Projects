@@ -4,6 +4,7 @@ import { Schedule } from "../../schedules/entities/schedule.entity";
 import { Contract } from "../../contracts/entities/contract.entity";
 import { Payment } from "../../payments/entities/payment.entity";
 import { Review } from "../../reviews/entities/review.entity";
+import { Feedback } from "../../feedbacks/entities/feedback.entity";
 export declare class Customer {
     id: string;
     type: "customer" | "singer";
@@ -36,4 +37,5 @@ export declare class Customer {
     contracts: Contract[];
     payments: Payment[];
     reviews: Review[];
+    feedbacks: Feedback[];
 }

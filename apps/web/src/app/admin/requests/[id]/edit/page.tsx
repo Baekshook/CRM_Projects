@@ -2,28 +2,14 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
-  requests as dummyRequests,
-  customers as dummyCustomers,
-  singers as dummySingers,
+  getRequestById,
+  getAllCustomers,
+  getAllSingers,
+  updateRequest,
   Customer,
-} from "@/utils/dummyData";
-
-interface Request {
-  id: string;
-  customerId: string;
-  customerName: string;
-  customerCompany: string;
-  title: string;
-  eventType: string;
-  eventDate: string;
-  venue: string;
-  budget: string;
-  requirements: string;
-  status: string;
-  createdAt: string;
-  singerId?: string;
-  singerName?: string;
-}
+  Singer,
+  Request,
+} from "@/services/negotiationsApi";
 
 export default function RequestEditPage({
   params,
@@ -33,8 +19,10 @@ export default function RequestEditPage({
   const router = useRouter();
   const requestId = params.id;
   const [customers, setCustomers] = useState<Customer[]>([]);
-  const [singers, setSingers] = useState<any[]>([]);
-  const [requestData, setRequestData] = useState<Request>({
+  const [singers, setSingers] = useState<Singer[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [requestData, setRequestData] = useState<any>({
     id: "",
     customerId: "",
     customerName: "",
@@ -42,54 +30,100 @@ export default function RequestEditPage({
     title: "",
     eventType: "",
     eventDate: "",
+    eventTime: "",
     venue: "",
     budget: "",
     requirements: "",
+    description: "",
     status: "",
     createdAt: "",
     singerId: "",
-    singerName: "",
   });
 
-  // 고객 목록 로드
+  // 데이터 로드
   useEffect(() => {
-    setCustomers(dummyCustomers);
-    setSingers(dummySingers);
-  }, []);
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
 
-  // 요청서 데이터 로드
-  useEffect(() => {
-    const foundRequest = dummyRequests.find((req) => req.id === requestId);
+        // 데이터 병렬로 로드
+        const [request, customersData, singersData] = await Promise.all([
+          getRequestById(requestId),
+          getAllCustomers(),
+          getAllSingers(),
+        ]);
 
-    if (foundRequest) {
-      setRequestData({
-        id: foundRequest.id,
-        customerId: foundRequest.customerId,
-        customerName: foundRequest.customerName,
-        customerCompany: foundRequest.customerCompany,
-        title: foundRequest.title || "",
-        eventType: foundRequest.eventType,
-        eventDate: foundRequest.eventDate,
-        venue: foundRequest.venue,
-        budget: foundRequest.budget,
-        requirements: foundRequest.requirements || "",
-        status: foundRequest.status,
-        createdAt: foundRequest.createdAt,
-        singerId: foundRequest.singerId || "",
-        singerName: foundRequest.singerName || "",
-      });
-    } else {
-      // 요청서를 찾을 수 없으면 목록 페이지로 리다이렉트
-      alert("요청서를 찾을 수 없습니다.");
-      router.push("/admin/requests");
-    }
-  }, [requestId, router]);
+        if (!request) {
+          throw new Error("요청서를 찾을 수 없습니다.");
+        }
 
-  const handleSubmit = (e: React.FormEvent) => {
+        setRequestData({
+          id: request.id,
+          customerId: request.customerId,
+          customerName: request.customerName || "",
+          customerCompany: request.customerCompany || "",
+          title: request.title || "",
+          eventType: request.eventType || "",
+          eventDate: request.eventDate
+            ? new Date(request.eventDate).toISOString().split("T")[0]
+            : "",
+          eventTime: request.eventTime || "00:00",
+          venue: request.venue || "",
+          budget: request.budget || "",
+          requirements: request.requirements || "",
+          description: request.description || "",
+          status: request.status || "pending",
+          createdAt: request.createdAt,
+          singerId: request.singerId || "",
+        });
+
+        setCustomers(customersData);
+        setSingers(singersData);
+      } catch (err: any) {
+        console.error("데이터 로드 중 오류:", err);
+        setError(
+          err.message || "요청서 데이터를 불러오는 중 오류가 발생했습니다."
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, [requestId]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // API 호출로 처리
-    alert("요청서가 수정되었습니다.");
-    router.push("/admin/requests");
+    try {
+      setLoading(true);
+      setError(null);
+
+      // 선택한 고객 정보 가져오기
+      const selectedCustomer = customers.find(
+        (c) => c.id === requestData.customerId
+      );
+
+      // 업데이트할 데이터 준비
+      const updatedData = {
+        ...requestData,
+        customerName: selectedCustomer?.name || requestData.customerName,
+        customerCompany:
+          selectedCustomer?.company || requestData.customerCompany,
+        updatedAt: new Date().toISOString(),
+      };
+
+      // API 호출로 요청서 업데이트
+      await updateRequest(requestId, updatedData);
+
+      alert("요청서가 수정되었습니다.");
+      router.push(`/admin/requests/${requestId}`);
+    } catch (err: any) {
+      console.error("요청서 수정 중 오류:", err);
+      setError(err.message || "요청서 수정에 실패했습니다.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleCancel = () => {
@@ -111,21 +145,33 @@ export default function RequestEditPage({
   };
 
   const handleSingerChange = (singerId: string) => {
-    const selectedSinger = singers.find((s) => s.id === singerId);
-    if (selectedSinger) {
-      setRequestData({
-        ...requestData,
-        singerId,
-        singerName: selectedSinger.name,
-      });
-    } else {
-      setRequestData({
-        ...requestData,
-        singerId: "",
-        singerName: "",
-      });
-    }
+    setRequestData({
+      ...requestData,
+      singerId: singerId || "",
+    });
   };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-red-50 border border-red-200 text-red-800 p-4 mb-6 rounded-md">
+        <p>{error}</p>
+        <button
+          onClick={() => router.back()}
+          className="mt-4 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+        >
+          뒤로 가기
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="pb-10">
@@ -167,7 +213,8 @@ export default function RequestEditPage({
                 <option value="">고객을 선택하세요</option>
                 {customers.map((customer) => (
                   <option key={customer.id} value={customer.id}>
-                    {customer.name} ({customer.company})
+                    {customer.name}{" "}
+                    {customer.company ? `(${customer.company})` : ""}
                   </option>
                 ))}
               </select>
@@ -186,7 +233,7 @@ export default function RequestEditPage({
                 <option value="">가수를 선택하세요</option>
                 {singers.map((singer) => (
                   <option key={singer.id} value={singer.id}>
-                    {singer.name} ({singer.agency})
+                    {singer.name} {singer.agency ? `(${singer.agency})` : ""}
                   </option>
                 ))}
               </select>
@@ -206,11 +253,11 @@ export default function RequestEditPage({
                 required
               >
                 <option value="">이벤트 유형을 선택하세요</option>
-                <option value="웨딩">웨딩</option>
-                <option value="기업 행사">기업 행사</option>
-                <option value="축제">축제</option>
-                <option value="콘서트">콘서트</option>
-                <option value="기타">기타</option>
+                <option value="wedding">웨딩</option>
+                <option value="corporate">기업 행사</option>
+                <option value="festival">축제</option>
+                <option value="concert">콘서트</option>
+                <option value="other">기타</option>
               </select>
             </div>
 
@@ -224,6 +271,22 @@ export default function RequestEditPage({
                 value={requestData.eventDate}
                 onChange={(e) =>
                   setRequestData({ ...requestData, eventDate: e.target.value })
+                }
+                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-900 font-medium"
+                required
+              />
+            </div>
+
+            {/* 이벤트 시간 */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                이벤트 시간 <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="time"
+                value={requestData.eventTime}
+                onChange={(e) =>
+                  setRequestData({ ...requestData, eventTime: e.target.value })
                 }
                 className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-900 font-medium"
                 required
@@ -252,20 +315,21 @@ export default function RequestEditPage({
                 예산 <span className="text-red-500">*</span>
               </label>
               <input
-                type="number"
+                type="text"
                 value={requestData.budget}
                 onChange={(e) =>
                   setRequestData({ ...requestData, budget: e.target.value })
                 }
                 className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-900 font-medium"
                 required
+                placeholder="예: 1,000,000"
               />
             </div>
 
             {/* 요구사항 */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
-                요구사항
+                요구사항 <span className="text-red-500">*</span>
               </label>
               <textarea
                 value={requestData.requirements}
@@ -276,6 +340,25 @@ export default function RequestEditPage({
                   })
                 }
                 className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-900 font-medium h-32 resize-none"
+                required
+              />
+            </div>
+
+            {/* 상세 설명 */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                상세 설명 <span className="text-red-500">*</span>
+              </label>
+              <textarea
+                value={requestData.description}
+                onChange={(e) =>
+                  setRequestData({
+                    ...requestData,
+                    description: e.target.value,
+                  })
+                }
+                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-900 font-medium h-32 resize-none"
+                required
               />
             </div>
 
@@ -311,9 +394,10 @@ export default function RequestEditPage({
             </button>
             <button
               type="submit"
-              className="px-6 py-2.5 bg-orange-600 text-white rounded-lg font-medium hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
+              disabled={loading}
+              className="px-6 py-2.5 bg-orange-600 text-white rounded-lg font-medium hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:bg-orange-300"
             >
-              저장
+              {loading ? "저장 중..." : "저장"}
             </button>
           </div>
         </form>

@@ -1,59 +1,92 @@
 "use client";
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { Contract, contracts, payments } from "@/utils/dummyData";
+import { Contract } from "@/utils/dummyData";
+import {
+  getContractByIdTemp,
+  deleteContract,
+  signContract,
+} from "@/services/schedulesApi";
 
-export default function ContractDetailsPage({
-  params,
-}: {
-  params: { id: string };
-}) {
+export default function ContractDetailPage() {
+  const params = useParams();
   const router = useRouter();
   const [contract, setContract] = useState<Contract | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const contractId = params.id;
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState<boolean>(false);
+  const [signLoading, setSignLoading] = useState<boolean>(false);
 
   useEffect(() => {
-    // 실제 환경에서는 API 호출로 대체
-    const foundContract = contracts.find((c) => c.id === contractId);
-    setContract(foundContract || null);
-    setIsLoading(false);
-  }, [contractId]);
+    const fetchContract = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        // 실제 API 연동 시: const data = await getContractById(params.id as string);
+        const data = await getContractByIdTemp(params.id as string);
 
-  const formatDate = (dateString: string) => {
-    if (!dateString) return "-";
-    const date = new Date(dateString);
-    return date.toLocaleDateString("ko-KR");
-  };
+        if (!data) {
+          setError("계약 정보를 찾을 수 없습니다.");
+          return;
+        }
 
-  const getContractStatusText = (status: string) => {
-    switch (status) {
-      case "draft":
-        return "초안";
-      case "sent":
-        return "전송됨";
-      case "signed":
-        return "서명됨";
-      case "completed":
-        return "완료";
-      case "cancelled":
-        return "취소";
-      default:
-        return status;
+        setContract(data);
+      } catch (err) {
+        console.error("계약 상세 조회 오류:", err);
+        setError("계약 정보를 불러오는데 실패했습니다.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (params.id) {
+      fetchContract();
+    }
+  }, [params.id]);
+
+  const handleCancel = async () => {
+    if (!contract) return;
+
+    const confirmed = window.confirm("정말로 이 계약을 취소하시겠습니까?");
+    if (!confirmed) return;
+
+    try {
+      setDeleteLoading(true);
+      await deleteContract(contract.id);
+      setContract({ ...contract, contractStatus: "cancelled" });
+      alert("계약이 취소되었습니다.");
+    } catch (err) {
+      console.error("계약 취소 오류:", err);
+      alert("계약 취소에 실패했습니다.");
+    } finally {
+      setDeleteLoading(false);
     }
   };
 
-  const getPaymentStatusText = (status: string) => {
-    switch (status) {
-      case "unpaid":
-        return "미결제";
-      case "partial":
-        return "부분결제";
-      case "paid":
-        return "결제완료";
-      default:
-        return status;
+  const handleSign = async () => {
+    if (!contract) return;
+
+    const confirmed = window.confirm("계약서에 서명하시겠습니까?");
+    if (!confirmed) return;
+
+    try {
+      setSignLoading(true);
+      const signatureData = {
+        signatureDate: new Date().toISOString(),
+      };
+      await signContract(contract.id, signatureData);
+      setContract({
+        ...contract,
+        contractStatus: "signed",
+        signedAt: new Date().toISOString(),
+      });
+      alert("계약서에 서명되었습니다.");
+    } catch (err) {
+      console.error("계약 서명 오류:", err);
+      alert("계약 서명에 실패했습니다.");
+    } finally {
+      setSignLoading(false);
     }
   };
 
@@ -87,45 +120,97 @@ export default function ContractDetailsPage({
     }
   };
 
-  const handleEdit = () => {
-    router.push(`/admin/schedules/contracts/${contractId}/edit`);
-  };
-
-  const handleCancel = () => {
-    if (confirm("정말로 이 계약을 취소하시겠습니까?")) {
-      alert(`계약 ${contractId}가 취소되었습니다.`);
-      // 실제 구현에서는 API 호출 필요
+  const getContractStatusText = (status: string) => {
+    switch (status) {
+      case "draft":
+        return "초안";
+      case "sent":
+        return "전송됨";
+      case "signed":
+        return "서명됨";
+      case "completed":
+        return "완료";
+      case "cancelled":
+        return "취소";
+      default:
+        return status;
     }
   };
 
-  // 계약에 관련된 결제 내역 조회
-  const contractPayments = payments.filter(
-    (payment) => payment.contractId === contractId
-  );
+  const getPaymentStatusText = (status: string) => {
+    switch (status) {
+      case "unpaid":
+        return "미결제";
+      case "partial":
+        return "부분결제";
+      case "paid":
+        return "결제완료";
+      default:
+        return status;
+    }
+  };
 
-  if (isLoading) {
+  // 날짜 포맷팅 함수
+  const formatDate = (dateString: string) => {
+    if (!dateString) return "-";
+    const date = new Date(dateString);
+    return date.toLocaleDateString("ko-KR");
+  };
+
+  if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
-        <p className="text-gray-500">로딩 중...</p>
+        <div className="text-center">
+          <div
+            className="spinner-border inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent"
+            role="status"
+          >
+            <span className="sr-only">로딩중...</span>
+          </div>
+          <p className="mt-2 text-gray-600">계약 정보를 불러오는 중...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="text-center">
+          <div className="text-red-500 text-xl mb-2">⚠️ 오류</div>
+          <p className="text-gray-700">{error}</p>
+          <div className="mt-4 flex justify-center space-x-3">
+            <button
+              className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700"
+              onClick={() => window.location.reload()}
+            >
+              새로고침
+            </button>
+            <Link
+              href="/admin/schedules/contracts"
+              className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
+            >
+              목록으로
+            </Link>
+          </div>
+        </div>
       </div>
     );
   }
 
   if (!contract) {
     return (
-      <div className="bg-white rounded-lg shadow p-6 text-center">
-        <h2 className="text-2xl font-semibold text-gray-700 mb-4">
-          계약 정보를 찾을 수 없습니다
-        </h2>
-        <p className="text-gray-500 mb-6">
-          요청하신 계약 정보가 존재하지 않거나 접근 권한이 없습니다.
-        </p>
-        <Link
-          href="/admin/schedules/contracts"
-          className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700"
-        >
-          계약 목록으로 돌아가기
-        </Link>
+      <div className="flex justify-center items-center h-64">
+        <div className="text-center">
+          <div className="text-yellow-500 text-xl mb-2">⚠️ 알림</div>
+          <p className="text-gray-700">존재하지 않는 계약입니다.</p>
+          <Link
+            href="/admin/schedules/contracts"
+            className="mt-4 inline-block px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
+          >
+            목록으로
+          </Link>
+        </div>
       </div>
     );
   }
@@ -134,225 +219,321 @@ export default function ContractDetailsPage({
     <div className="pb-10">
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">계약 상세 정보</h1>
-          <p className="text-gray-600 mt-1">계약 ID: {contract.id}</p>
+          <h1 className="text-2xl font-bold text-gray-800">계약 상세</h1>
+          <p className="text-gray-600 mt-1">계약 번호: {contract.id}</p>
         </div>
-        <div className="flex space-x-2">
-          <button
-            onClick={handleEdit}
-            className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700"
-          >
-            계약 수정
-          </button>
+        <div className="flex space-x-4">
+          {contract.contractStatus !== "signed" &&
+            contract.contractStatus !== "completed" &&
+            contract.contractStatus !== "cancelled" && (
+              <>
+                <button
+                  onClick={handleSign}
+                  disabled={signLoading}
+                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50"
+                >
+                  {signLoading ? "서명 중..." : "계약 서명"}
+                </button>
+                <Link
+                  href={`/admin/schedules/contracts/${contract.id}/edit`}
+                  className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
+                >
+                  계약 수정
+                </Link>
+              </>
+            )}
+          {contract.contractStatus !== "cancelled" && (
+            <button
+              onClick={handleCancel}
+              disabled={deleteLoading}
+              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50"
+            >
+              {deleteLoading ? "취소 중..." : "계약 취소"}
+            </button>
+          )}
           <Link
             href="/admin/schedules/contracts"
-            className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
+            className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
           >
-            목록으로 돌아가기
+            목록으로
           </Link>
         </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow overflow-hidden mb-6">
-        <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
-          <h2 className="text-lg font-medium text-gray-800">기본 정보</h2>
-        </div>
-        <div className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <h3 className="text-sm font-medium text-gray-500 mb-1">
-                이벤트명
-              </h3>
-              <p className="text-base text-gray-900">{contract.eventTitle}</p>
-            </div>
-            <div>
-              <h3 className="text-sm font-medium text-gray-500 mb-1">
-                이벤트 날짜
-              </h3>
-              <p className="text-base text-gray-900">
-                {formatDate(contract.eventDate)}
-              </p>
-            </div>
-            <div>
-              <h3 className="text-sm font-medium text-gray-500 mb-1">장소</h3>
-              <p className="text-base text-gray-900">{contract.venue}</p>
-            </div>
-            <div>
-              <h3 className="text-sm font-medium text-gray-500 mb-1">
-                계약 상태
-              </h3>
-              <span
-                className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getContractStatusBadgeClass(
-                  contract.contractStatus
-                )}`}
-              >
-                {getContractStatusText(contract.contractStatus)}
-              </span>
-            </div>
-            <div>
-              <h3 className="text-sm font-medium text-gray-500 mb-1">
-                계약 금액
-              </h3>
-              <p className="text-base text-gray-900">
-                {contract.contractAmount}원
-              </p>
-            </div>
-            <div>
-              <h3 className="text-sm font-medium text-gray-500 mb-1">
-                결제 상태
-              </h3>
-              <span
-                className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getPaymentStatusBadgeClass(
-                  contract.paymentStatus
-                )}`}
-              >
-                {getPaymentStatusText(contract.paymentStatus)}
-              </span>
-            </div>
-            <div>
-              <h3 className="text-sm font-medium text-gray-500 mb-1">
-                계약서 생성일
-              </h3>
-              <p className="text-base text-gray-900">
-                {formatDate(contract.createdAt)}
-              </p>
-            </div>
-            <div>
-              <h3 className="text-sm font-medium text-gray-500 mb-1">서명일</h3>
-              <p className="text-base text-gray-900">
-                {contract.signedAt ? formatDate(contract.signedAt) : "-"}
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-
+      {/* 계약 정보 카드 */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         <div className="bg-white rounded-lg shadow overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
-            <h2 className="text-lg font-medium text-gray-800">고객 정보</h2>
-          </div>
           <div className="p-6">
-            <div className="mb-4">
-              <h3 className="text-sm font-medium text-gray-500 mb-1">고객명</h3>
-              <p className="text-base text-gray-900">{contract.customerName}</p>
-            </div>
-            <div className="mb-4">
-              <h3 className="text-sm font-medium text-gray-500 mb-1">회사</h3>
-              <p className="text-base text-gray-900">
-                {contract.customerCompany}
-              </p>
-            </div>
-            <div>
-              <h3 className="text-sm font-medium text-gray-500 mb-1">
-                고객 ID
-              </h3>
-              <p className="text-base text-gray-900">{contract.customerId}</p>
+            <h2 className="text-lg font-semibold text-gray-800 mb-4">
+              계약 정보
+            </h2>
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <span className="text-sm font-medium text-gray-500">
+                  계약 상태
+                </span>
+                <span
+                  className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getContractStatusBadgeClass(
+                    contract.contractStatus
+                  )}`}
+                >
+                  {getContractStatusText(contract.contractStatus)}
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm font-medium text-gray-500">
+                  결제 상태
+                </span>
+                <span
+                  className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getPaymentStatusBadgeClass(
+                    contract.paymentStatus
+                  )}`}
+                >
+                  {getPaymentStatusText(contract.paymentStatus)}
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm font-medium text-gray-500">
+                  계약 금액
+                </span>
+                <span className="text-sm text-gray-900 font-semibold">
+                  {contract.contractAmount}원
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm font-medium text-gray-500">
+                  생성일
+                </span>
+                <span className="text-sm text-gray-900">
+                  {formatDate(contract.createdAt)}
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm font-medium text-gray-500">
+                  서명일
+                </span>
+                <span className="text-sm text-gray-900">
+                  {formatDate(contract.signedAt || "")}
+                </span>
+              </div>
             </div>
           </div>
         </div>
 
         <div className="bg-white rounded-lg shadow overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
-            <h2 className="text-lg font-medium text-gray-800">아티스트 정보</h2>
-          </div>
           <div className="p-6">
-            <div className="mb-4">
-              <h3 className="text-sm font-medium text-gray-500 mb-1">가수명</h3>
-              <p className="text-base text-gray-900">{contract.singerName}</p>
-            </div>
-            <div className="mb-4">
-              <h3 className="text-sm font-medium text-gray-500 mb-1">소속사</h3>
-              <p className="text-base text-gray-900">{contract.singerAgency}</p>
-            </div>
-            <div>
-              <h3 className="text-sm font-medium text-gray-500 mb-1">
-                가수 ID
-              </h3>
-              <p className="text-base text-gray-900">{contract.singerId}</p>
+            <h2 className="text-lg font-semibold text-gray-800 mb-4">
+              이벤트 정보
+            </h2>
+            <div className="space-y-4">
+              <div>
+                <span className="block text-sm font-medium text-gray-500">
+                  이벤트명
+                </span>
+                <span className="mt-1 block text-sm text-gray-900">
+                  {contract.eventTitle}
+                </span>
+              </div>
+              <div>
+                <span className="block text-sm font-medium text-gray-500">
+                  행사 날짜
+                </span>
+                <span className="mt-1 block text-sm text-gray-900">
+                  {formatDate(contract.eventDate)}
+                </span>
+              </div>
+              <div>
+                <span className="block text-sm font-medium text-gray-500">
+                  장소
+                </span>
+                <span className="mt-1 block text-sm text-gray-900">
+                  {contract.venue}
+                </span>
+              </div>
+              <div>
+                <span className="block text-sm font-medium text-gray-500">
+                  일정 ID
+                </span>
+                <span className="mt-1 block text-sm text-gray-900">
+                  {contract.scheduleId}
+                </span>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow overflow-hidden mb-6">
-        <div className="px-6 py-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
-          <h2 className="text-lg font-medium text-gray-800">결제 내역</h2>
-          <button className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700">
-            결제 등록
-          </button>
-        </div>
-        <div className="overflow-x-auto">
-          {contractPayments.length > 0 ? (
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    결제 ID
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    금액
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    결제 방법
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    결제일
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    상태
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {contractPayments.map((payment) => (
-                  <tr key={payment.id}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {payment.id}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {payment.amount}원
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {payment.paymentMethod}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {formatDate(payment.paymentDate)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span
-                        className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                          payment.status === "completed"
-                            ? "bg-green-100 text-green-800"
-                            : "bg-gray-100 text-gray-800"
-                        }`}
-                      >
-                        {payment.status === "completed"
-                          ? "완료"
-                          : payment.status}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          ) : (
-            <div className="p-6 text-center text-gray-500">
-              등록된 결제 내역이 없습니다.
+      {/* 고객 및 가수 정보 */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <div className="bg-white rounded-lg shadow overflow-hidden">
+          <div className="p-6">
+            <h2 className="text-lg font-semibold text-gray-800 mb-4">
+              고객 정보
+            </h2>
+            <div className="space-y-4">
+              <div>
+                <span className="block text-sm font-medium text-gray-500">
+                  고객명
+                </span>
+                <span className="mt-1 block text-sm text-gray-900">
+                  {contract.customerName}
+                </span>
+              </div>
+              <div>
+                <span className="block text-sm font-medium text-gray-500">
+                  회사명
+                </span>
+                <span className="mt-1 block text-sm text-gray-900">
+                  {contract.customerCompany}
+                </span>
+              </div>
+              <div>
+                <span className="block text-sm font-medium text-gray-500">
+                  고객 ID
+                </span>
+                <span className="mt-1 block text-sm text-gray-900">
+                  {contract.customerId}
+                </span>
+              </div>
             </div>
-          )}
+          </div>
+        </div>
+
+        <div className="bg-white rounded-lg shadow overflow-hidden">
+          <div className="p-6">
+            <h2 className="text-lg font-semibold text-gray-800 mb-4">
+              가수 정보
+            </h2>
+            <div className="space-y-4">
+              <div>
+                <span className="block text-sm font-medium text-gray-500">
+                  가수명
+                </span>
+                <span className="mt-1 block text-sm text-gray-900">
+                  {contract.singerName}
+                </span>
+              </div>
+              <div>
+                <span className="block text-sm font-medium text-gray-500">
+                  소속사
+                </span>
+                <span className="mt-1 block text-sm text-gray-900">
+                  {contract.singerAgency}
+                </span>
+              </div>
+              <div>
+                <span className="block text-sm font-medium text-gray-500">
+                  가수 ID
+                </span>
+                <span className="mt-1 block text-sm text-gray-900">
+                  {contract.singerId}
+                </span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div className="flex justify-end space-x-2">
-        {contract.contractStatus !== "cancelled" && (
-          <button
-            onClick={handleCancel}
-            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
-          >
-            계약 취소
-          </button>
-        )}
+      {/* 계약서 보기 */}
+      <div className="bg-white rounded-lg shadow overflow-hidden mb-6">
+        <div className="p-6">
+          <h2 className="text-lg font-semibold text-gray-800 mb-4">
+            계약서 미리보기
+          </h2>
+          <div className="border border-gray-300 p-8 bg-gray-50 rounded-lg min-h-[300px]">
+            <div className="text-center mb-8">
+              <h3 className="text-xl font-bold mb-2">공연 계약서</h3>
+              <p className="text-gray-600">계약번호: {contract.id}</p>
+            </div>
+
+            <div className="mb-6">
+              <p className="text-sm mb-4">
+                본 계약서는 다음과 같이 {contract.customerCompany}(이하
+                "고객")와 {contract.singerAgency} 소속 {contract.singerName}
+                (이하 "가수") 간에 체결됩니다.
+              </p>
+
+              <div className="mb-4">
+                <h4 className="font-semibold mb-2">1. 공연 정보</h4>
+                <p className="text-sm">- 행사명: {contract.eventTitle}</p>
+                <p className="text-sm">
+                  - 공연 일시: {formatDate(contract.eventDate)}
+                </p>
+                <p className="text-sm">- 공연 장소: {contract.venue}</p>
+              </div>
+
+              <div className="mb-4">
+                <h4 className="font-semibold mb-2">2. 계약 금액</h4>
+                <p className="text-sm">
+                  - 총 계약금액: {contract.contractAmount}원
+                </p>
+                <p className="text-sm">
+                  - 계약금(50%):{" "}
+                  {parseInt(contract.contractAmount.replace(/,/g, "")) / 2}원
+                </p>
+                <p className="text-sm">
+                  - 잔금(50%):{" "}
+                  {parseInt(contract.contractAmount.replace(/,/g, "")) / 2}원
+                </p>
+              </div>
+
+              <div className="mb-4">
+                <h4 className="font-semibold mb-2">3. 기타 조항</h4>
+                <p className="text-sm">
+                  - 양 당사자는 본 계약의 내용을 성실히 이행해야 합니다.
+                </p>
+                <p className="text-sm">
+                  - 불가항력적인 사유로 계약을 이행할 수 없는 경우, 상호
+                  협의하에 계약을 조정하거나 해지할 수 있습니다.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex justify-between">
+              <div>
+                <p className="font-semibold mb-2">고객 서명</p>
+                <div className="h-16 w-40 border border-gray-300 rounded flex items-center justify-center">
+                  {contract.contractStatus === "signed" ||
+                  contract.contractStatus === "completed" ? (
+                    <p className="font-semibold text-blue-600">
+                      {contract.customerName}
+                    </p>
+                  ) : (
+                    <p className="text-gray-400 text-sm">미서명</p>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <p className="font-semibold mb-2">가수 서명</p>
+                <div className="h-16 w-40 border border-gray-300 rounded flex items-center justify-center">
+                  {contract.contractStatus === "signed" ||
+                  contract.contractStatus === "completed" ? (
+                    <p className="font-semibold text-blue-600">
+                      {contract.singerName}
+                    </p>
+                  ) : (
+                    <p className="text-gray-400 text-sm">미서명</p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {contract.signedAt && (
+              <div className="text-right mt-4 text-sm text-gray-500">
+                서명일: {formatDate(contract.signedAt)}
+              </div>
+            )}
+          </div>
+          <div className="mt-4 flex justify-end">
+            <button
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              onClick={() => window.print()}
+            >
+              인쇄하기
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );

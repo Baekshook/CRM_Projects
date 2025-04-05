@@ -2,7 +2,14 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { matches, customers, singers } from "@/utils/dummyData";
+import {
+  getNegotiationById,
+  getCustomerById,
+  getSingerById,
+  Negotiation,
+  Customer,
+  Singer,
+} from "@/services/negotiationsApi";
 
 export default function QuotePage() {
   const router = useRouter();
@@ -11,39 +18,55 @@ export default function QuotePage() {
   const printRef = useRef<HTMLDivElement>(null);
 
   // 상태
-  const [match, setMatch] = useState<any | null>(null);
-  const [customer, setCustomer] = useState<any | null>(null);
-  const [singer, setSinger] = useState<any | null>(null);
+  const [negotiation, setNegotiation] = useState<Negotiation | null>(null);
+  const [customer, setCustomer] = useState<Customer | null>(null);
+  const [singer, setSinger] = useState<Singer | null>(null);
   const [quoteNo, setQuoteNo] = useState<string>("");
   const [currentDate, setCurrentDate] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // dummyData.ts에서 매칭 데이터 찾기
-    const foundMatch = matches.find((m) => m.id === negotiationId);
-    if (foundMatch) {
-      setMatch(foundMatch);
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
 
-      // 관련 고객 및 가수 정보 조회
-      const relatedCustomer = customers.find(
-        (c) => c.id === foundMatch.customerId
-      );
-      const relatedSinger = singers.find((s) => s.id === foundMatch.singerId);
+        // 협상 데이터 로드
+        const negotiationData = await getNegotiationById(negotiationId);
+        setNegotiation(negotiationData);
 
-      setCustomer(relatedCustomer || null);
-      setSinger(relatedSinger || null);
+        // 견적서 번호 설정
+        setQuoteNo(`Q-${negotiationId.substring(0, 8)}`);
 
-      // 견적서 번호 생성 (매칭 ID에서 MATCH 제거하고 Q 추가)
-      setQuoteNo(`Q-${foundMatch.id.replace("MATCH-", "")}`);
+        // 현재 날짜 설정
+        const date = new Date();
+        setCurrentDate(date.toLocaleDateString("ko-KR"));
 
-      // 현재 날짜 설정
-      const date = new Date();
-      setCurrentDate(date.toLocaleDateString("ko-KR"));
-    } else {
-      // 매칭이 없으면 목록 페이지로 리다이렉트
-      alert("매칭/협상 정보를 찾을 수 없습니다.");
-      router.push("/admin/negotiations");
-    }
-  }, [negotiationId, router]);
+        // 고객 및 가수 정보 로드
+        if (negotiationData) {
+          if (negotiationData.customerId) {
+            const customerData = await getCustomerById(
+              negotiationData.customerId
+            );
+            setCustomer(customerData);
+          }
+
+          if (negotiationData.singerId) {
+            const singerData = await getSingerById(negotiationData.singerId);
+            setSinger(singerData);
+          }
+        }
+      } catch (err) {
+        console.error("견적서 데이터 로드 중 오류:", err);
+        setError("견적서 정보를 불러오지 못했습니다.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, [negotiationId]);
 
   // 견적서 인쇄 처리
   const handlePrint = () => {
@@ -74,14 +97,54 @@ export default function QuotePage() {
 
   // 날짜 포맷팅 함수
   const formatDate = (dateString: string) => {
+    if (!dateString) return "-";
     const date = new Date(dateString);
     return date.toLocaleDateString("ko-KR");
   };
 
-  if (!match) {
+  if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-orange-500"></div>
+      </div>
+    );
+  }
+
+  if (error || !negotiation) {
+    return (
+      <div className="bg-red-50 border border-red-200 text-red-800 p-4 m-4 rounded-md">
+        <div className="flex">
+          <div className="flex-shrink-0">
+            <svg
+              className="h-5 w-5 text-red-500"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fillRule="evenodd"
+                d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                clipRule="evenodd"
+              />
+            </svg>
+          </div>
+          <div className="ml-3">
+            <h3 className="text-sm font-medium text-red-800">
+              오류가 발생했습니다
+            </h3>
+            <p className="mt-1 text-sm text-red-700">
+              {error || "견적서 정보를 불러오지 못했습니다."}
+            </p>
+            <div className="mt-3">
+              <Link
+                href="/admin/negotiations"
+                className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+              >
+                목록으로 돌아가기
+              </Link>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
@@ -92,7 +155,7 @@ export default function QuotePage() {
       <div className="mb-6">
         <div className="flex items-center mb-2">
           <Link
-            href={`/admin/negotiations/${match.id}`}
+            href={`/admin/negotiations/${negotiationId}`}
             className="text-gray-500 hover:text-gray-700 mr-2"
           >
             <svg
@@ -150,21 +213,19 @@ export default function QuotePage() {
               </h2>
               <div className="space-y-2">
                 <p>
-                  <strong>회사명:</strong>{" "}
-                  {customer?.company || match.customerCompany}
+                  <strong>회사명:</strong> {customer?.company || "-"}
                 </p>
                 <p>
-                  <strong>담당자:</strong>{" "}
-                  {customer?.name || match.customerName}
+                  <strong>담당자:</strong> {customer?.name || "-"}
                 </p>
                 <p>
-                  <strong>연락처:</strong> {customer?.phone || "정보 없음"}
+                  <strong>연락처:</strong> {customer?.phone || "-"}
                 </p>
                 <p>
-                  <strong>이메일:</strong> {customer?.email || "정보 없음"}
+                  <strong>이메일:</strong> {customer?.email || "-"}
                 </p>
                 <p>
-                  <strong>주소:</strong> {customer?.address || "정보 없음"}
+                  <strong>주소:</strong> {customer?.address || "-"}
                 </p>
               </div>
             </div>
@@ -212,15 +273,19 @@ export default function QuotePage() {
                 <tr>
                   <td className="px-4 py-3 text-sm text-gray-700">공연료</td>
                   <td className="px-4 py-3 text-sm text-gray-700">
-                    {match.singerName} ({match.singerAgency}) -{" "}
-                    {match.requestTitle} 공연
+                    {singer?.name || "-"} ({singer?.agency || "-"}) -{" "}
+                    {negotiation.title || "-"} 공연
                     <br />
                     <span className="text-xs text-gray-500">
-                      일시: {formatDate(match.eventDate)} | 장소: {match.venue}
+                      일시: {formatDate(negotiation.eventDate || "")} | 장소:{" "}
+                      {negotiation.eventLocation || "-"}
                     </span>
                   </td>
                   <td className="px-4 py-3 text-sm text-gray-700 text-right">
-                    {match.price.toLocaleString()}원
+                    {negotiation.finalAmount
+                      ? negotiation.finalAmount.toLocaleString()
+                      : 0}
+                    원
                   </td>
                 </tr>
                 <tr>
@@ -231,7 +296,10 @@ export default function QuotePage() {
                     총 견적 금액 (부가세 포함)
                   </td>
                   <td className="px-4 py-3 text-base text-gray-900 text-right font-bold">
-                    {match.price.toLocaleString()}원
+                    {negotiation.finalAmount
+                      ? negotiation.finalAmount.toLocaleString()
+                      : 0}
+                    원
                   </td>
                 </tr>
               </tbody>
@@ -245,13 +313,13 @@ export default function QuotePage() {
             </h2>
             <div className="p-4 border rounded-lg bg-gray-50">
               <p className="whitespace-pre-line text-gray-700">
-                {match.requirements}
+                {negotiation.requirements || "요구사항 없음"}
               </p>
-              {match.notes && (
+              {negotiation.notes && (
                 <div className="mt-4 pt-4 border-t">
                   <p className="font-medium mb-2">추가 참고사항:</p>
                   <p className="whitespace-pre-line text-gray-700">
-                    {match.notes}
+                    {negotiation.notes}
                   </p>
                 </div>
               )}

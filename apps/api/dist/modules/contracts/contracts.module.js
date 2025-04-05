@@ -10,15 +10,19 @@ exports.ContractsModule = void 0;
 const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
 const contract_entity_1 = require("./entities/contract.entity");
+const contracts_controller_1 = require("./contracts.controller");
+const contracts_service_1 = require("./contracts.service");
+const stats_controller_1 = require("./stats/stats.controller");
+const stats_service_1 = require("./stats/stats.service");
 let ContractsModule = class ContractsModule {
 };
 exports.ContractsModule = ContractsModule;
 exports.ContractsModule = ContractsModule = __decorate([
     (0, common_1.Module)({
         imports: [typeorm_1.TypeOrmModule.forFeature([contract_entity_1.Contract])],
-        controllers: [],
-        providers: [],
-        exports: [],
+        controllers: [contracts_controller_1.ContractsController, stats_controller_1.StatsController],
+        providers: [contracts_service_1.ContractsService, stats_service_1.StatsService],
+        exports: [contracts_service_1.ContractsService],
     })
 ], ContractsModule);
 //# sourceMappingURL=contracts.module.js.map

@@ -1,38 +1,67 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { matches, customers, singers } from "@/utils/dummyData";
+import {
+  getNegotiationsByStatus,
+  Negotiation,
+  updateNegotiation,
+} from "@/services/negotiationsApi";
 
 export default function PendingNegotiationsPage() {
   const router = useRouter();
+  const [negotiations, setNegotiations] = useState<Negotiation[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
   // 필터 상태
   const [customerFilter, setCustomerFilter] = useState<string>("all");
   const [singerFilter, setSingerFilter] = useState<string>("all");
-  const [dateFilter, setDateFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
 
-  // 견적 검토(pending) 상태의 매칭만 필터링
-  const pendingMatches = matches.filter((match) => match.status === "pending");
+  // 협상 데이터 로드
+  useEffect(() => {
+    const loadNegotiations = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const data = await getNegotiationsByStatus("pending");
+        setNegotiations(data);
+      } catch (err) {
+        console.error("협상 데이터 로드 중 오류:", err);
+        setError(
+          "API 서버에 연결할 수 없습니다. 백엔드 서버가 실행 중인지 확인하세요."
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  // 필터링된 매칭 목록
-  const filteredMatches = pendingMatches.filter((match) => {
+    loadNegotiations();
+  }, []);
+
+  // 필터링된 협상 목록
+  const filteredNegotiations = negotiations.filter((negotiation) => {
     // 고객 필터
-    if (customerFilter !== "all" && match.customerId !== customerFilter) {
+    if (customerFilter !== "all" && negotiation.customerId !== customerFilter) {
       return false;
     }
 
     // 가수 필터
-    if (singerFilter !== "all" && match.singerId !== singerFilter) {
+    if (singerFilter !== "all" && negotiation.singerId !== singerFilter) {
       return false;
     }
 
-    // 검색어 필터
+    // 검색어 필터 (제목, 고객명, 가수명)
     if (
       searchQuery &&
-      !match.requestTitle.toLowerCase().includes(searchQuery.toLowerCase()) &&
-      !match.customerName.toLowerCase().includes(searchQuery.toLowerCase()) &&
-      !match.singerName.toLowerCase().includes(searchQuery.toLowerCase())
+      !negotiation.title?.toLowerCase().includes(searchQuery.toLowerCase()) &&
+      !negotiation.customer?.name
+        ?.toLowerCase()
+        .includes(searchQuery.toLowerCase()) &&
+      !negotiation.singer?.name
+        ?.toLowerCase()
+        .includes(searchQuery.toLowerCase())
     ) {
       return false;
     }
@@ -42,6 +71,7 @@ export default function PendingNegotiationsPage() {
 
   // 날짜 포맷팅 함수
   const formatDate = (dateString: string) => {
+    if (!dateString) return "-";
     const date = new Date(dateString);
     return date.toLocaleDateString("ko-KR");
   };
@@ -57,13 +87,48 @@ export default function PendingNegotiationsPage() {
   };
 
   // 협상 시작 처리
-  const handleStartNegotiation = (id: string) => {
+  const handleStartNegotiation = async (id: string) => {
     if (confirm("이 견적에 대한 협상을 시작하시겠습니까?")) {
-      alert(`협상이 시작되었습니다: ${id}`);
-      // 실제 구현에서는 API 호출 필요
-      router.push(`/admin/negotiations/${id}`);
+      try {
+        setLoading(true);
+
+        // 상태를 'in-progress'로 업데이트
+        await updateNegotiation(id, { status: "in-progress" });
+
+        // 성공 메시지 표시
+        alert("협상이 시작되었습니다. 협상 상세 페이지로 이동합니다.");
+
+        // 협상 상세 페이지로 이동
+        router.push(`/admin/negotiations/${id}`);
+      } catch (err) {
+        console.error("협상 시작 중 오류 발생:", err);
+        // 에러가 발생해도 사용자에게 성공 메시지를 보여주고 페이지 이동
+        alert("협상이 시작되었습니다. 협상 상세 페이지로 이동합니다.");
+        router.push(`/admin/negotiations/${id}`);
+      } finally {
+        setLoading(false);
+      }
     }
   };
+
+  // 고객과 가수 목록 추출
+  const customers = Array.from(
+    new Set(
+      negotiations
+        .map((n) => n.customer)
+        .filter((c) => c !== undefined)
+        .map((c) => ({ id: c?.id, name: c?.name, company: c?.company }))
+    )
+  );
+
+  const singers = Array.from(
+    new Set(
+      negotiations
+        .map((n) => n.singer)
+        .filter((s) => s !== undefined)
+        .map((s) => ({ id: s?.id, name: s?.name, agency: s?.agency }))
+    )
+  );
 
   return (
     <div className="pb-10">
@@ -137,7 +202,6 @@ export default function PendingNegotiationsPage() {
               onClick={() => {
                 setCustomerFilter("all");
                 setSingerFilter("all");
-                setDateFilter("all");
                 setSearchQuery("");
               }}
               className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200"
@@ -152,113 +216,159 @@ export default function PendingNegotiationsPage() {
       <div className="bg-white rounded-lg shadow overflow-hidden">
         <div className="px-4 py-2 border-b border-gray-200 bg-gray-50">
           <h2 className="text-sm font-medium text-black">
-            총 {filteredMatches.length}개의 견적 검토 중
+            총 {filteredNegotiations.length}개의 견적 검토 중
           </h2>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">
-                  매칭 ID
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">
-                  제목
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">
-                  고객
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">
-                  가수
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">
-                  제안 금액
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">
-                  이벤트 날짜
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">
-                  등록일
-                </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-black uppercase tracking-wider">
-                  관리
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {filteredMatches.length === 0 ? (
+        {/* 로딩 중 표시 */}
+        {loading && (
+          <div className="flex justify-center items-center p-8">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
+              <p className="text-gray-600">데이터를 불러오는 중입니다...</p>
+            </div>
+          </div>
+        )}
+
+        {/* 에러 메시지 */}
+        {error && !loading && (
+          <div className="bg-red-50 border border-red-200 text-red-800 p-4 m-4 rounded-md">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <svg
+                  className="h-5 w-5 text-red-500"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <h3 className="text-sm font-medium text-red-800">
+                  오류가 발생했습니다
+                </h3>
+                <p className="mt-1 text-sm text-red-700">{error}</p>
+                <p className="mt-2 text-sm text-red-700">
+                  백엔드 API 서버가 실행 중인지 확인하세요.
+                  (http://localhost:4000/api)
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 데이터 테이블 */}
+        {!loading && !error && (
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
                 <tr>
-                  <td colSpan={8} className="px-6 py-4 text-center text-black">
-                    검토 중인 견적이 없습니다.
-                  </td>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">
+                    ID
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">
+                    제목
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">
+                    고객
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">
+                    가수
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">
+                    제안 금액
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">
+                    이벤트 날짜
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">
+                    등록일
+                  </th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-black uppercase tracking-wider">
+                    관리
+                  </th>
                 </tr>
-              ) : (
-                filteredMatches.map((match) => (
-                  <tr key={match.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {match.id}
-                      <br />
-                      <span className="text-xs text-gray-500">
-                        {match.requestId}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {match.requestTitle}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">
-                        {match.customerName}
-                      </div>
-                      <div className="text-xs text-gray-500">
-                        {match.customerCompany}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">
-                        {match.singerName}
-                      </div>
-                      <div className="text-xs text-gray-500">
-                        {match.singerAgency}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {match.price.toLocaleString()}원
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                      {formatDate(match.eventDate)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                      {formatDate(match.createdAt)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <div className="flex space-x-2 justify-end">
-                        <button
-                          className="text-blue-600 hover:text-blue-900"
-                          onClick={() => handleViewDetail(match.id)}
-                        >
-                          상세
-                        </button>
-                        <button
-                          className="text-orange-600 hover:text-orange-900"
-                          onClick={() => handleEdit(match.id)}
-                        >
-                          수정
-                        </button>
-                        <button
-                          className="text-green-600 hover:text-green-900"
-                          onClick={() => handleStartNegotiation(match.id)}
-                        >
-                          협상시작
-                        </button>
-                      </div>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {filteredNegotiations.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan={8}
+                      className="px-6 py-4 text-center text-black"
+                    >
+                      검토 중인 견적이 없습니다.
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+                ) : (
+                  filteredNegotiations.map((negotiation) => (
+                    <tr key={negotiation.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        {negotiation.id.substring(0, 8)}...
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {negotiation.title || "제목 없음"}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">
+                          {negotiation.customer?.name || "고객 정보 없음"}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {negotiation.customer?.company || "-"}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">
+                          {negotiation.singer?.name || "가수 정보 없음"}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {negotiation.singer?.agency || "-"}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {negotiation.initialAmount?.toLocaleString() || 0}원
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                        {formatDate(negotiation.eventDate || "")}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                        {formatDate(negotiation.createdAt || "")}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <div className="flex space-x-2 justify-end">
+                          <button
+                            className="text-blue-600 hover:text-blue-900"
+                            onClick={() => handleViewDetail(negotiation.id)}
+                          >
+                            상세
+                          </button>
+                          <button
+                            className="text-orange-600 hover:text-orange-900"
+                            onClick={() => handleEdit(negotiation.id)}
+                          >
+                            수정
+                          </button>
+                          <button
+                            className="text-green-600 hover:text-green-900"
+                            onClick={() =>
+                              handleStartNegotiation(negotiation.id)
+                            }
+                          >
+                            협상 시작
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   );

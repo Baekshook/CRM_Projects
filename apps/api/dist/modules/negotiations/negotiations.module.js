@@ -10,15 +10,19 @@ exports.NegotiationsModule = void 0;
 const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
 const negotiation_log_entity_1 = require("./entities/negotiation-log.entity");
+const negotiation_entity_1 = require("./entities/negotiation.entity");
+const quote_entity_1 = require("./entities/quote.entity");
+const negotiations_controller_1 = require("./negotiations.controller");
+const negotiations_service_1 = require("./negotiations.service");
 let NegotiationsModule = class NegotiationsModule {
 };
 exports.NegotiationsModule = NegotiationsModule;
 exports.NegotiationsModule = NegotiationsModule = __decorate([
     (0, common_1.Module)({
-        imports: [typeorm_1.TypeOrmModule.forFeature([negotiation_log_entity_1.NegotiationLog])],
-        controllers: [],
-        providers: [],
-        exports: [],
+        imports: [typeorm_1.TypeOrmModule.forFeature([negotiation_log_entity_1.NegotiationLog, negotiation_entity_1.Negotiation, quote_entity_1.Quote])],
+        controllers: [negotiations_controller_1.NegotiationsController],
+        providers: [negotiations_service_1.NegotiationsService],
+        exports: [negotiations_service_1.NegotiationsService],
     })
 ], NegotiationsModule);
 //# sourceMappingURL=negotiations.module.js.map

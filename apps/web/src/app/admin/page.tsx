@@ -246,7 +246,7 @@ export default function AdminDashboard() {
             icon={<NegotiationIcon />}
           />
         </Link>
-        <Link href="/admin/schedules">
+        <Link href="/admin/schedules/contracts">
           <StatCard
             title="완료된 계약"
             value={`${contractCount}건`}

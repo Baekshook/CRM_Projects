@@ -11,6 +11,7 @@ import { Match } from "../../matches/entities/match.entity";
 import { Schedule } from "../../schedules/entities/schedule.entity";
 import { Contract } from "../../contracts/entities/contract.entity";
 import { Review } from "../../reviews/entities/review.entity";
+import { Feedback } from "../../feedbacks/entities/feedback.entity";
 
 @Entity("singers")
 export class Singer {
@@ -98,4 +99,7 @@ export class Singer {
 
   @OneToMany(() => Review, (review) => review.singer)
   reviews: Review[];
+
+  @OneToMany(() => Feedback, (feedback) => feedback.singer)
+  feedbacks: Feedback[];
 }

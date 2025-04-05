@@ -20,6 +20,10 @@ const negotiations_module_1 = require("./modules/negotiations/negotiations.modul
 const payments_module_1 = require("./modules/payments/payments.module");
 const reviews_module_1 = require("./modules/reviews/reviews.module");
 const files_module_1 = require("./modules/files/files.module");
+const segments_module_1 = require("./modules/segments/segments.module");
+const interactions_module_1 = require("./modules/interactions/interactions.module");
+const feedbacks_module_1 = require("./modules/feedbacks/feedbacks.module");
+const resources_module_1 = require("./modules/resources/resources.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -54,6 +58,10 @@ exports.AppModule = AppModule = __decorate([
             payments_module_1.PaymentsModule,
             reviews_module_1.ReviewsModule,
             files_module_1.FilesModule,
+            segments_module_1.SegmentsModule,
+            interactions_module_1.InteractionsModule,
+            feedbacks_module_1.FeedbacksModule,
+            resources_module_1.ResourcesModule,
         ],
     })
 ], AppModule);

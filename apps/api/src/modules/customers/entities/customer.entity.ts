@@ -12,6 +12,7 @@ import { Schedule } from "../../schedules/entities/schedule.entity";
 import { Contract } from "../../contracts/entities/contract.entity";
 import { Payment } from "../../payments/entities/payment.entity";
 import { Review } from "../../reviews/entities/review.entity";
+import { Feedback } from "../../feedbacks/entities/feedback.entity";
 
 @Entity("customers")
 export class Customer {
@@ -108,4 +109,7 @@ export class Customer {
 
   @OneToMany(() => Review, (review) => review.customer)
   reviews: Review[];
+
+  @OneToMany(() => Feedback, (feedback) => feedback.customer)
+  feedbacks: Feedback[];
 }

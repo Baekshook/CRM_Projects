@@ -2,8 +2,8 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import customerApi from "@/lib/api/customerApi";
-import singerApi from "@/lib/api/singerApi";
+import customerApi from "@/services/customerApi";
+import singerApi from "@/services/singerApi";
 import { toast } from "react-hot-toast";
 import { formatDate } from "@/utils/dateUtils";
 import Image from "next/image";

@@ -16,6 +16,7 @@ const match_entity_1 = require("../../matches/entities/match.entity");
 const schedule_entity_1 = require("../../schedules/entities/schedule.entity");
 const contract_entity_1 = require("../../contracts/entities/contract.entity");
 const review_entity_1 = require("../../reviews/entities/review.entity");
+const feedback_entity_1 = require("../../feedbacks/entities/feedback.entity");
 let Singer = class Singer {
 };
 exports.Singer = Singer;
@@ -131,6 +132,10 @@ __decorate([
     (0, typeorm_1.OneToMany)(() => review_entity_1.Review, (review) => review.singer),
     __metadata("design:type", Array)
 ], Singer.prototype, "reviews", void 0);
+__decorate([
+    (0, typeorm_1.OneToMany)(() => feedback_entity_1.Feedback, (feedback) => feedback.singer),
+    __metadata("design:type", Array)
+], Singer.prototype, "feedbacks", void 0);
 exports.Singer = Singer = __decorate([
     (0, typeorm_1.Entity)("singers")
 ], Singer);

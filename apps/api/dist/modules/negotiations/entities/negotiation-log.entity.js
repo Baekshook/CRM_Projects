@@ -12,6 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.NegotiationLog = void 0;
 const typeorm_1 = require("typeorm");
 const match_entity_1 = require("../../matches/entities/match.entity");
+const negotiation_entity_1 = require("./negotiation.entity");
 let NegotiationLog = class NegotiationLog {
 };
 exports.NegotiationLog = NegotiationLog;
@@ -20,9 +21,13 @@ __decorate([
     __metadata("design:type", String)
 ], NegotiationLog.prototype, "id", void 0);
 __decorate([
-    (0, typeorm_1.Column)(),
+    (0, typeorm_1.Column)({ nullable: true }),
     __metadata("design:type", String)
 ], NegotiationLog.prototype, "matchId", void 0);
+__decorate([
+    (0, typeorm_1.Column)(),
+    __metadata("design:type", String)
+], NegotiationLog.prototype, "negotiationId", void 0);
 __decorate([
     (0, typeorm_1.Column)(),
     __metadata("design:type", String)
@@ -40,10 +45,19 @@ __decorate([
     __metadata("design:type", String)
 ], NegotiationLog.prototype, "user", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => match_entity_1.Match, (match) => match.negotiationLogs),
+    (0, typeorm_1.CreateDateColumn)(),
+    __metadata("design:type", Date)
+], NegotiationLog.prototype, "createdAt", void 0);
+__decorate([
+    (0, typeorm_1.ManyToOne)(() => match_entity_1.Match, (match) => match.negotiationLogs, { nullable: true }),
     (0, typeorm_1.JoinColumn)({ name: "matchId" }),
     __metadata("design:type", match_entity_1.Match)
 ], NegotiationLog.prototype, "match", void 0);
+__decorate([
+    (0, typeorm_1.ManyToOne)(() => negotiation_entity_1.Negotiation, (negotiation) => negotiation.logs),
+    (0, typeorm_1.JoinColumn)({ name: "negotiationId" }),
+    __metadata("design:type", negotiation_entity_1.Negotiation)
+], NegotiationLog.prototype, "negotiation", void 0);
 exports.NegotiationLog = NegotiationLog = __decorate([
     (0, typeorm_1.Entity)("negotiation_logs")
 ], NegotiationLog);

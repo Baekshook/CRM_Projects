@@ -17,6 +17,7 @@ const schedule_entity_1 = require("../../schedules/entities/schedule.entity");
 const contract_entity_1 = require("../../contracts/entities/contract.entity");
 const payment_entity_1 = require("../../payments/entities/payment.entity");
 const review_entity_1 = require("../../reviews/entities/review.entity");
+const feedback_entity_1 = require("../../feedbacks/entities/feedback.entity");
 let Customer = class Customer {
 };
 exports.Customer = Customer;
@@ -144,6 +145,10 @@ __decorate([
     (0, typeorm_1.OneToMany)(() => review_entity_1.Review, (review) => review.customer),
     __metadata("design:type", Array)
 ], Customer.prototype, "reviews", void 0);
+__decorate([
+    (0, typeorm_1.OneToMany)(() => feedback_entity_1.Feedback, (feedback) => feedback.customer),
+    __metadata("design:type", Array)
+], Customer.prototype, "feedbacks", void 0);
 exports.Customer = Customer = __decorate([
     (0, typeorm_1.Entity)("customers")
 ], Customer);

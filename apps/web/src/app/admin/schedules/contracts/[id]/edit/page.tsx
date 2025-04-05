@@ -2,7 +2,8 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Contract, contracts } from "@/utils/dummyData";
+import { Contract } from "@/utils/dummyData";
+import { getContractByIdTemp, updateContract } from "@/services/schedulesApi";
 
 export default function EditContractPage({
   params,
@@ -12,20 +13,35 @@ export default function EditContractPage({
   const router = useRouter();
   const contractId = params.id;
   const [isLoading, setIsLoading] = useState(true);
+  const [saving, setSaving] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState<Partial<Contract>>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    // 실제 환경에서는 API 호출로 대체
-    const contract = contracts.find((c) => c.id === contractId);
-    if (contract) {
-      setFormData(contract);
-    } else {
-      alert("계약 정보를 찾을 수 없습니다.");
-      router.push("/admin/schedules/contracts");
-    }
-    setIsLoading(false);
-  }, [contractId, router]);
+    const fetchContract = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        // 실제 API 연동 시: const data = await getContractById(contractId);
+        const data = await getContractByIdTemp(contractId);
+
+        if (!data) {
+          setError("계약 정보를 찾을 수 없습니다.");
+          return;
+        }
+
+        setFormData(data);
+      } catch (err) {
+        console.error("계약 상세 조회 오류:", err);
+        setError("계약 정보를 불러오는데 실패했습니다.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchContract();
+  }, [contractId]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -57,20 +73,61 @@ export default function EditContractPage({
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!validateForm()) return;
 
-    // 실제 환경에서는 API 호출로 대체
-    alert("계약이 수정되었습니다.");
-    router.push(`/admin/schedules/contracts/${contractId}`);
+    try {
+      setSaving(true);
+      await updateContract(contractId, formData);
+      alert("계약이 수정되었습니다.");
+      router.push(`/admin/schedules/contracts/${contractId}`);
+    } catch (err) {
+      console.error("계약 수정 오류:", err);
+      alert("계약 수정에 실패했습니다.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-64">
-        <p className="text-gray-500">로딩 중...</p>
+        <div className="text-center">
+          <div
+            className="spinner-border inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent"
+            role="status"
+          >
+            <span className="sr-only">로딩중...</span>
+          </div>
+          <p className="mt-2 text-gray-600">계약 정보를 불러오는 중...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="text-center">
+          <div className="text-red-500 text-xl mb-2">⚠️ 오류</div>
+          <p className="text-gray-700">{error}</p>
+          <div className="mt-4 flex justify-center space-x-3">
+            <button
+              className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700"
+              onClick={() => window.location.reload()}
+            >
+              새로고침
+            </button>
+            <Link
+              href="/admin/schedules/contracts"
+              className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
+            >
+              목록으로
+            </Link>
+          </div>
+        </div>
       </div>
     );
   }
@@ -129,7 +186,7 @@ export default function EditContractPage({
                 type="date"
                 id="eventDate"
                 name="eventDate"
-                value={formData.eventDate || ""}
+                value={formData.eventDate?.split("T")[0] || ""}
                 onChange={handleChange}
                 className={`w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 ${
                   errors.eventDate ? "border-red-500" : ""
@@ -239,7 +296,7 @@ export default function EditContractPage({
                 type="date"
                 id="signedAt"
                 name="signedAt"
-                value={formData.signedAt || ""}
+                value={formData.signedAt?.split("T")[0] || ""}
                 onChange={handleChange}
                 className="w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500"
               />
@@ -340,9 +397,10 @@ export default function EditContractPage({
           </Link>
           <button
             type="submit"
-            className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700"
+            disabled={saving}
+            className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:opacity-50"
           >
-            저장
+            {saving ? "저장 중..." : "저장"}
           </button>
         </div>
       </form>

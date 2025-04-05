@@ -1,17 +1,74 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { contracts, customers, singers } from "@/utils/dummyData";
+import { Contract } from "@/utils/dummyData";
+import { getAllContractsTemp, deleteContract } from "@/services/schedulesApi";
 
 export default function ContractsPage() {
   const router = useRouter();
+  const [contracts, setContracts] = useState<Contract[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [customers, setCustomers] = useState<
+    { id: string; name: string; company: string }[]
+  >([]);
+  const [singers, setSingers] = useState<{ id: string; name: string }[]>([]);
+
   // 필터 상태
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [customerFilter, setCustomerFilter] = useState<string>("all");
   const [singerFilter, setSingerFilter] = useState<string>("all");
   const [paymentFilter, setPaymentFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
+
+  useEffect(() => {
+    const fetchContracts = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        // 실제 API 연동 시: const data = await getAllContracts();
+        const data = await getAllContractsTemp();
+        setContracts(data);
+
+        // 고객 및 가수 목록 추출 (중복 제거)
+        const uniqueCustomers = Array.from(
+          new Map(
+            data.map((contract) => [
+              contract.customerId,
+              {
+                id: contract.customerId,
+                name: contract.customerName,
+                company: contract.customerCompany,
+              },
+            ])
+          ).values()
+        );
+
+        const uniqueSingers = Array.from(
+          new Map(
+            data.map((contract) => [
+              contract.singerId,
+              {
+                id: contract.singerId,
+                name: contract.singerName,
+              },
+            ])
+          ).values()
+        );
+
+        setCustomers(uniqueCustomers);
+        setSingers(uniqueSingers);
+      } catch (err) {
+        console.error("계약 목록 조회 오류:", err);
+        setError("계약 목록을 불러오는데 실패했습니다.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchContracts();
+  }, []);
 
   // 필터링된 계약 목록
   const filteredContracts = contracts.filter((contract) => {
@@ -129,24 +186,86 @@ export default function ContractsPage() {
   };
 
   // 계약서 취소 처리
-  const handleCancel = (id: string) => {
-    if (confirm("정말로 이 계약을 취소하시겠습니까?")) {
+  const handleCancel = async (id: string) => {
+    const confirmed = window.confirm("정말로 이 계약을 취소하시겠습니까?");
+    if (!confirmed) return;
+
+    try {
+      await deleteContract(id);
       alert(`계약 ${id}가 취소되었습니다.`);
-      // 실제 구현에서는 API 호출 필요
+
+      // 목록에서 해당 계약 제거 또는 상태 업데이트
+      setContracts(
+        contracts.map((contract) =>
+          contract.id === id
+            ? { ...contract, contractStatus: "cancelled" }
+            : contract
+        )
+      );
+    } catch (err) {
+      console.error("계약 취소 오류:", err);
+      alert("계약 취소에 실패했습니다.");
     }
   };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="text-center">
+          <div
+            className="spinner-border inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent"
+            role="status"
+          >
+            <span className="sr-only">로딩중...</span>
+          </div>
+          <p className="mt-2 text-gray-600">계약 목록을 불러오는 중...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="text-center">
+          <div className="text-red-500 text-xl mb-2">⚠️ 오류</div>
+          <p className="text-gray-700">{error}</p>
+          <button
+            className="mt-4 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700"
+            onClick={() => window.location.reload()}
+          >
+            새로고침
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="pb-10">
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-800">계약 관리</h1>
-          <p className="text-gray-600 mt-1">모든 계약을 확인하고 관리하세요.</p>
+          <p className="text-gray-600 mt-1">
+            모든 계약 내역을 관리하고 상태를 확인하세요.
+          </p>
         </div>
         <Link
           href="/admin/schedules/contracts/new"
-          className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
+          className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg flex items-center"
         >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-5 w-5 mr-1"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
+            <path
+              fillRule="evenodd"
+              d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"
+              clipRule="evenodd"
+            />
+          </svg>
           새 계약 등록
         </Link>
       </div>

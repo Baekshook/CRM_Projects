@@ -4,29 +4,11 @@ import { toast } from "react-hot-toast";
 import PageHeader from "@/components/common/PageHeader";
 import customerApi from "@/services/customerApi";
 import singerApi from "@/services/singerApi";
-import axios from "axios";
-
-// 세그먼트 타입 정의
-interface Segment {
-  id: string;
-  name: string;
-  description: string;
-  criteria: {
-    type?: "customer" | "singer" | "all";
-    status?: "active" | "inactive" | "all";
-    grade?: string;
-    minContractCount?: number;
-    maxContractCount?: number;
-    lastRequestDate?: string;
-    registrationDateStart?: string;
-    registrationDateEnd?: string;
-    customFields?: Record<string, any>;
-  };
-  color: string;
-  entityCount: number;
-  createdAt: string;
-  updatedAt: string;
-}
+import {
+  segmentApi,
+  Segment as ApiSegment,
+  CreateSegmentDTO,
+} from "@/services/segmentApi";
 
 // 색상 선택 옵션
 const colorOptions = [
@@ -40,8 +22,10 @@ const colorOptions = [
   { name: "티일", value: "#14B8A6" },
 ];
 
-// API URL
-const API_URL = "http://localhost:4000/api";
+// 세그먼트 확장 인터페이스 (색상 추가)
+interface Segment extends ApiSegment {
+  color?: string;
+}
 
 export default function SegmentsPage() {
   const [segments, setSegments] = useState<Segment[]>([]);
@@ -51,11 +35,9 @@ export default function SegmentsPage() {
   const [newSegment, setNewSegment] = useState<Partial<Segment>>({
     name: "",
     description: "",
-    criteria: {
-      type: "all",
-      status: "all",
-    },
-    color: colorOptions[0].value,
+    entityType: "customer",
+    criteria: {},
+    isActive: true,
   });
   const [customers, setCustomers] = useState<any[]>([]);
   const [singers, setSingers] = useState<any[]>([]);
@@ -86,8 +68,16 @@ export default function SegmentsPage() {
       try {
         setIsLoading(true);
         // API 호출하여 세그먼트 데이터 로드
-        const response = await axios.get(`${API_URL}/segments`);
-        setSegments(response.data);
+        const data = await segmentApi.getAll();
+        // 기존 세그먼트에 색상 속성 추가 (만약 없다면)
+        const segmentsWithColor = data.map(
+          (segment: ApiSegment, index: number) => ({
+            ...segment,
+            color:
+              segment.color || colorOptions[index % colorOptions.length].value,
+          })
+        );
+        setSegments(segmentsWithColor);
       } catch (error) {
         console.error("세그먼트 데이터 로드 오류:", error);
         // API 연결이 안되었다면 로컬 스토리지에서 불러오기 시도
@@ -142,46 +132,40 @@ export default function SegmentsPage() {
     e.preventDefault();
 
     try {
-      const now = new Date().toISOString();
-
-      const segmentData = {
+      // 세그먼트 데이터 준비
+      const segmentData: CreateSegmentDTO = {
         name: newSegment.name || "",
         description: newSegment.description || "",
+        entityType: newSegment.entityType || "customer",
         criteria: newSegment.criteria || {},
-        color: newSegment.color || colorOptions[0].value,
-        entityCount: calculateEntityCount(newSegment.criteria || {}),
-        createdAt: now,
-        updatedAt: now,
+        isActive: newSegment.isActive !== false,
       };
 
-      // API 호출하여 세그먼트 저장
       try {
-        const response = await axios.post(`${API_URL}/segments`, segmentData);
-        setSegments([...segments, response.data]);
+        // API를 통해 세그먼트 생성
+        const createdSegment = await segmentApi.create(segmentData);
+
+        // 생성된 세그먼트에 색상 추가
+        const segmentWithColor = {
+          ...createdSegment,
+          color: newSegment.color || colorOptions[0].value,
+        };
+
+        setSegments([...segments, segmentWithColor]);
         toast.success("세그먼트가 생성되었습니다.");
       } catch (error) {
         console.error("세그먼트 저장 오류:", error);
-        // API 연결이 안되었다면 로컬에서만 상태 업데이트
-        const newId = `seg-${Math.floor(Math.random() * 1000)
-          .toString()
-          .padStart(3, "0")}`;
-        const segment: Segment = {
-          id: newId,
-          ...segmentData,
-        };
-        setSegments([...segments, segment]);
-        toast.success("세그먼트가 생성되었습니다. (로컬에만 저장됨)");
+        toast.error("세그먼트 저장에 실패했습니다.");
       }
 
+      // 폼 초기화
       setShowAddForm(false);
       setNewSegment({
         name: "",
         description: "",
-        criteria: {
-          type: "all",
-          status: "all",
-        },
-        color: colorOptions[0].value,
+        entityType: "customer",
+        criteria: {},
+        isActive: true,
       });
     } catch (error) {
       console.error("세그먼트 추가 오류:", error);
@@ -193,20 +177,62 @@ export default function SegmentsPage() {
   const handleDeleteSegment = async (id: string) => {
     if (confirm("정말로 이 세그먼트를 삭제하시겠습니까?")) {
       try {
-        // API 호출하여 세그먼트 삭제
-        try {
-          await axios.delete(`${API_URL}/segments/${id}`);
-        } catch (error) {
-          console.error("세그먼트 삭제 API 오류:", error);
-          // API 오류는 무시하고 UI에서만 삭제
-        }
-
-        setSegments(segments.filter((segment) => segment.id !== id));
+        await segmentApi.delete(id);
+        setSegments(segments.filter((seg) => seg.id !== id));
         toast.success("세그먼트가 삭제되었습니다.");
       } catch (error) {
         console.error("세그먼트 삭제 오류:", error);
         toast.error("세그먼트 삭제에 실패했습니다.");
       }
+    }
+  };
+
+  // 세그먼트 수정 핸들러
+  const handleEditSegment = (segment: Segment) => {
+    setEditingSegment(segment);
+    setNewSegment({
+      ...segment,
+    });
+    setShowAddForm(true);
+  };
+
+  // 세그먼트 업데이트 핸들러
+  const handleUpdateSegment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingSegment) return;
+
+    try {
+      const updatedData = {
+        name: newSegment.name,
+        description: newSegment.description,
+        entityType: newSegment.entityType,
+        criteria: newSegment.criteria,
+        isActive: newSegment.isActive,
+      };
+
+      await segmentApi.update(editingSegment.id, updatedData);
+
+      setSegments(
+        segments.map((seg) =>
+          seg.id === editingSegment.id
+            ? { ...seg, ...updatedData, color: newSegment.color || seg.color }
+            : seg
+        )
+      );
+
+      toast.success("세그먼트가 업데이트되었습니다.");
+      setShowAddForm(false);
+      setEditingSegment(null);
+      setNewSegment({
+        name: "",
+        description: "",
+        entityType: "customer",
+        criteria: {},
+        isActive: true,
+      });
+    } catch (error) {
+      console.error("세그먼트 업데이트 오류:", error);
+      toast.error("세그먼트 업데이트에 실패했습니다.");
     }
   };
 
@@ -405,82 +431,6 @@ export default function SegmentsPage() {
     setPreviewResults(matchedEntities.slice(0, 10));
   };
 
-  // 편집 세그먼트 저장 핸들러
-  const handleSaveEdit = async () => {
-    if (!editingSegment) return;
-
-    try {
-      const now = new Date().toISOString();
-      const updatedSegment = {
-        ...editingSegment,
-        name: newSegment.name || editingSegment.name,
-        description: newSegment.description || editingSegment.description,
-        criteria: newSegment.criteria || editingSegment.criteria,
-        color: newSegment.color || editingSegment.color,
-        entityCount: calculateEntityCount(
-          newSegment.criteria || editingSegment.criteria
-        ),
-        updatedAt: now,
-      };
-
-      // API 호출하여 세그먼트 업데이트
-      try {
-        await axios.put(
-          `${API_URL}/segments/${editingSegment.id}`,
-          updatedSegment
-        );
-      } catch (error) {
-        console.error("세그먼트 업데이트 API 오류:", error);
-        // API 오류는 무시하고 UI만 업데이트
-      }
-
-      setSegments(
-        segments.map((segment) =>
-          segment.id === editingSegment.id ? updatedSegment : segment
-        )
-      );
-      setEditingSegment(null);
-      setNewSegment({
-        name: "",
-        description: "",
-        criteria: {
-          type: "all",
-          status: "all",
-        },
-        color: colorOptions[0].value,
-      });
-      toast.success("세그먼트가 업데이트되었습니다.");
-    } catch (error) {
-      console.error("세그먼트 업데이트 오류:", error);
-      toast.error("세그먼트 업데이트에 실패했습니다.");
-    }
-  };
-
-  // 편집 취소 핸들러
-  const handleCancelEdit = () => {
-    setEditingSegment(null);
-    setNewSegment({
-      name: "",
-      description: "",
-      criteria: {
-        type: "all",
-        status: "all",
-      },
-      color: colorOptions[0].value,
-    });
-  };
-
-  // 세그먼트 편집 시작 핸들러
-  const handleEditSegment = (segment: Segment) => {
-    setEditingSegment(segment);
-    setNewSegment({
-      name: segment.name,
-      description: segment.description,
-      criteria: segment.criteria,
-      color: segment.color,
-    });
-  };
-
   // 로딩 중 상태 처리
   if (isLoading) {
     return (
@@ -524,7 +474,7 @@ export default function SegmentsPage() {
           <h2 className="text-xl font-semibold mb-4">
             {editingSegment ? "세그먼트 편집" : "새 세그먼트 추가"}
           </h2>
-          <form onSubmit={handleAddSegment} className="space-y-4">
+          <form onSubmit={handleUpdateSegment} className="space-y-4">
             {/* 기본 정보 */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -651,8 +601,7 @@ export default function SegmentsPage() {
               </button>
               {editingSegment ? (
                 <button
-                  type="button"
-                  onClick={handleSaveEdit}
+                  type="submit"
                   className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition"
                 >
                   저장

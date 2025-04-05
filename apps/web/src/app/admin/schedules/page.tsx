@@ -2,15 +2,32 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { schedules as dummySchedules, Schedule } from "@/utils/dummyData";
+import { Schedule } from "@/utils/dummyData";
+import { getAllSchedulesTemp } from "@/services/schedulesApi";
 
 export default function SchedulesPage() {
   const router = useRouter();
   const [schedules, setSchedules] = useState<Schedule[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // 실제로는 API 호출로 처리
-    setSchedules(dummySchedules);
+    const fetchSchedules = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        // 실제 API 연동 시: const data = await getAllSchedules();
+        const data = await getAllSchedulesTemp();
+        setSchedules(data);
+      } catch (err) {
+        console.error("일정 목록 조회 오류:", err);
+        setError("일정 목록을 불러오는데 실패했습니다.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSchedules();
   }, []);
 
   // 필터 상태
@@ -257,21 +274,115 @@ export default function SchedulesPage() {
     return date.toLocaleDateString("ko-KR");
   };
 
+  // 새 일정 등록 페이지로 이동
+  const handleAddSchedule = () => {
+    router.push("/admin/schedules/new");
+  };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="text-center">
+          <div
+            className="spinner-border inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent"
+            role="status"
+          >
+            <span className="sr-only">로딩중...</span>
+          </div>
+          <p className="mt-2 text-gray-600">일정 목록을 불러오는 중...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="text-center">
+          <div className="text-red-500 text-xl mb-2">⚠️ 오류</div>
+          <p className="text-gray-700">{error}</p>
+          <button
+            className="mt-4 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700"
+            onClick={() => window.location.reload()}
+          >
+            새로고침
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="pb-10">
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-800">일정 관리</h1>
           <p className="text-gray-600 mt-1">
-            모든 행사 일정을 확인하고 관리하세요.
+            모든 일정을 한눈에 확인하고 관리하세요.
           </p>
         </div>
-        <Link
-          href="/admin/schedules/calendar"
-          className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
-        >
-          캘린더 보기
-        </Link>
+        <div className="flex gap-2">
+          <Link
+            href="/admin/schedules/contracts"
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          >
+            계약 관리
+          </Link>
+          <Link
+            href="/admin/schedules/new"
+            className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
+          >
+            새 일정 등록
+          </Link>
+        </div>
+      </div>
+
+      {/* 필터 섹션 */}
+      <div className="bg-white p-4 rounded-lg shadow mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              검색
+            </label>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="일정명, 고객명, 가수명 검색..."
+              className="w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              상태 필터
+            </label>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500"
+            >
+              <option value="all">모든 상태</option>
+              <option value="scheduled">예정됨</option>
+              <option value="in_progress">진행중</option>
+              <option value="completed">완료</option>
+              <option value="cancelled">취소</option>
+              <option value="changed">변경됨</option>
+            </select>
+          </div>
+
+          <div className="flex items-end">
+            <button
+              onClick={() => {
+                setStatusFilter("all");
+                setSearchQuery("");
+              }}
+              className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200"
+            >
+              필터 초기화
+            </button>
+          </div>
+        </div>
       </div>
 
       <div className="bg-white rounded-lg shadow overflow-hidden">
@@ -308,14 +419,14 @@ export default function SchedulesPage() {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {schedules.length === 0 ? (
+            {filteredSchedules.length === 0 ? (
               <tr>
                 <td colSpan={9} className="px-6 py-4 text-center text-gray-500">
                   등록된 일정이 없습니다.
                 </td>
               </tr>
             ) : (
-              schedules.map((schedule) => (
+              filteredSchedules.map((schedule) => (
                 <tr key={schedule.id}>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                     {schedule.id}

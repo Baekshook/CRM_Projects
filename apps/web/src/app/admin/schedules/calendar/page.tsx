@@ -2,16 +2,38 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { schedules as dummySchedules, Schedule } from "@/utils/dummyData";
+import { Schedule } from "@/utils/dummyData";
+import {
+  getAllSchedulesTemp,
+  getSchedulesByDate,
+} from "@/services/schedulesApi";
+import { useRouter } from "next/navigation";
 
 export default function CalendarPage() {
+  const router = useRouter();
   const [schedules, setSchedules] = useState<Schedule[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
   const [currentDate, setCurrentDate] = useState(new Date());
 
   useEffect(() => {
-    // 실제로는 API 호출로 처리
-    setSchedules(dummySchedules);
-  }, []);
+    const fetchSchedules = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        // 실제 API 연동 시: const data = await getSchedulesByDate(currentDate.getFullYear(), currentDate.getMonth() + 1);
+        const data = await getAllSchedulesTemp();
+        setSchedules(data);
+      } catch (err) {
+        console.error("일정 목록 조회 오류:", err);
+        setError("일정 목록을 불러오는데 실패했습니다.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSchedules();
+  }, [currentDate]);
 
   const getMonthDays = (year: number, month: number) => {
     return new Date(year, month + 1, 0).getDate();
@@ -92,6 +114,19 @@ export default function CalendarPage() {
     );
   };
 
+  const handleScheduleClick = (scheduleId: string) => {
+    router.push(`/admin/schedules/${scheduleId}`);
+  };
+
+  const handleDateCellClick = (date: number) => {
+    const fullDate = `${currentDate.getFullYear()}-${String(
+      currentDate.getMonth() + 1
+    ).padStart(2, "0")}-${String(date).padStart(2, "0")}`;
+
+    // 날짜를 클릭하면 해당 날짜로 일정을 생성하는 폼으로 이동
+    router.push(`/admin/schedules/new?date=${fullDate}`);
+  };
+
   const renderCalendar = () => {
     const daysInMonth = getMonthDays(
       currentDate.getFullYear(),
@@ -121,7 +156,8 @@ export default function CalendarPage() {
           key={day}
           className={`h-32 border border-gray-200 p-2 ${
             isToday(day) ? "bg-orange-50" : ""
-          }`}
+          } hover:bg-gray-100 cursor-pointer`}
+          onClick={() => handleDateCellClick(day)}
         >
           <div className="flex justify-between items-center mb-2">
             <span
@@ -143,15 +179,18 @@ export default function CalendarPage() {
           </div>
           <div className="space-y-1">
             {daySchedules.slice(0, 2).map((schedule) => (
-              <Link
+              <div
                 key={schedule.id}
-                href={`/admin/schedules/${schedule.id}`}
                 className={`block text-xs p-1 rounded truncate ${getStatusBadgeClass(
                   schedule.status
                 )}`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleScheduleClick(schedule.id);
+                }}
               >
                 {schedule.eventTitle}
-              </Link>
+              </div>
             ))}
             {daySchedules.length > 2 && (
               <div className="text-xs text-gray-500 text-center">
@@ -166,6 +205,39 @@ export default function CalendarPage() {
     return days;
   };
 
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="text-center">
+          <div
+            className="spinner-border inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent"
+            role="status"
+          >
+            <span className="sr-only">로딩중...</span>
+          </div>
+          <p className="mt-2 text-gray-600">일정을 불러오는 중...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="text-center">
+          <div className="text-red-500 text-xl mb-2">⚠️ 오류</div>
+          <p className="text-gray-700">{error}</p>
+          <button
+            className="mt-4 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700"
+            onClick={() => window.location.reload()}
+          >
+            새로고침
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="pb-10">
       <div className="flex justify-between items-center mb-6">
@@ -173,12 +245,20 @@ export default function CalendarPage() {
           <h1 className="text-2xl font-bold text-gray-800">일정 캘린더</h1>
           <p className="text-gray-600 mt-1">월별 일정을 확인하세요.</p>
         </div>
-        <Link
-          href="/admin/schedules"
-          className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
-        >
-          목록 보기
-        </Link>
+        <div className="flex space-x-2">
+          <Link
+            href="/admin/schedules/new"
+            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+          >
+            새 일정 등록
+          </Link>
+          <Link
+            href="/admin/schedules"
+            className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
+          >
+            목록 보기
+          </Link>
+        </div>
       </div>
 
       <div className="bg-white rounded-lg shadow overflow-hidden">

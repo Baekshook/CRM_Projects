@@ -3,6 +3,7 @@ import { Match } from "../../matches/entities/match.entity";
 import { Schedule } from "../../schedules/entities/schedule.entity";
 import { Contract } from "../../contracts/entities/contract.entity";
 import { Review } from "../../reviews/entities/review.entity";
+import { Feedback } from "../../feedbacks/entities/feedback.entity";
 export declare class Singer {
     id: string;
     name: string;
@@ -32,4 +33,5 @@ export declare class Singer {
     schedules: Schedule[];
     contracts: Contract[];
     reviews: Review[];
+    feedbacks: Feedback[];
 }
