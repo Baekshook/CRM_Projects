@@ -2,8 +2,8 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Contract } from "@/utils/dummyData";
-import { getContractByIdTemp, updateContract } from "@/services/schedulesApi";
+import { Contract } from "@/types/scheduleTypes";
+import { getContractById, updateContract } from "@/services/schedulesApi";
 
 export default function EditContractPage({
   params,
@@ -23,8 +23,8 @@ export default function EditContractPage({
       try {
         setIsLoading(true);
         setError(null);
-        // 실제 API 연동 시: const data = await getContractById(contractId);
-        const data = await getContractByIdTemp(contractId);
+
+        const data = await getContractById(contractId);
 
         if (!data) {
           setError("계약 정보를 찾을 수 없습니다.");

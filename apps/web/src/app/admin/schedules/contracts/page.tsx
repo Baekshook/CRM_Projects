@@ -2,12 +2,13 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Contract } from "@/utils/dummyData";
-import { getAllContractsTemp, deleteContract } from "@/services/schedulesApi";
+import { Contract } from "@/types/scheduleTypes";
+import { getAllContracts } from "@/services/schedulesApi";
 
 export default function ContractsPage() {
   const router = useRouter();
   const [contracts, setContracts] = useState<Contract[]>([]);
+  const [filteredContracts, setFilteredContracts] = useState<Contract[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [customers, setCustomers] = useState<
@@ -17,8 +18,8 @@ export default function ContractsPage() {
 
   // 필터 상태
   const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [customerFilter, setCustomerFilter] = useState<string>("all");
-  const [singerFilter, setSingerFilter] = useState<string>("all");
+  const [customerFilter, setCustomerFilter] = useState<string>("");
+  const [singerFilter, setSingerFilter] = useState<string>("");
   const [paymentFilter, setPaymentFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
 
@@ -27,9 +28,10 @@ export default function ContractsPage() {
       try {
         setLoading(true);
         setError(null);
-        // 실제 API 연동 시: const data = await getAllContracts();
-        const data = await getAllContractsTemp();
+        const data = await getAllContracts();
+
         setContracts(data);
+        setFilteredContracts(data);
 
         // 고객 및 가수 목록 추출 (중복 제거)
         const uniqueCustomers = Array.from(
@@ -61,7 +63,7 @@ export default function ContractsPage() {
         setSingers(uniqueSingers);
       } catch (err) {
         console.error("계약 목록 조회 오류:", err);
-        setError("계약 목록을 불러오는데 실패했습니다.");
+        setError("계약 정보를 불러오는데 실패했습니다.");
       } finally {
         setLoading(false);
       }
@@ -70,43 +72,69 @@ export default function ContractsPage() {
     fetchContracts();
   }, []);
 
-  // 필터링된 계약 목록
-  const filteredContracts = contracts.filter((contract) => {
+  useEffect(() => {
+    // 필터링 로직
+    let result = [...contracts];
+
     // 상태 필터
-    if (statusFilter !== "all" && contract.contractStatus !== statusFilter) {
-      return false;
+    if (statusFilter !== "all") {
+      result = result.filter(
+        (contract) => contract.contractStatus === statusFilter
+      );
     }
 
-    // 고객 필터
-    if (customerFilter !== "all" && contract.customerId !== customerFilter) {
-      return false;
+    // 고객명 필터
+    if (customerFilter) {
+      result = result.filter((contract) =>
+        contract.customerName
+          .toLowerCase()
+          .includes(customerFilter.toLowerCase())
+      );
     }
 
-    // 가수 필터
-    if (singerFilter !== "all" && contract.singerId !== singerFilter) {
-      return false;
+    // 가수명 필터
+    if (singerFilter) {
+      result = result.filter((contract) =>
+        contract.singerName.toLowerCase().includes(singerFilter.toLowerCase())
+      );
     }
 
     // 결제 상태 필터
-    if (paymentFilter !== "all" && contract.paymentStatus !== paymentFilter) {
-      return false;
+    if (paymentFilter !== "all") {
+      result = result.filter(
+        (contract) => contract.paymentStatus === paymentFilter
+      );
     }
 
     // 검색어 필터
     if (
       searchQuery &&
-      !contract.eventTitle.toLowerCase().includes(searchQuery.toLowerCase()) &&
-      !contract.customerName
-        .toLowerCase()
-        .includes(searchQuery.toLowerCase()) &&
-      !contract.singerName.toLowerCase().includes(searchQuery.toLowerCase()) &&
-      !contract.id.toLowerCase().includes(searchQuery.toLowerCase())
+      !result.some(
+        (contract) =>
+          contract.eventTitle
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase()) ||
+          contract.customerName
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase()) ||
+          contract.singerName
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase()) ||
+          contract.id.toLowerCase().includes(searchQuery.toLowerCase())
+      )
     ) {
-      return false;
+      result = [];
     }
 
-    return true;
-  });
+    setFilteredContracts(result);
+  }, [
+    contracts,
+    statusFilter,
+    customerFilter,
+    singerFilter,
+    paymentFilter,
+    searchQuery,
+  ]);
 
   // 상태에 따른 배지 색상
   const getContractStatusBadgeClass = (status: string) => {
@@ -329,10 +357,28 @@ export default function ContractsPage() {
               onChange={(e) => setCustomerFilter(e.target.value)}
               className="w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500"
             >
-              <option value="all">모든 고객</option>
+              <option value="">모든 고객</option>
               {customers.map((customer) => (
-                <option key={customer.id} value={customer.id}>
+                <option key={customer.id} value={customer.name}>
                   {customer.name} ({customer.company})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              가수
+            </label>
+            <select
+              value={singerFilter}
+              onChange={(e) => setSingerFilter(e.target.value)}
+              className="w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500"
+            >
+              <option value="">모든 가수</option>
+              {singers.map((singer) => (
+                <option key={singer.id} value={singer.name}>
+                  {singer.name}
                 </option>
               ))}
             </select>
@@ -342,8 +388,8 @@ export default function ContractsPage() {
             <button
               onClick={() => {
                 setStatusFilter("all");
-                setCustomerFilter("all");
-                setSingerFilter("all");
+                setCustomerFilter("");
+                setSingerFilter("");
                 setPaymentFilter("all");
                 setSearchQuery("");
               }}

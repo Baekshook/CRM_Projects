@@ -2,26 +2,82 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Schedule } from "@/utils/dummyData";
-import { getAllSchedulesTemp } from "@/services/schedulesApi";
+import { Schedule } from "@/types/scheduleTypes";
+import { getAllSchedules, deleteSchedule } from "@/services/schedulesApi";
+
+// 상태에 따른 배지 클래스 반환 함수
+const getStatusBadgeClass = (status: string) => {
+  switch (status) {
+    case "scheduled":
+      return "bg-blue-100 text-blue-800";
+    case "in_progress":
+      return "bg-yellow-100 text-yellow-800";
+    case "completed":
+      return "bg-green-100 text-green-800";
+    case "cancelled":
+      return "bg-red-100 text-red-800";
+    case "changed":
+      return "bg-purple-100 text-purple-800";
+    default:
+      return "bg-gray-100 text-gray-800";
+  }
+};
+
+// 상태에 따른 텍스트 반환 함수
+const getStatusText = (status: string) => {
+  switch (status) {
+    case "scheduled":
+      return "예정됨";
+    case "in_progress":
+      return "진행중";
+    case "completed":
+      return "완료";
+    case "cancelled":
+      return "취소";
+    case "changed":
+      return "변경됨";
+    default:
+      return "알 수 없음";
+  }
+};
 
 export default function SchedulesPage() {
   const router = useRouter();
   const [schedules, setSchedules] = useState<Schedule[]>([]);
+  const [filteredSchedules, setFilteredSchedules] = useState<Schedule[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [currentMonth, setCurrentMonth] = useState<number>(
+    new Date().getMonth() + 1
+  );
+  const [currentYear, setCurrentYear] = useState<number>(
+    new Date().getFullYear()
+  );
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [viewMode, setViewMode] = useState<"list" | "calendar">("list");
+
+  // 상태 필터 옵션
+  const statusOptions = [
+    { value: "all", label: "전체" },
+    { value: "scheduled", label: "예정됨" },
+    { value: "in_progress", label: "진행중" },
+    { value: "completed", label: "완료" },
+    { value: "cancelled", label: "취소" },
+    { value: "changed", label: "변경됨" },
+  ];
 
   useEffect(() => {
     const fetchSchedules = async () => {
       try {
         setLoading(true);
         setError(null);
-        // 실제 API 연동 시: const data = await getAllSchedules();
-        const data = await getAllSchedulesTemp();
+        const data = await getAllSchedules();
         setSchedules(data);
+        setFilteredSchedules(data);
       } catch (err) {
         console.error("일정 목록 조회 오류:", err);
-        setError("일정 목록을 불러오는데 실패했습니다.");
+        setError("일정 정보를 불러오는데 실패했습니다.");
       } finally {
         setLoading(false);
       }
@@ -30,76 +86,41 @@ export default function SchedulesPage() {
     fetchSchedules();
   }, []);
 
-  // 필터 상태
-  const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [dateFilter, setDateFilter] = useState<string>("all");
-  const [searchQuery, setSearchQuery] = useState<string>("");
-  const [viewMode, setViewMode] = useState<"list" | "calendar">("list");
+  useEffect(() => {
+    // 필터링 로직
+    let result = [...schedules];
 
-  // 달력 현재 연도와 월 (기본값: 현재 날짜)
-  const today = new Date();
-  const [currentYear, setCurrentYear] = useState<number>(today.getFullYear());
-  const [currentMonth, setCurrentMonth] = useState<number>(
-    today.getMonth() + 1
-  ); // JavaScript 월은 0-indexed
-
-  // 필터링된 스케줄 목록
-  const filteredSchedules = schedules.filter((schedule) => {
     // 상태 필터
-    if (statusFilter !== "all" && schedule.status !== statusFilter) {
-      return false;
+    if (statusFilter !== "all") {
+      result = result.filter((schedule) => schedule.status === statusFilter);
     }
+
+    // 월 필터
+    result = result.filter((schedule) => {
+      const eventDate = new Date(schedule.eventDate);
+      return (
+        eventDate.getMonth() + 1 === currentMonth &&
+        eventDate.getFullYear() === currentYear
+      );
+    });
 
     // 검색어 필터
-    if (
-      searchQuery &&
-      !schedule.eventTitle.toLowerCase().includes(searchQuery.toLowerCase()) &&
-      !schedule.customerName
-        .toLowerCase()
-        .includes(searchQuery.toLowerCase()) &&
-      !schedule.singerName.toLowerCase().includes(searchQuery.toLowerCase()) &&
-      !schedule.id.toLowerCase().includes(searchQuery.toLowerCase())
-    ) {
-      return false;
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(
+        (schedule) =>
+          schedule.eventTitle.toLowerCase().includes(query) ||
+          schedule.customerName.toLowerCase().includes(query) ||
+          schedule.singerName.toLowerCase().includes(query) ||
+          schedule.venue.toLowerCase().includes(query)
+      );
     }
 
-    return true;
-  });
+    setFilteredSchedules(result);
+  }, [schedules, statusFilter, currentMonth, currentYear, searchQuery]);
 
-  // 상태에 따른 배지 색상
-  const getStatusBadgeClass = (status: string) => {
-    switch (status) {
-      case "scheduled":
-        return "bg-blue-100 text-blue-800";
-      case "in_progress":
-        return "bg-yellow-100 text-yellow-800";
-      case "completed":
-        return "bg-green-100 text-green-800";
-      case "cancelled":
-        return "bg-red-100 text-red-800";
-      case "changed":
-        return "bg-purple-100 text-purple-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
-  };
-
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case "scheduled":
-        return "예정됨";
-      case "in_progress":
-        return "진행중";
-      case "completed":
-        return "완료";
-      case "cancelled":
-        return "취소";
-      case "changed":
-        return "변경됨";
-      default:
-        return status;
-    }
-  };
+  // 필터 상태
+  const [dateFilter, setDateFilter] = useState<string>("all");
 
   // 날짜가 오늘 이전인지 확인
   const isPastDate = (dateStr: string) => {
@@ -180,6 +201,25 @@ export default function SchedulesPage() {
     router.push(`/admin/schedules/${id}/edit`);
   };
 
+  // 스케줄 삭제 처리
+  const handleDeleteSchedule = async (id: string) => {
+    if (
+      window.confirm(
+        "정말로 이 일정을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다."
+      )
+    ) {
+      try {
+        await deleteSchedule(id);
+        alert("일정이 삭제되었습니다.");
+        // 삭제 후 목록 새로고침
+        setSchedules(schedules.filter((schedule) => schedule.id !== id));
+      } catch (err) {
+        console.error("일정 삭제 오류:", err);
+        alert("일정 삭제 중 오류가 발생했습니다.");
+      }
+    }
+  };
+
   // 이전 달로 이동
   const goToPreviousMonth = () => {
     if (currentMonth === 1) {
@@ -250,7 +290,7 @@ export default function SchedulesPage() {
   };
 
   // 월 이름 가져오기
-  const getMonthName = (month: number): string => {
+  const getMonthName = (): string => {
     const monthNames = [
       "1",
       "2",
@@ -265,7 +305,7 @@ export default function SchedulesPage() {
       "11",
       "12",
     ];
-    return monthNames[month - 1];
+    return monthNames[currentMonth - 1];
   };
 
   // 날짜 포맷팅 함수
@@ -371,7 +411,7 @@ export default function SchedulesPage() {
             </select>
           </div>
 
-          <div className="flex items-end">
+          <div className="flex items-end space-x-2">
             <button
               onClick={() => {
                 setStatusFilter("all");
@@ -381,123 +421,279 @@ export default function SchedulesPage() {
             >
               필터 초기화
             </button>
+
+            {/* 목록/달력 전환 버튼 */}
+            <div className="flex border border-gray-300 rounded-md overflow-hidden">
+              <button
+                onClick={() => setViewMode("list")}
+                className={`px-4 py-2 ${
+                  viewMode === "list"
+                    ? "bg-orange-600 text-white"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                }`}
+              >
+                목록
+              </button>
+              <button
+                onClick={() => setViewMode("calendar")}
+                className={`px-4 py-2 ${
+                  viewMode === "calendar"
+                    ? "bg-orange-600 text-white"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                }`}
+              >
+                달력
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                일정 번호
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                이벤트 정보
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                고객 정보
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                가수 정보
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                일시
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                장소
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                상태
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                등록일
-              </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                관리
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {filteredSchedules.length === 0 ? (
+      {/* 월간 달력 - 달력 뷰일 때만 표시 */}
+      {viewMode === "calendar" && (
+        <div className="bg-white rounded-lg shadow overflow-hidden mb-6">
+          <div className="flex justify-between items-center p-4 border-b">
+            <button
+              onClick={goToPreviousMonth}
+              className="p-2 rounded-full hover:bg-gray-100"
+            >
+              &lt;
+            </button>
+            <h2 className="text-xl font-semibold">
+              {currentYear}년 {getMonthName()}월
+            </h2>
+            <button
+              onClick={goToNextMonth}
+              className="p-2 rounded-full hover:bg-gray-100"
+            >
+              &gt;
+            </button>
+          </div>
+
+          <div className="grid grid-cols-7 gap-px bg-gray-200">
+            {/* 요일 헤더 */}
+            {["일", "월", "화", "수", "목", "금", "토"].map((day) => (
+              <div key={day} className="p-2 text-center font-medium bg-gray-50">
+                {day}
+              </div>
+            ))}
+
+            {/* 이전 달 날짜 */}
+            {getPreviousMonthDays().map((day) => (
+              <div
+                key={`prev-${day}`}
+                className="min-h-[100px] p-2 bg-white text-gray-400"
+              >
+                {day}
+              </div>
+            ))}
+
+            {/* 현재 달 날짜 */}
+            {Array.from(
+              { length: getLastDayOfMonth(currentYear, currentMonth) },
+              (_, i) => i + 1
+            ).map((day) => {
+              const dateStr = `${currentYear}-${currentMonth
+                .toString()
+                .padStart(2, "0")}-${day.toString().padStart(2, "0")}`;
+              const events = schedules.filter((schedule) => {
+                const scheduleDate = schedule.eventDate.includes("T")
+                  ? schedule.eventDate.split("T")[0]
+                  : schedule.eventDate;
+                return scheduleDate === dateStr;
+              });
+
+              return (
+                <div
+                  key={`current-${day}`}
+                  className={`min-h-[100px] p-2 bg-white ${
+                    isToday(dateStr) ? "bg-orange-50" : ""
+                  }`}
+                >
+                  <div className="font-medium">{day}</div>
+                  <div className="mt-1 space-y-1 max-h-[80px] overflow-y-auto">
+                    {events.map((event, idx) => (
+                      <div
+                        key={event.id}
+                        className={`text-xs p-1 rounded ${getEventColor(idx)}`}
+                      >
+                        <div className="font-medium truncate">
+                          {event.eventTitle}
+                        </div>
+                        <div className="flex justify-between mt-1">
+                          <span className="truncate">{event.singerName}</span>
+                          <span>{event.startTime.substring(0, 5)}</span>
+                        </div>
+                        <div className="flex space-x-1 mt-1">
+                          <button
+                            onClick={() => handleViewDetail(event.id)}
+                            className="text-xs bg-blue-500 text-white px-1 py-0.5 rounded"
+                          >
+                            상세
+                          </button>
+                          <button
+                            onClick={() => handleModify(event.id)}
+                            className="text-xs bg-green-500 text-white px-1 py-0.5 rounded"
+                          >
+                            수정
+                          </button>
+                          <button
+                            onClick={() => handleDeleteSchedule(event.id)}
+                            className="text-xs bg-red-500 text-white px-1 py-0.5 rounded"
+                          >
+                            삭제
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+
+            {/* 다음 달 날짜 */}
+            {getNextMonthDays().map((day) => (
+              <div
+                key={`next-${day}`}
+                className="min-h-[100px] p-2 bg-white text-gray-400"
+              >
+                {day}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* 목록 뷰 - 목록 뷰일 때만 표시 */}
+      {viewMode === "list" && (
+        <div className="bg-white rounded-lg shadow overflow-hidden">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
               <tr>
-                <td colSpan={9} className="px-6 py-4 text-center text-gray-500">
-                  등록된 일정이 없습니다.
-                </td>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  일정 번호
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  이벤트 정보
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  고객 정보
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  가수 정보
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  일시
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  장소
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  상태
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  등록일
+                </th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  관리
+                </th>
               </tr>
-            ) : (
-              filteredSchedules.map((schedule) => (
-                <tr key={schedule.id}>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {schedule.id}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">
-                      {schedule.eventTitle}
-                    </div>
-                    <div className="text-sm text-gray-500">
-                      매칭: {schedule.matchId}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">
-                      {schedule.customerName}
-                    </div>
-                    <div className="text-sm text-gray-500">
-                      {schedule.customerCompany}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">
-                      {schedule.singerName}
-                    </div>
-                    <div className="text-sm text-gray-500">
-                      {schedule.singerAgency}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">
-                      {formatDate(schedule.eventDate)}
-                    </div>
-                    <div className="text-sm text-gray-500">
-                      {schedule.startTime} - {schedule.endTime}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {schedule.venue}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span
-                      className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusBadgeClass(
-                        schedule.status
-                      )}`}
-                    >
-                      {getStatusText(schedule.status)}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {formatDate(schedule.createdAt)}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <Link
-                      href={`/admin/schedules/${schedule.id}`}
-                      className="text-orange-600 hover:text-orange-900 mr-3"
-                    >
-                      상세
-                    </Link>
-                    <Link
-                      href={`/admin/schedules/${schedule.id}/edit`}
-                      className="text-orange-600 hover:text-orange-900"
-                    >
-                      수정
-                    </Link>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {filteredSchedules.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={9}
+                    className="px-6 py-4 text-center text-gray-500"
+                  >
+                    등록된 일정이 없습니다.
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+              ) : (
+                filteredSchedules.map((schedule) => (
+                  <tr key={schedule.id}>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      {schedule.id.substring(0, 8)}...
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">
+                        {schedule.eventTitle}
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        매칭:{" "}
+                        {schedule.matchId
+                          ? schedule.matchId.substring(0, 8) + "..."
+                          : "없음"}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">
+                        {schedule.customerName}
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        {schedule.customerCompany || "없음"}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">
+                        {schedule.singerName}
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        {schedule.singerAgency || "없음"}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">
+                        {formatDate(schedule.eventDate)}
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        {schedule.startTime} - {schedule.endTime}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {schedule.venue}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span
+                        className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusBadgeClass(
+                          schedule.status
+                        )}`}
+                      >
+                        {getStatusText(schedule.status)}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {formatDate(schedule.createdAt)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <div className="flex justify-end space-x-2">
+                        <button
+                          onClick={() => handleViewDetail(schedule.id)}
+                          className="text-blue-600 hover:text-blue-900"
+                        >
+                          상세
+                        </button>
+                        <button
+                          onClick={() => handleModify(schedule.id)}
+                          className="text-green-600 hover:text-green-900"
+                        >
+                          수정
+                        </button>
+                        <button
+                          onClick={() => handleDeleteSchedule(schedule.id)}
+                          className="text-red-600 hover:text-red-900"
+                        >
+                          삭제
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }

@@ -19,12 +19,16 @@ import {
   TimeIcon,
 } from "@/components/common/DashboardIcons";
 import {
+  DashboardStats,
+  getDashboardStats,
+  getRecentRequests,
+  getTodaySchedules,
+  getRecentNotifications,
   getDashboardStatsTemp,
   getRecentRequestsTemp,
   getTodaySchedulesTemp,
   getRecentNotificationsTemp,
-} from "@/services/dashboardApi";
-import { DashboardStats } from "@/services/dashboardApi";
+} from "@/services/dashboardApiDirect";
 
 export default function AdminDashboard() {
   // 날짜 필터 상태
@@ -53,29 +57,47 @@ export default function AdminDashboard() {
         setLoading(true);
         setError(null);
 
-        // 통계 데이터 조회
-        // 실제 API 연동 시: const statsData = await getDashboardStats(dateFilter, customStartDate, customEndDate);
-        const statsData = await getDashboardStatsTemp(
-          dateFilter,
-          customStartDate,
-          customEndDate
-        );
-        setStats(statsData);
+        // 직접 API 사용 시도
+        try {
+          // 통계 데이터 조회
+          const statsData = await getDashboardStats(
+            dateFilter,
+            customStartDate,
+            customEndDate
+          );
+          setStats(statsData);
 
-        // 최근 요청서 조회
-        // 실제 API 연동 시: const requestsData = await getRecentRequests();
-        const requestsData = await getRecentRequestsTemp();
-        setRecentRequests(requestsData);
+          // 최근 요청서 조회
+          const requestsData = await getRecentRequests();
+          setRecentRequests(requestsData);
 
-        // 오늘의 일정 조회
-        // 실제 API 연동 시: const schedulesData = await getTodaySchedules();
-        const schedulesData = await getTodaySchedulesTemp();
-        setTodaySchedules(schedulesData);
+          // 오늘의 일정 조회
+          const schedulesData = await getTodaySchedules();
+          setTodaySchedules(schedulesData);
 
-        // 최근 알림 조회
-        // 실제 API 연동 시: const notificationsData = await getRecentNotifications();
-        const notificationsData = await getRecentNotificationsTemp();
-        setNotifications(notificationsData);
+          // 최근 알림 조회
+          const notificationsData = await getRecentNotifications();
+          setNotifications(notificationsData);
+        } catch (apiError) {
+          console.warn("API 요청 실패, 임시 데이터를 사용합니다:", apiError);
+
+          // 임시 데이터 사용
+          const statsData = await getDashboardStatsTemp(
+            dateFilter,
+            customStartDate,
+            customEndDate
+          );
+          setStats(statsData);
+
+          const requestsData = await getRecentRequestsTemp();
+          setRecentRequests(requestsData);
+
+          const schedulesData = await getTodaySchedulesTemp();
+          setTodaySchedules(schedulesData);
+
+          const notificationsData = await getRecentNotificationsTemp();
+          setNotifications(notificationsData);
+        }
       } catch (err) {
         console.error("대시보드 데이터 조회 오류:", err);
         setError("대시보드 데이터를 불러오는데 실패했습니다.");

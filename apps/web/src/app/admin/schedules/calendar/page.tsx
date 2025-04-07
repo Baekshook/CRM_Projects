@@ -2,11 +2,8 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Schedule } from "@/utils/dummyData";
-import {
-  getAllSchedulesTemp,
-  getSchedulesByDate,
-} from "@/services/schedulesApi";
+import { Schedule } from "@/types/scheduleTypes";
+import { getSchedulesByDate } from "@/services/schedulesApi";
 import { useRouter } from "next/navigation";
 
 export default function CalendarPage() {
@@ -14,26 +11,34 @@ export default function CalendarPage() {
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [currentDate, setCurrentDate] = useState(new Date());
+  const today = new Date();
+  const [currentYear, setCurrentYear] = useState<number>(today.getFullYear());
+  const [currentMonth, setCurrentMonth] = useState<number>(
+    today.getMonth() + 1
+  );
+  const [currentDate, setCurrentDate] = useState<Date>(today);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [selectedDaySchedules, setSelectedDaySchedules] = useState<Schedule[]>(
+    []
+  );
 
   useEffect(() => {
     const fetchSchedules = async () => {
       try {
         setLoading(true);
         setError(null);
-        // 실제 API 연동 시: const data = await getSchedulesByDate(currentDate.getFullYear(), currentDate.getMonth() + 1);
-        const data = await getAllSchedulesTemp();
+        const data = await getSchedulesByDate(currentYear, currentMonth);
         setSchedules(data);
       } catch (err) {
         console.error("일정 목록 조회 오류:", err);
-        setError("일정 목록을 불러오는데 실패했습니다.");
+        setError("일정 정보를 불러오는데 실패했습니다.");
       } finally {
         setLoading(false);
       }
     };
 
     fetchSchedules();
-  }, [currentDate]);
+  }, [currentYear, currentMonth]);
 
   const getMonthDays = (year: number, month: number) => {
     return new Date(year, month + 1, 0).getDate();

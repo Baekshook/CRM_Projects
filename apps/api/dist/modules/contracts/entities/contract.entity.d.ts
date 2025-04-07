@@ -24,6 +24,7 @@ export declare class Contract {
     contractStatus: "draft" | "sent" | "signed" | "completed" | "cancelled";
     createdAt: Date;
     signedAt: string;
+    metadata: Record<string, any>;
     customer: Customer;
     singer: Singer;
     request: Request;

@@ -18,57 +18,62 @@ const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
 const typeorm_2 = require("typeorm");
 const contract_entity_1 = require("./entities/contract.entity");
-class CreateContractDto {
-}
 let ContractsService = ContractsService_1 = class ContractsService {
-    constructor(contractRepository) {
-        this.contractRepository = contractRepository;
+    constructor(contractsRepository) {
+        this.contractsRepository = contractsRepository;
         this.logger = new common_1.Logger(ContractsService_1.name);
     }
-    async findAll() {
-        this.logger.log("Finding all contracts");
-        return this.contractRepository.find();
+    async create(createContractDto) {
+        const contract = this.contractsRepository.create(createContractDto);
+        return this.contractsRepository.save(contract);
+    }
+    async findAll(query) {
+        const options = {
+            relations: ["schedule", "customer", "singer"],
+        };
+        if (query && query.status && query.status !== "all") {
+            options.where = { ...options.where, contractStatus: query.status };
+        }
+        return this.contractsRepository.find(options);
     }
     async findOne(id) {
-        this.logger.log(`Finding contract with id: ${id}`);
-        const contract = await this.contractRepository.findOne({ where: { id } });
+        const contract = await this.contractsRepository.findOne({
+            where: { id },
+            relations: ["schedule", "customer", "singer"],
+        });
         if (!contract) {
-            throw new common_1.NotFoundException(`Contract with ID ${id} not found`);
+            throw new common_1.NotFoundException(`Contract with ID "${id}" not found`);
         }
         return contract;
     }
-    async create(createContractDto) {
-        this.logger.log(`Creating contract: ${JSON.stringify(createContractDto)}`);
-        return {
-            id: "1",
-            customerId: createContractDto.customerId || "1",
-            customerName: createContractDto.customerName || "고객명",
-            singerId: createContractDto.singerId || "1",
-            singerName: createContractDto.singerName || "가수명",
-            eventTitle: createContractDto.eventTitle || "이벤트 제목",
-            eventDate: new Date().toISOString(),
-            contractAmount: "1000000",
-            paymentStatus: "unpaid",
-            contractStatus: "draft",
-            matchId: "1",
-            scheduleId: "1",
-            requestId: "1",
-            singerAgency: "소속사",
-            venue: "장소",
-            createdAt: new Date(),
-            signedAt: null,
-        };
-    }
     async update(id, updateContractDto) {
-        this.logger.log(`Updating contract ${id}: ${JSON.stringify(updateContractDto)}`);
-        await this.findOne(id);
-        await this.contractRepository.update(id, updateContractDto);
-        return this.findOne(id);
+        const contract = await this.findOne(id);
+        Object.assign(contract, updateContractDto);
+        return this.contractsRepository.save(contract);
     }
     async remove(id) {
-        this.logger.log(`Removing contract with id: ${id}`);
+        const result = await this.contractsRepository.delete(id);
+        if (result.affected === 0) {
+            throw new common_1.NotFoundException(`Contract with ID "${id}" not found`);
+        }
+    }
+    async sign(id, signContractDto) {
         const contract = await this.findOne(id);
-        await this.contractRepository.remove(contract);
+        contract.contractStatus = "signed";
+        contract.signedAt = new Date().toISOString();
+        if (signContractDto.signature) {
+            if (!contract.metadata) {
+                contract.metadata = {};
+            }
+            contract.metadata.signature = signContractDto.signature;
+            if (signContractDto.signerName) {
+                contract.metadata.signerName = signContractDto.signerName;
+            }
+            if (signContractDto.signerRole) {
+                contract.metadata.signerRole = signContractDto.signerRole;
+            }
+        }
+        return this.contractsRepository.save(contract);
     }
     async getMonthlyStats() {
         this.logger.log("Getting monthly contract stats");

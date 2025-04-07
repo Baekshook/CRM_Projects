@@ -16,14 +16,17 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ContractsController = void 0;
 const common_1 = require("@nestjs/common");
 const contracts_service_1 = require("./contracts.service");
+const create_contract_dto_1 = require("./dto/create-contract.dto");
+const update_contract_dto_1 = require("./dto/update-contract.dto");
+const sign_contract_dto_1 = require("./dto/sign-contract.dto");
 let ContractsController = ContractsController_1 = class ContractsController {
     constructor(contractsService) {
         this.contractsService = contractsService;
         this.logger = new common_1.Logger(ContractsController_1.name);
     }
-    async findAll() {
-        this.logger.log("Finding all contracts");
-        return this.contractsService.findAll();
+    async findAll(query) {
+        this.logger.log(`Finding all contracts with query: ${JSON.stringify(query)}`);
+        return this.contractsService.findAll(query);
     }
     async findOne(id) {
         this.logger.log(`Finding contract with id: ${id}`);
@@ -40,6 +43,10 @@ let ContractsController = ContractsController_1 = class ContractsController {
     async remove(id) {
         this.logger.log(`Removing contract with id: ${id}`);
         return this.contractsService.remove(id);
+    }
+    async sign(id, signContractDto) {
+        this.logger.log(`Signing contract with id: ${id}`);
+        return this.contractsService.sign(id, signContractDto);
     }
     async getMonthlyStats() {
         this.logger.log("Getting monthly contract stats");
@@ -69,8 +76,9 @@ let ContractsController = ContractsController_1 = class ContractsController {
 exports.ContractsController = ContractsController;
 __decorate([
     (0, common_1.Get)(),
+    __param(0, (0, common_1.Query)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
+    __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], ContractsController.prototype, "findAll", null);
 __decorate([
@@ -84,7 +92,7 @@ __decorate([
     (0, common_1.Post)(),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
+    __metadata("design:paramtypes", [create_contract_dto_1.CreateContractDto]),
     __metadata("design:returntype", Promise)
 ], ContractsController.prototype, "create", null);
 __decorate([
@@ -92,7 +100,7 @@ __decorate([
     __param(0, (0, common_1.Param)("id")),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:paramtypes", [String, update_contract_dto_1.UpdateContractDto]),
     __metadata("design:returntype", Promise)
 ], ContractsController.prototype, "update", null);
 __decorate([
@@ -102,6 +110,14 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
 ], ContractsController.prototype, "remove", null);
+__decorate([
+    (0, common_1.Post)(":id/sign"),
+    __param(0, (0, common_1.Param)("id")),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, sign_contract_dto_1.SignContractDto]),
+    __metadata("design:returntype", Promise)
+], ContractsController.prototype, "sign", null);
 __decorate([
     (0, common_1.Get)("stats/monthly"),
     __metadata("design:type", Function),

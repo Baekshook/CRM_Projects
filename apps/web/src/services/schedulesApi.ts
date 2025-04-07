@@ -1,17 +1,16 @@
-import { Schedule, Contract } from "@/utils/dummyData";
+import axios from "axios";
+import { Schedule, Contract, Singer, Venue } from "@/types/scheduleTypes";
 
-// Schedule 인터페이스는 dummyData에서 임포트하여 사용합니다.
+// 백엔드 서버 URL
+const API_URL = "http://localhost:4000/api";
 
 // 일정 관련 API 함수들
 
 // 모든 일정 조회
-export const getAllSchedules = async () => {
+export const getAllSchedules = async (): Promise<Schedule[]> => {
   try {
-    const response = await fetch("/api/schedules");
-    if (!response.ok) {
-      throw new Error("일정 목록을 불러오는데 실패했습니다.");
-    }
-    return await response.json();
+    const response = await axios.get(`${API_URL}/schedules`);
+    return response.data;
   } catch (error) {
     console.error("일정 목록 조회 오류:", error);
     throw error;
@@ -19,13 +18,14 @@ export const getAllSchedules = async () => {
 };
 
 // 상태별 일정 조회
-export const getSchedulesByStatus = async (status: string) => {
+export const getSchedulesByStatus = async (
+  status: string
+): Promise<Schedule[]> => {
   try {
-    const response = await fetch(`/api/schedules?status=${status}`);
-    if (!response.ok) {
-      throw new Error(`${status} 상태의 일정을 불러오는데 실패했습니다.`);
-    }
-    return await response.json();
+    const response = await axios.get(`${API_URL}/schedules`, {
+      params: { status },
+    });
+    return response.data;
   } catch (error) {
     console.error("상태별 일정 조회 오류:", error);
     throw error;
@@ -33,13 +33,10 @@ export const getSchedulesByStatus = async (status: string) => {
 };
 
 // 일정 상세 조회
-export const getScheduleById = async (id: string) => {
+export const getScheduleById = async (id: string): Promise<Schedule> => {
   try {
-    const response = await fetch(`/api/schedules/${id}`);
-    if (!response.ok) {
-      throw new Error("일정 상세 정보를 불러오는데 실패했습니다.");
-    }
-    return await response.json();
+    const response = await axios.get(`${API_URL}/schedules/${id}`);
+    return response.data;
   } catch (error) {
     console.error("일정 상세 조회 오류:", error);
     throw error;
@@ -47,21 +44,12 @@ export const getScheduleById = async (id: string) => {
 };
 
 // 일정 생성
-export const createSchedule = async (scheduleData: Partial<Schedule>) => {
+export const createSchedule = async (
+  scheduleData: Partial<Schedule>
+): Promise<Schedule> => {
   try {
-    const response = await fetch("/api/schedules", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(scheduleData),
-    });
-
-    if (!response.ok) {
-      throw new Error("일정 생성에 실패했습니다.");
-    }
-
-    return await response.json();
+    const response = await axios.post(`${API_URL}/schedules`, scheduleData);
+    return response.data;
   } catch (error) {
     console.error("일정 생성 오류:", error);
     throw error;
@@ -72,21 +60,13 @@ export const createSchedule = async (scheduleData: Partial<Schedule>) => {
 export const updateSchedule = async (
   id: string,
   scheduleData: Partial<Schedule>
-) => {
+): Promise<Schedule> => {
   try {
-    const response = await fetch(`/api/schedules/${id}`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(scheduleData),
-    });
-
-    if (!response.ok) {
-      throw new Error("일정 수정에 실패했습니다.");
-    }
-
-    return await response.json();
+    const response = await axios.patch(
+      `${API_URL}/schedules/${id}`,
+      scheduleData
+    );
+    return response.data;
   } catch (error) {
     console.error("일정 수정 오류:", error);
     throw error;
@@ -94,17 +74,9 @@ export const updateSchedule = async (
 };
 
 // 일정 삭제
-export const deleteSchedule = async (id: string) => {
+export const deleteSchedule = async (id: string): Promise<void> => {
   try {
-    const response = await fetch(`/api/schedules/${id}`, {
-      method: "DELETE",
-    });
-
-    if (!response.ok) {
-      throw new Error("일정 삭제에 실패했습니다.");
-    }
-
-    return await response.json();
+    await axios.delete(`${API_URL}/schedules/${id}`);
   } catch (error) {
     console.error("일정 삭제 오류:", error);
     throw error;
@@ -116,19 +88,15 @@ export const getSchedulesByDate = async (
   year: number,
   month: number,
   day?: number
-) => {
+): Promise<Schedule[]> => {
   try {
-    let url = `/api/schedules/date?year=${year}&month=${month}`;
+    const params: any = { year, month };
     if (day) {
-      url += `&day=${day}`;
+      params.day = day;
     }
 
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error("날짜별 일정을 불러오는데 실패했습니다.");
-    }
-
-    return await response.json();
+    const response = await axios.get(`${API_URL}/schedules/date`, { params });
+    return response.data;
   } catch (error) {
     console.error("날짜별 일정 조회 오류:", error);
     throw error;
@@ -138,13 +106,10 @@ export const getSchedulesByDate = async (
 // ========== 계약 관련 API 함수들 ==========
 
 // 모든 계약 조회
-export const getAllContracts = async () => {
+export const getAllContracts = async (): Promise<Contract[]> => {
   try {
-    const response = await fetch("/api/contracts");
-    if (!response.ok) {
-      throw new Error("계약 목록을 불러오는데 실패했습니다.");
-    }
-    return await response.json();
+    const response = await axios.get(`${API_URL}/contracts`);
+    return response.data;
   } catch (error) {
     console.error("계약 목록 조회 오류:", error);
     throw error;
@@ -152,13 +117,14 @@ export const getAllContracts = async () => {
 };
 
 // 상태별 계약 조회
-export const getContractsByStatus = async (status: string) => {
+export const getContractsByStatus = async (
+  status: string
+): Promise<Contract[]> => {
   try {
-    const response = await fetch(`/api/contracts?status=${status}`);
-    if (!response.ok) {
-      throw new Error(`${status} 상태의 계약을 불러오는데 실패했습니다.`);
-    }
-    return await response.json();
+    const response = await axios.get(`${API_URL}/contracts`, {
+      params: { status },
+    });
+    return response.data;
   } catch (error) {
     console.error("상태별 계약 조회 오류:", error);
     throw error;
@@ -166,13 +132,10 @@ export const getContractsByStatus = async (status: string) => {
 };
 
 // 계약 상세 조회
-export const getContractById = async (id: string) => {
+export const getContractById = async (id: string): Promise<Contract> => {
   try {
-    const response = await fetch(`/api/contracts/${id}`);
-    if (!response.ok) {
-      throw new Error("계약 상세 정보를 불러오는데 실패했습니다.");
-    }
-    return await response.json();
+    const response = await axios.get(`${API_URL}/contracts/${id}`);
+    return response.data;
   } catch (error) {
     console.error("계약 상세 조회 오류:", error);
     throw error;
@@ -180,21 +143,12 @@ export const getContractById = async (id: string) => {
 };
 
 // 계약 생성
-export const createContract = async (contractData: Partial<Contract>) => {
+export const createContract = async (
+  contractData: Partial<Contract>
+): Promise<Contract> => {
   try {
-    const response = await fetch("/api/contracts", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(contractData),
-    });
-
-    if (!response.ok) {
-      throw new Error("계약 생성에 실패했습니다.");
-    }
-
-    return await response.json();
+    const response = await axios.post(`${API_URL}/contracts`, contractData);
+    return response.data;
   } catch (error) {
     console.error("계약 생성 오류:", error);
     throw error;
@@ -205,21 +159,13 @@ export const createContract = async (contractData: Partial<Contract>) => {
 export const updateContract = async (
   id: string,
   contractData: Partial<Contract>
-) => {
+): Promise<Contract> => {
   try {
-    const response = await fetch(`/api/contracts/${id}`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(contractData),
-    });
-
-    if (!response.ok) {
-      throw new Error("계약 수정에 실패했습니다.");
-    }
-
-    return await response.json();
+    const response = await axios.patch(
+      `${API_URL}/contracts/${id}`,
+      contractData
+    );
+    return response.data;
   } catch (error) {
     console.error("계약 수정 오류:", error);
     throw error;
@@ -227,17 +173,9 @@ export const updateContract = async (
 };
 
 // 계약 삭제
-export const deleteContract = async (id: string) => {
+export const deleteContract = async (id: string): Promise<void> => {
   try {
-    const response = await fetch(`/api/contracts/${id}`, {
-      method: "DELETE",
-    });
-
-    if (!response.ok) {
-      throw new Error("계약 삭제에 실패했습니다.");
-    }
-
-    return await response.json();
+    await axios.delete(`${API_URL}/contracts/${id}`);
   } catch (error) {
     console.error("계약 삭제 오류:", error);
     throw error;
@@ -245,66 +183,64 @@ export const deleteContract = async (id: string) => {
 };
 
 // 계약서 서명
-export const signContract = async (id: string, signatureData: any) => {
+export const signContract = async (
+  id: string,
+  signatureData: any
+): Promise<Contract> => {
   try {
-    const response = await fetch(`/api/contracts/${id}/sign`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(signatureData),
-    });
-
-    if (!response.ok) {
-      throw new Error("계약서 서명에 실패했습니다.");
-    }
-
-    return await response.json();
+    const response = await axios.post(
+      `${API_URL}/contracts/${id}/sign`,
+      signatureData
+    );
+    return response.data;
   } catch (error) {
     console.error("계약서 서명 오류:", error);
     throw error;
   }
 };
 
-// 일정 목록을 위한 임시 데이터
-// 실제 백엔드 연동 시 이 부분은 제거하고 서버에서 데이터를 가져옵니다.
-import {
-  schedules as dummySchedules,
-  contracts as dummyContracts,
-} from "@/utils/dummyData";
+// ========== 리소스 관련 API 함수들 ==========
 
-// 백엔드 연동 전 임시로 사용할 함수들
-export const getAllSchedulesTemp = async () => {
-  return dummySchedules;
-};
-
-export const getScheduleByIdTemp = async (id: string) => {
-  return dummySchedules.find((schedule) => schedule.id === id) || null;
-};
-
-export const getAllContractsTemp = async () => {
-  return dummyContracts;
-};
-
-export const getContractByIdTemp = async (id: string) => {
-  return dummyContracts.find((contract) => contract.id === id) || null;
-};
-
-// 계약 목록을 위한 임시 데이터 함수들
-export const getAllContractsTemp = async () => {
-  return dummyContracts;
-};
-
-export const getContractsByStatusTemp = async (status: string) => {
-  return dummyContracts.filter((contract) =>
-    status === "all" ? true : contract.contractStatus === status
-  );
-};
-
-export const getContractByIdTemp = async (id: string) => {
-  const contract = dummyContracts.find((contract) => contract.id === id);
-  if (!contract) {
-    throw new Error("계약을 찾을 수 없습니다.");
+// 모든 장소 리소스 조회
+export const getAllVenues = async (): Promise<Venue[]> => {
+  try {
+    const response = await axios.get(`${API_URL}/venues`);
+    return response.data;
+  } catch (error) {
+    console.error("장소 목록 조회 오류:", error);
+    throw error;
   }
-  return contract;
+};
+
+// 장소 상세 정보 조회
+export const getVenueById = async (id: string): Promise<Venue> => {
+  try {
+    const response = await axios.get(`${API_URL}/venues/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error("장소 상세 조회 오류:", error);
+    throw error;
+  }
+};
+
+// 모든 가수 리소스 조회
+export const getAllSingers = async (): Promise<Singer[]> => {
+  try {
+    const response = await axios.get(`${API_URL}/singers`);
+    return response.data;
+  } catch (error) {
+    console.error("가수 목록 조회 오류:", error);
+    throw error;
+  }
+};
+
+// 가수 상세 정보 조회
+export const getSingerById = async (id: string): Promise<Singer> => {
+  try {
+    const response = await axios.get(`${API_URL}/singers/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error("가수 상세 조회 오류:", error);
+    throw error;
+  }
 };

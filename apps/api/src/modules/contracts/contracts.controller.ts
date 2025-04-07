@@ -10,6 +10,9 @@ import {
   Logger,
 } from "@nestjs/common";
 import { ContractsService } from "./contracts.service";
+import { CreateContractDto } from "./dto/create-contract.dto";
+import { UpdateContractDto } from "./dto/update-contract.dto";
+import { SignContractDto } from "./dto/sign-contract.dto";
 
 @Controller("contracts")
 export class ContractsController {
@@ -18,9 +21,11 @@ export class ContractsController {
   constructor(private readonly contractsService: ContractsService) {}
 
   @Get()
-  async findAll() {
-    this.logger.log("Finding all contracts");
-    return this.contractsService.findAll();
+  async findAll(@Query() query: any) {
+    this.logger.log(
+      `Finding all contracts with query: ${JSON.stringify(query)}`
+    );
+    return this.contractsService.findAll(query);
   }
 
   @Get(":id")
@@ -30,13 +35,16 @@ export class ContractsController {
   }
 
   @Post()
-  async create(@Body() createContractDto: any) {
+  async create(@Body() createContractDto: CreateContractDto) {
     this.logger.log(`Creating contract: ${JSON.stringify(createContractDto)}`);
     return this.contractsService.create(createContractDto);
   }
 
   @Patch(":id")
-  async update(@Param("id") id: string, @Body() updateContractDto: any) {
+  async update(
+    @Param("id") id: string,
+    @Body() updateContractDto: UpdateContractDto
+  ) {
     this.logger.log(
       `Updating contract ${id}: ${JSON.stringify(updateContractDto)}`
     );
@@ -47,6 +55,15 @@ export class ContractsController {
   async remove(@Param("id") id: string) {
     this.logger.log(`Removing contract with id: ${id}`);
     return this.contractsService.remove(id);
+  }
+
+  @Post(":id/sign")
+  async sign(
+    @Param("id") id: string,
+    @Body() signContractDto: SignContractDto
+  ) {
+    this.logger.log(`Signing contract with id: ${id}`);
+    return this.contractsService.sign(id, signContractDto);
   }
 
   // 통계 API 엔드포인트

@@ -19,7 +19,7 @@ export class Schedule {
   @PrimaryGeneratedColumn("uuid")
   id: string;
 
-  @Column({ type: 'timestamp' })
+  @Column({ type: "timestamp" })
   scheduledDate: Date;
 
   @Column({ length: 255 })
@@ -28,10 +28,10 @@ export class Schedule {
   @Column({ length: 500, nullable: true })
   description: string;
 
-  @Column()
+  @Column({ nullable: true })
   matchId: string;
 
-  @Column()
+  @Column({ nullable: true })
   requestId: string;
 
   @Column()
@@ -78,11 +78,11 @@ export class Schedule {
   details: string;
 
   // 관계 정의
-  @ManyToOne(() => Request, (request) => request.schedules)
+  @ManyToOne(() => Request, (request) => request.schedules, { nullable: true })
   @JoinColumn({ name: "requestId" })
   request: Request;
 
-  @ManyToOne(() => Match, (match) => match.schedules)
+  @ManyToOne(() => Match, (match) => match.schedules, { nullable: true })
   @JoinColumn({ name: "matchId" })
   match: Match;
 

@@ -2,15 +2,9 @@ import { Injectable, Logger, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { Contract } from "./entities/contract.entity";
-
-// dummy placeholder for DTO to avoid type errors
-class CreateContractDto {
-  customerId?: string;
-  customerName?: string;
-  singerId?: string;
-  singerName?: string;
-  eventTitle?: string;
-}
+import { CreateContractDto } from "./dto/create-contract.dto";
+import { UpdateContractDto } from "./dto/update-contract.dto";
+import { SignContractDto } from "./dto/sign-contract.dto";
 
 @Injectable()
 export class ContractsService {
@@ -18,62 +12,79 @@ export class ContractsService {
 
   constructor(
     @InjectRepository(Contract)
-    private readonly contractRepository: Repository<Contract>
+    private readonly contractsRepository: Repository<Contract>
   ) {}
 
-  async findAll(): Promise<Contract[]> {
-    this.logger.log("Finding all contracts");
-    return this.contractRepository.find();
+  async create(createContractDto: CreateContractDto): Promise<Contract> {
+    const contract = this.contractsRepository.create(createContractDto);
+    return this.contractsRepository.save(contract);
+  }
+
+  async findAll(query?: any): Promise<Contract[]> {
+    const options: any = {
+      relations: ["schedule", "customer", "singer"],
+    };
+
+    // 상태 필터링
+    if (query && query.status && query.status !== "all") {
+      options.where = { ...options.where, contractStatus: query.status };
+    }
+
+    return this.contractsRepository.find(options);
   }
 
   async findOne(id: string): Promise<Contract> {
-    this.logger.log(`Finding contract with id: ${id}`);
-    const contract = await this.contractRepository.findOne({ where: { id } });
+    const contract = await this.contractsRepository.findOne({
+      where: { id },
+      relations: ["schedule", "customer", "singer"],
+    });
+
     if (!contract) {
-      throw new NotFoundException(`Contract with ID ${id} not found`);
+      throw new NotFoundException(`Contract with ID "${id}" not found`);
     }
+
     return contract;
   }
 
-  async create(createContractDto: CreateContractDto): Promise<Contract> {
-    this.logger.log(`Creating contract: ${JSON.stringify(createContractDto)}`);
-
-    // 데모 용도로 더미 데이터를 반환합니다.
-    // 실제 구현에서는 데이터베이스에 저장해야 합니다.
-    return {
-      id: "1",
-      customerId: createContractDto.customerId || "1",
-      customerName: createContractDto.customerName || "고객명",
-      singerId: createContractDto.singerId || "1",
-      singerName: createContractDto.singerName || "가수명",
-      eventTitle: createContractDto.eventTitle || "이벤트 제목",
-      eventDate: new Date().toISOString(),
-      contractAmount: "1000000",
-      paymentStatus: "unpaid",
-      contractStatus: "draft",
-      matchId: "1",
-      scheduleId: "1",
-      requestId: "1",
-      singerAgency: "소속사",
-      venue: "장소",
-      createdAt: new Date(),
-      signedAt: null,
-    } as Contract;
-  }
-
-  async update(id: string, updateContractDto: any): Promise<Contract> {
-    this.logger.log(
-      `Updating contract ${id}: ${JSON.stringify(updateContractDto)}`
-    );
-    await this.findOne(id); // 존재 여부 확인
-    await this.contractRepository.update(id, updateContractDto);
-    return this.findOne(id);
+  async update(
+    id: string,
+    updateContractDto: UpdateContractDto
+  ): Promise<Contract> {
+    const contract = await this.findOne(id);
+    Object.assign(contract, updateContractDto);
+    return this.contractsRepository.save(contract);
   }
 
   async remove(id: string): Promise<void> {
-    this.logger.log(`Removing contract with id: ${id}`);
+    const result = await this.contractsRepository.delete(id);
+    if (result.affected === 0) {
+      throw new NotFoundException(`Contract with ID "${id}" not found`);
+    }
+  }
+
+  async sign(id: string, signContractDto: SignContractDto): Promise<Contract> {
     const contract = await this.findOne(id);
-    await this.contractRepository.remove(contract);
+
+    // 계약서 상태 업데이트
+    contract.contractStatus = "signed";
+    contract.signedAt = new Date().toISOString();
+
+    // 서명 정보가 있다면 저장
+    if (signContractDto.signature) {
+      // contract.signature 속성이 엔티티에 없으므로 임시 방편으로 metadata에 저장
+      if (!contract.metadata) {
+        contract.metadata = {};
+      }
+      contract.metadata.signature = signContractDto.signature;
+      if (signContractDto.signerName) {
+        contract.metadata.signerName = signContractDto.signerName;
+      }
+      if (signContractDto.signerRole) {
+        contract.metadata.signerRole = signContractDto.signerRole;
+      }
+    }
+
+    return this.contractsRepository.save(contract);
   }
 
   // 통계 관련 메서드

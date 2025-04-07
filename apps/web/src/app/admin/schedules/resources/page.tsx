@@ -2,9 +2,11 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { singers } from "@/utils/dummyData";
+import { Singer, Venue } from "@/types/scheduleTypes";
+import { getAllSingers, getAllVenues } from "@/services/schedulesApi";
 
 // 임시 장소 데이터 (실제로는 dummyData.ts에 추가해야 함)
+// 실제 API 연동 시 이 임시 데이터를 제거하고 API에서 데이터를 가져옵니다.
 const venues = [
   {
     id: "VENUE-001",
@@ -59,9 +61,40 @@ export default function ResourcesPage() {
     "singer"
   );
 
+  // 데이터 상태
+  const [singers, setSingers] = useState<Singer[]>([]);
+  const [venues, setVenues] = useState<Venue[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
   // 필터 상태
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
+
+  // 데이터 로딩
+  useEffect(() => {
+    const fetchResources = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        if (resourceType === "singer") {
+          const data = await getAllSingers();
+          setSingers(data);
+        } else {
+          const data = await getAllVenues();
+          setVenues(data);
+        }
+      } catch (err) {
+        console.error("리소스 목록 조회 오류:", err);
+        setError("리소스 정보를 불러오는데 실패했습니다.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchResources();
+  }, [resourceType]);
 
   // 필터링된 가수 목록
   const filteredSingers = singers.filter((singer) => {
@@ -74,8 +107,7 @@ export default function ResourcesPage() {
     if (
       searchQuery &&
       !singer.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
-      !singer.agency.toLowerCase().includes(searchQuery.toLowerCase()) &&
-      !singer.genre.toLowerCase().includes(searchQuery.toLowerCase())
+      !singer.agency.toLowerCase().includes(searchQuery.toLowerCase())
     ) {
       return false;
     }
@@ -101,6 +133,41 @@ export default function ResourcesPage() {
 
     return true;
   });
+
+  // 로딩 상태 표시
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="text-center">
+          <div
+            className="spinner-border inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent"
+            role="status"
+          >
+            <span className="sr-only">로딩중...</span>
+          </div>
+          <p className="mt-2 text-gray-600">리소스 정보를 불러오는 중...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // 오류 상태 표시
+  if (error) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="text-center">
+          <div className="text-red-500 text-xl mb-2">⚠️ 오류</div>
+          <p className="text-gray-700">{error}</p>
+          <button
+            className="mt-4 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700"
+            onClick={() => window.location.reload()}
+          >
+            새로고침
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   // 상태에 따른 배지 색상
   const getStatusBadgeClass = (status: string) => {
@@ -237,7 +304,7 @@ export default function ResourcesPage() {
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder={
                 resourceType === "singer"
-                  ? "가수명, 소속사, 장르 검색..."
+                  ? "가수명, 소속사 검색..."
                   : "장소명, 주소 검색..."
               }
               className="w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500"

@@ -1,21 +1,18 @@
 import { Repository } from "typeorm";
 import { Contract } from "./entities/contract.entity";
-declare class CreateContractDto {
-    customerId?: string;
-    customerName?: string;
-    singerId?: string;
-    singerName?: string;
-    eventTitle?: string;
-}
+import { CreateContractDto } from "./dto/create-contract.dto";
+import { UpdateContractDto } from "./dto/update-contract.dto";
+import { SignContractDto } from "./dto/sign-contract.dto";
 export declare class ContractsService {
-    private readonly contractRepository;
+    private readonly contractsRepository;
     private readonly logger;
-    constructor(contractRepository: Repository<Contract>);
-    findAll(): Promise<Contract[]>;
-    findOne(id: string): Promise<Contract>;
+    constructor(contractsRepository: Repository<Contract>);
     create(createContractDto: CreateContractDto): Promise<Contract>;
-    update(id: string, updateContractDto: any): Promise<Contract>;
+    findAll(query?: any): Promise<Contract[]>;
+    findOne(id: string): Promise<Contract>;
+    update(id: string, updateContractDto: UpdateContractDto): Promise<Contract>;
     remove(id: string): Promise<void>;
+    sign(id: string, signContractDto: SignContractDto): Promise<Contract>;
     getMonthlyStats(): Promise<{
         labels: string[];
         datasets: {
@@ -63,4 +60,3 @@ export declare class ContractsService {
         contractCount: number;
     }[]>;
 }
-export {};

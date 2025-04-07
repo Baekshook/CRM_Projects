@@ -1,17 +1,25 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Schedule } from "@/utils/dummyData";
-import { getScheduleByIdTemp, deleteSchedule } from "@/services/schedulesApi";
+import { Schedule } from "@/types/scheduleTypes";
+import {
+  getScheduleById,
+  updateSchedule,
+  deleteSchedule,
+} from "@/services/schedulesApi";
 
-export default function ScheduleDetailPage() {
-  const params = useParams();
+export default function ScheduleDetailPage({
+  params,
+}: {
+  params: { id: string };
+}) {
   const router = useRouter();
   const [schedule, setSchedule] = useState<Schedule | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [statusLoading, setStatusLoading] = useState<boolean>(false);
   const [deleteLoading, setDeleteLoading] = useState<boolean>(false);
 
   useEffect(() => {
@@ -19,8 +27,7 @@ export default function ScheduleDetailPage() {
       try {
         setLoading(true);
         setError(null);
-        // 실제 API 연동 시: const data = await getScheduleById(params.id as string);
-        const data = await getScheduleByIdTemp(params.id as string);
+        const data = await getScheduleById(params.id);
 
         if (!data) {
           setError("일정 정보를 찾을 수 없습니다.");
@@ -40,6 +47,42 @@ export default function ScheduleDetailPage() {
       fetchSchedule();
     }
   }, [params.id]);
+
+  const handleStatusChange = async (newStatus: string) => {
+    if (!schedule) return;
+
+    try {
+      setStatusLoading(true);
+      await updateSchedule(schedule.id, { status: newStatus });
+      setSchedule({ ...schedule, status: newStatus as any });
+      alert("일정 상태가 변경되었습니다.");
+    } catch (err) {
+      console.error("일정 상태 변경 오류:", err);
+      alert("일정 상태 변경에 실패했습니다.");
+    } finally {
+      setStatusLoading(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!schedule) return;
+
+    if (!confirm("정말로 이 일정을 삭제하시겠습니까?")) {
+      return;
+    }
+
+    try {
+      setDeleteLoading(true);
+      await deleteSchedule(schedule.id);
+      alert("일정이 삭제되었습니다.");
+      router.push("/admin/schedules");
+    } catch (err) {
+      console.error("일정 삭제 오류:", err);
+      alert("일정 삭제에 실패했습니다.");
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
 
   const getStatusBadgeClass = (status: string) => {
     switch (status) {
@@ -72,25 +115,6 @@ export default function ScheduleDetailPage() {
         return "변경됨";
       default:
         return status;
-    }
-  };
-
-  const handleDelete = async () => {
-    if (!schedule) return;
-
-    const confirmed = window.confirm("정말로 이 일정을 삭제하시겠습니까?");
-    if (!confirmed) return;
-
-    try {
-      setDeleteLoading(true);
-      await deleteSchedule(schedule.id);
-      alert("일정이 삭제되었습니다.");
-      router.push("/admin/schedules");
-    } catch (err) {
-      console.error("일정 삭제 오류:", err);
-      alert("일정 삭제에 실패했습니다.");
-    } finally {
-      setDeleteLoading(false);
     }
   };
 

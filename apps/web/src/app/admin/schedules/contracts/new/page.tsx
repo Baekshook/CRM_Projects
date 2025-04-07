@@ -3,8 +3,8 @@
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { Contract, Schedule } from "@/utils/dummyData";
-import { createContract, getAllSchedulesTemp } from "@/services/schedulesApi";
+import { Contract, Schedule } from "@/types/scheduleTypes";
+import { createContract, getAllSchedules } from "@/services/schedulesApi";
 
 export default function NewContractPage() {
   const router = useRouter();
@@ -28,43 +28,28 @@ export default function NewContractPage() {
     const fetchSchedules = async () => {
       try {
         setLoading(true);
-        // 실제 API 연동 시: const data = await getAllSchedules();
-        const data = await getAllSchedulesTemp();
+        const data = await getAllSchedules();
         setSchedules(data);
 
-        // URL에서 스케줄 ID가 제공되면 해당 스케줄 선택
+        // 선택된 일정이 URL에서 넘어왔다면 해당 일정을 찾음
         if (scheduleId) {
-          const schedule = data.find((s) => s.id === scheduleId);
+          const schedule =
+            data.find((s: Schedule) => s.id === scheduleId) || null;
           if (schedule) {
             setSelectedSchedule(schedule);
-            setFormData({
-              ...formData,
-              scheduleId: schedule.id,
-              requestId: schedule.requestId,
-              matchId: schedule.matchId,
-              customerId: schedule.customerId,
-              customerName: schedule.customerName,
-              customerCompany: schedule.customerCompany,
-              singerId: schedule.singerId,
-              singerName: schedule.singerName,
-              singerAgency: schedule.singerAgency,
-              eventTitle: schedule.eventTitle,
-              eventDate: schedule.eventDate,
-              venue: schedule.venue,
-              contractAmount: "0", // 기본값
-            });
+            populateFormFromSchedule(schedule);
           }
         }
-      } catch (err) {
-        console.error("스케줄 목록 조회 오류:", err);
-        alert("스케줄 목록을 불러오는데 실패했습니다.");
+      } catch (error) {
+        console.error("일정 목록 조회 오류:", error);
+        alert("일정 정보를 불러오는데 실패했습니다.");
       } finally {
         setLoading(false);
       }
     };
 
     fetchSchedules();
-  }, [scheduleId, formData]);
+  }, [scheduleId]);
 
   const handleScheduleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedId = e.target.value;
@@ -140,7 +125,7 @@ export default function NewContractPage() {
     try {
       setSaving(true);
       const newContract = await createContract(formData);
-      alert("새 계약이 등록되었습니다.");
+      alert("계약이 성공적으로 생성되었습니다.");
       router.push(`/admin/schedules/contracts/${newContract.id}`);
     } catch (err) {
       console.error("계약 생성 오류:", err);
@@ -163,6 +148,25 @@ export default function NewContractPage() {
   const formatDateForInput = (dateString: string) => {
     if (!dateString) return "";
     return dateString.split("T")[0];
+  };
+
+  const populateFormFromSchedule = (schedule: Schedule) => {
+    setFormData({
+      ...formData,
+      scheduleId: schedule.id,
+      requestId: schedule.requestId,
+      matchId: schedule.matchId,
+      customerId: schedule.customerId,
+      customerName: schedule.customerName,
+      customerCompany: schedule.customerCompany,
+      singerId: schedule.singerId,
+      singerName: schedule.singerName,
+      singerAgency: schedule.singerAgency,
+      eventTitle: schedule.eventTitle,
+      eventDate: schedule.eventDate,
+      venue: schedule.venue,
+      contractAmount: "0", // 기본값
+    });
   };
 
   if (loading) {

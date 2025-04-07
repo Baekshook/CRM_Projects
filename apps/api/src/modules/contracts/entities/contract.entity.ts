@@ -79,6 +79,9 @@ export class Contract {
   @Column({ nullable: true })
   signedAt: string;
 
+  @Column({ type: "jsonb", nullable: true })
+  metadata: Record<string, any>;
+
   // 관계 정의
   @ManyToOne(() => Customer, (customer) => customer.contracts)
   @JoinColumn({ name: "customerId" })

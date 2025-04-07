@@ -102,6 +102,10 @@ __decorate([
     __metadata("design:type", String)
 ], Contract.prototype, "signedAt", void 0);
 __decorate([
+    (0, typeorm_1.Column)({ type: "jsonb", nullable: true }),
+    __metadata("design:type", Object)
+], Contract.prototype, "metadata", void 0);
+__decorate([
     (0, typeorm_1.ManyToOne)(() => customer_entity_1.Customer, (customer) => customer.contracts),
     (0, typeorm_1.JoinColumn)({ name: "customerId" }),
     __metadata("design:type", customer_entity_1.Customer)

@@ -6,6 +6,9 @@ import {
   negotiationLogs,
 } from "@/utils/dummyData";
 
+// 백엔드 서버 URL
+const API_URL = "http://localhost:4000/api";
+
 // 대시보드 통계 데이터 인터페이스
 export interface DashboardStats {
   requestCount: number;
@@ -29,7 +32,7 @@ export const getDashboardStats = async (
   endDate?: string
 ) => {
   try {
-    let url = "/api/dashboard/stats";
+    let url = `${API_URL}/dashboard/stats`;
 
     if (dateFilter) {
       url += `?dateFilter=${dateFilter}`;
@@ -40,12 +43,15 @@ export const getDashboardStats = async (
 
     const response = await fetch(url);
     if (!response.ok) {
-      throw new Error("대시보드 통계 데이터를 불러오는데 실패했습니다.");
+      // 백엔드 API가 아직 없는 경우를 위한 폴백
+      console.warn("백엔드 API 연결 실패, 임시 데이터를 사용합니다.");
+      return getDashboardStatsTemp(dateFilter, startDate, endDate);
     }
     return await response.json();
   } catch (error) {
     console.error("대시보드 통계 조회 오류:", error);
-    throw error;
+    console.warn("오류 발생, 임시 데이터를 사용합니다.");
+    return getDashboardStatsTemp(dateFilter, startDate, endDate);
   }
 };
 
@@ -53,43 +59,54 @@ export const getDashboardStats = async (
 export const getRecentRequests = async (limit = 5) => {
   try {
     const response = await fetch(
-      `/api/dashboard/recent-requests?limit=${limit}`
+      `${API_URL}/dashboard/recent-requests?limit=${limit}`
     );
     if (!response.ok) {
-      throw new Error("최근 요청서 데이터를 불러오는데 실패했습니다.");
+      // 백엔드 API가 아직 없는 경우를 위한 폴백
+      console.warn("백엔드 API 연결 실패, 임시 데이터를 사용합니다.");
+      return getRecentRequestsTemp(limit);
     }
     return await response.json();
   } catch (error) {
     console.error("최근 요청서 조회 오류:", error);
-    throw error;
+    console.warn("오류 발생, 임시 데이터를 사용합니다.");
+    return getRecentRequestsTemp(limit);
   }
 };
 
 // 오늘의 일정 조회
 export const getTodaySchedules = async () => {
   try {
-    const response = await fetch("/api/dashboard/today-schedules");
+    const response = await fetch(`${API_URL}/dashboard/today-schedules`);
     if (!response.ok) {
-      throw new Error("오늘의 일정 데이터를 불러오는데 실패했습니다.");
+      // 백엔드 API가 아직 없는 경우를 위한 폴백
+      console.warn("백엔드 API 연결 실패, 임시 데이터를 사용합니다.");
+      return getTodaySchedulesTemp();
     }
     return await response.json();
   } catch (error) {
     console.error("오늘의 일정 조회 오류:", error);
-    throw error;
+    console.warn("오류 발생, 임시 데이터를 사용합니다.");
+    return getTodaySchedulesTemp();
   }
 };
 
 // 최근 알림 조회
 export const getRecentNotifications = async (limit = 5) => {
   try {
-    const response = await fetch(`/api/dashboard/notifications?limit=${limit}`);
+    const response = await fetch(
+      `${API_URL}/dashboard/notifications?limit=${limit}`
+    );
     if (!response.ok) {
-      throw new Error("최근 알림 데이터를 불러오는데 실패했습니다.");
+      // 백엔드 API가 아직 없는 경우를 위한 폴백
+      console.warn("백엔드 API 연결 실패, 임시 데이터를 사용합니다.");
+      return getRecentNotificationsTemp(limit);
     }
     return await response.json();
   } catch (error) {
     console.error("최근 알림 조회 오류:", error);
-    throw error;
+    console.warn("오류 발생, 임시 데이터를 사용합니다.");
+    return getRecentNotificationsTemp(limit);
   }
 };
 
@@ -100,7 +117,7 @@ export const getDashboardData = async (
   endDate?: string
 ) => {
   try {
-    let url = "/api/dashboard";
+    let url = `${API_URL}/dashboard`;
 
     if (dateFilter) {
       url += `?dateFilter=${dateFilter}`;
@@ -111,12 +128,15 @@ export const getDashboardData = async (
 
     const response = await fetch(url);
     if (!response.ok) {
-      throw new Error("대시보드 데이터를 불러오는데 실패했습니다.");
+      // 백엔드 API가 아직 없는 경우를 위한 폴백
+      console.warn("백엔드 API 연결 실패, 임시 데이터를 사용합니다.");
+      return getDashboardDataTemp(dateFilter, startDate, endDate);
     }
     return await response.json();
   } catch (error) {
     console.error("대시보드 데이터 조회 오류:", error);
-    throw error;
+    console.warn("오류 발생, 임시 데이터를 사용합니다.");
+    return getDashboardDataTemp(dateFilter, startDate, endDate);
   }
 };
 

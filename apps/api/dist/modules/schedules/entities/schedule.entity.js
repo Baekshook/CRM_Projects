@@ -24,7 +24,7 @@ __decorate([
     __metadata("design:type", String)
 ], Schedule.prototype, "id", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: 'timestamp' }),
+    (0, typeorm_1.Column)({ type: "timestamp" }),
     __metadata("design:type", Date)
 ], Schedule.prototype, "scheduledDate", void 0);
 __decorate([
@@ -36,11 +36,11 @@ __decorate([
     __metadata("design:type", String)
 ], Schedule.prototype, "description", void 0);
 __decorate([
-    (0, typeorm_1.Column)(),
+    (0, typeorm_1.Column)({ nullable: true }),
     __metadata("design:type", String)
 ], Schedule.prototype, "matchId", void 0);
 __decorate([
-    (0, typeorm_1.Column)(),
+    (0, typeorm_1.Column)({ nullable: true }),
     __metadata("design:type", String)
 ], Schedule.prototype, "requestId", void 0);
 __decorate([
@@ -100,12 +100,12 @@ __decorate([
     __metadata("design:type", String)
 ], Schedule.prototype, "details", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => request_entity_1.Request, (request) => request.schedules),
+    (0, typeorm_1.ManyToOne)(() => request_entity_1.Request, (request) => request.schedules, { nullable: true }),
     (0, typeorm_1.JoinColumn)({ name: "requestId" }),
     __metadata("design:type", request_entity_1.Request)
 ], Schedule.prototype, "request", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => match_entity_1.Match, (match) => match.schedules),
+    (0, typeorm_1.ManyToOne)(() => match_entity_1.Match, (match) => match.schedules, { nullable: true }),
     (0, typeorm_1.JoinColumn)({ name: "matchId" }),
     __metadata("design:type", match_entity_1.Match)
 ], Schedule.prototype, "match", void 0);

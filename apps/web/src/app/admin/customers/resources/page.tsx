@@ -379,7 +379,7 @@ export default function CustomerResourcesPage() {
   };
 
   return (
-    <div className="p-6">
+    <div className="p-4 md:p-8">
       {/* 헤더 */}
       <PageHeader
         title="고객 자료 관리"
@@ -387,97 +387,35 @@ export default function CustomerResourcesPage() {
         backUrl="/admin/customers"
       />
 
-      {/* 필터 영역 */}
-      <div className="bg-white rounded-lg shadow p-6 mb-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              검색
-            </label>
+      {/* 검색 및 필터링 영역 */}
+      <div className="bg-white p-4 rounded-lg shadow-sm mb-6">
+        <div className="flex flex-col md:flex-row gap-4">
+          <div className="flex-1">
             <input
               type="text"
+              placeholder="자료 검색"
+              className="w-full rounded-md border-gray-300"
               value={filters.search}
               onChange={(e) => handleFilterChange({ search: e.target.value })}
-              placeholder="파일명, 설명, 태그로 검색..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              파일 유형
-            </label>
+          <div className="flex flex-wrap gap-2">
             <select
-              value={filters.type || ""}
-              onChange={(e) =>
-                handleFilterChange({
-                  type: e.target.value as ResourceType | undefined,
-                })
-              }
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="">모든 유형</option>
-              <option value="document">문서</option>
-              <option value="image">이미지</option>
-              <option value="video">비디오</option>
-              <option value="audio">오디오</option>
-              <option value="other">기타</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              정렬
-            </label>
-            <div className="flex space-x-2">
-              <select
-                value={filters.sortBy}
-                onChange={(e) => handleFilterChange({ sortBy: e.target.value })}
-                className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="uploadedAt">업로드 날짜</option>
-                <option value="name">파일명</option>
-                <option value="fileSize">파일 크기</option>
-              </select>
-              <select
-                value={filters.sortOrder}
-                onChange={(e) =>
-                  handleFilterChange({
-                    sortOrder: e.target.value as "asc" | "desc",
-                  })
-                }
-                className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="desc">내림차순</option>
-                <option value="asc">오름차순</option>
-              </select>
-            </div>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              엔티티 타입
-            </label>
-            <select
+              className="rounded-md border-gray-300"
               value={entityType}
               onChange={(e) =>
                 setEntityType(e.target.value as "customer" | "singer" | "all")
               }
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="all">모든 유형</option>
               <option value="customer">고객</option>
               <option value="singer">가수</option>
             </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              고객/가수 선택
-            </label>
+
             <select
+              className="rounded-md border-gray-300"
               value={customerId || ""}
               onChange={(e) => setCustomerId(e.target.value || null)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="">모든 고객/가수</option>
               {entityType === "all" || entityType === "customer" ? (
@@ -499,176 +437,209 @@ export default function CustomerResourcesPage() {
                 </optgroup>
               ) : null}
             </select>
+
+            <select
+              className="rounded-md border-gray-300"
+              value={filters.type || ""}
+              onChange={(e) =>
+                handleFilterChange({
+                  type: e.target.value as ResourceType | undefined,
+                })
+              }
+            >
+              <option value="">모든 파일 유형</option>
+              <option value="document">문서</option>
+              <option value="image">이미지</option>
+              <option value="video">비디오</option>
+              <option value="audio">오디오</option>
+              <option value="other">기타</option>
+            </select>
           </div>
         </div>
       </div>
 
-      {/* 도구 모음 */}
+      {/* 액션 버튼 영역 */}
       <div className="flex justify-between items-center mb-4">
-        <div className="text-sm text-gray-600">
-          {resources.length}개 자료
-          {selectedResources.length > 0 &&
-            ` (${selectedResources.length}개 선택됨)`}
-        </div>
-        <div className="flex space-x-2">
+        <div className="flex gap-2">
+          <button
+            onClick={() =>
+              handleSelectAll(
+                !(
+                  selectedResources.length === resources.length &&
+                  resources.length > 0
+                )
+              )
+            }
+            className="px-3 py-1 bg-gray-200 hover:bg-gray-300 rounded-md text-sm"
+          >
+            {selectedResources.length === resources.length &&
+            resources.length > 0
+              ? "전체 선택 해제"
+              : "전체 선택"}
+          </button>
           {selectedResources.length > 0 && (
             <button
               onClick={handleBulkDelete}
-              className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition"
+              className="px-3 py-1 bg-red-100 hover:bg-red-200 text-red-700 rounded-md text-sm"
             >
-              선택 삭제
+              선택 삭제 ({selectedResources.length})
             </button>
           )}
-          <button
-            onClick={handleUpload}
-            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
-          >
-            자료 업로드
-          </button>
         </div>
+        <button
+          onClick={handleUpload}
+          className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-md"
+        >
+          자료 업로드
+        </button>
       </div>
 
-      {/* 자료 목록 테이블 */}
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        {isLoading ? (
-          <div className="p-8 text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mx-auto mb-4"></div>
-            <p className="text-gray-500">자료를 불러오는 중입니다...</p>
+      {/* 자료 목록 */}
+      {isLoading ? (
+        <div className="flex justify-center items-center h-64">
+          <div className="text-center">
+            <div
+              className="spinner-border inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent"
+              role="status"
+            >
+              <span className="sr-only">로딩중...</span>
+            </div>
+            <p className="mt-2 text-gray-600">데이터를 불러오는 중...</p>
           </div>
-        ) : resources.length === 0 ? (
-          <div className="p-8 text-center">
-            <p className="text-gray-500">
-              등록된 자료가 없습니다. 새 자료를 업로드해보세요.
-            </p>
-          </div>
-        ) : (
-          <table className="w-full">
-            <thead>
-              <tr className="bg-gray-100">
-                <th className="py-3 px-4 text-left w-12">
+        </div>
+      ) : resources.length === 0 ? (
+        <div className="bg-white p-8 rounded-lg shadow-md text-center">
+          <p className="text-xl text-gray-500">자료가 없습니다.</p>
+          <button
+            onClick={handleUpload}
+            className="mt-4 bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-md"
+          >
+            첫 자료 업로드하기
+          </button>
+        </div>
+      ) : (
+        <div className="bg-white rounded-lg shadow overflow-hidden">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="w-10 px-6 py-3">
                   <input
                     type="checkbox"
+                    className="rounded border-gray-300"
                     checked={
                       selectedResources.length === resources.length &&
                       resources.length > 0
                     }
-                    onChange={(e) => handleSelectAll(e.target.checked)}
-                    className="rounded text-blue-500 focus:ring-blue-500"
+                    onChange={() =>
+                      handleSelectAll(
+                        !(
+                          selectedResources.length === resources.length &&
+                          resources.length > 0
+                        )
+                      )
+                    }
                   />
                 </th>
-                <th className="py-3 px-4 text-left w-12">유형</th>
-                <th className="py-3 px-4 text-left">파일명</th>
-                <th className="py-3 px-4 text-left">소유자</th>
-                <th className="py-3 px-4 text-left">카테고리</th>
-                <th className="py-3 px-4 text-left">크기</th>
-                <th className="py-3 px-4 text-left">업로드일</th>
-                <th className="py-3 px-4 text-left w-24">관리</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  파일
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  소유자
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  카테고리
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  크기
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  업로드 날짜
+                </th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  작업
+                </th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="bg-white divide-y divide-gray-200">
               {resources.map((resource) => (
-                <tr
-                  key={resource.id}
-                  className="border-t border-gray-200 hover:bg-gray-50"
-                >
-                  <td className="py-3 px-4">
+                <tr key={resource.id} className="hover:bg-gray-50">
+                  <td className="px-6 py-4">
                     <input
                       type="checkbox"
+                      className="rounded border-gray-300"
                       checked={selectedResources.includes(resource.id)}
                       onChange={() => handleSelectResource(resource.id)}
-                      className="rounded text-blue-500 focus:ring-blue-500"
                     />
                   </td>
-                  <td className="py-3 px-4 text-xl">
-                    {getTypeIcon(resource.type)}
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="flex items-center">
+                      <div className="flex-shrink-0 mr-3">
+                        {getTypeIcon(resource.type)}
+                      </div>
+                      <div>
+                        <div className="text-sm font-medium text-gray-900">
+                          {resource.name}
+                        </div>
+                        <div className="text-sm text-gray-500">
+                          {resource.description || "설명 없음"}
+                        </div>
+                        {resource.tags && resource.tags.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {resource.tags.map((tag, index) => (
+                              <span
+                                key={index}
+                                className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800"
+                              >
+                                {tag}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </td>
-                  <td className="py-3 px-4">
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-900">
+                      {getEntityName(resource.entityId, resource.entityType)}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                      {resource.category || "기타"}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-500">
+                      {formatFileSize(resource.fileSize)}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-500">
+                      {formatDate(resource.uploadedAt)}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <a
                       href={resource.fileUrl}
                       target="_blank"
-                      className="text-blue-600 hover:underline font-medium"
+                      rel="noopener noreferrer"
+                      className="text-indigo-600 hover:text-indigo-900 mr-3"
                     >
-                      {resource.name}
+                      보기
                     </a>
-                    {resource.description && (
-                      <p className="text-xs text-gray-500 mt-1">
-                        {resource.description}
-                      </p>
-                    )}
-                    {resource.tags && resource.tags.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mt-1">
-                        {resource.tags.map((tag, idx) => (
-                          <span
-                            key={idx}
-                            className="px-2 py-1 bg-gray-100 text-xs text-gray-600 rounded"
-                          >
-                            {tag}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </td>
-                  <td className="py-3 px-4 text-sm">
-                    {getEntityName(resource.entityId, resource.entityType)}
-                  </td>
-                  <td className="py-3 px-4 text-sm">{resource.category}</td>
-                  <td className="py-3 px-4 text-sm">
-                    {formatFileSize(resource.fileSize)}
-                  </td>
-                  <td className="py-3 px-4 text-sm">
-                    {formatDate(resource.uploadedAt)}
-                  </td>
-                  <td className="py-3 px-4">
-                    <div className="flex space-x-2">
-                      <a
-                        href={resource.fileUrl}
-                        target="_blank"
-                        className="text-blue-500 hover:text-blue-700"
-                        title="다운로드"
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-5 w-5"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                          />
-                        </svg>
-                      </a>
-                      <button
-                        onClick={() => handleDelete(resource.id)}
-                        className="text-red-500 hover:text-red-700"
-                        title="삭제"
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-5 w-5"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                          />
-                        </svg>
-                      </button>
-                    </div>
+                    <button
+                      onClick={() => handleDelete(resource.id)}
+                      className="text-red-600 hover:text-red-900"
+                    >
+                      삭제
+                    </button>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
