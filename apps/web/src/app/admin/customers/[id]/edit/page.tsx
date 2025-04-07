@@ -55,7 +55,7 @@ export default function CustomerEditPage({
 
         // 가수 데이터 조회
         try {
-          const data = await singerApi.getById(customerId);
+          const data = await singerApi.getSingerById(customerId);
           console.log("Singer data fetched:", data);
           setInitialData({
             ...data,
@@ -136,7 +136,7 @@ export default function CustomerEditPage({
         };
 
         console.log("가수 정보 업데이트:", updatedFields);
-        await singerApi.update(customerId, updatedFields);
+        await singerApi.updateSinger(customerId, updatedFields);
 
         // 파일이 포함된 경우 업로드
         if (
@@ -148,7 +148,7 @@ export default function CustomerEditPage({
         ) {
           try {
             console.log("가수 파일 업로드 시작");
-            await singerApi.uploadFiles(customerId, files);
+            await singerApi.uploadSingerProfileImage(customerId, files);
             console.log("가수 파일 업로드 완료");
           } catch (fileError) {
             console.error("가수 파일 업로드 중 오류 발생:", fileError);

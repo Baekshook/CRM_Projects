@@ -211,3 +211,60 @@ example@email.com
 - [x] 최근 요청 목록
 - [x] 오늘의 일정
 - [x] 시스템 알림
+
+## Docker를 사용한 배포
+
+### 사전 요구사항
+
+- Docker
+- Docker Compose
+
+### 배포 단계
+
+1. 환경 변수 설정
+
+프로젝트 루트에 `.env` 파일을 생성하고 필요한 환경 변수를 설정합니다:
+
+```
+DB_HOST=postgres
+DB_PORT=5432
+DB_USERNAME=postgres
+DB_PASSWORD=postgres
+DB_DATABASE=crm_db
+NODE_ENV=production
+```
+
+2. Docker Compose를 사용한 배포
+
+```bash
+# 빌드 및 실행
+docker-compose up -d --build
+
+# 로그 확인
+docker-compose logs -f
+
+# 컨테이너 중지
+docker-compose down
+```
+
+3. 자동 배포 스크립트 사용
+
+배포 스크립트를 사용하여 서버에 배포할 수 있습니다:
+
+```bash
+# 스크립트에 실행 권한 부여
+chmod +x deploy.sh
+
+# 배포 스크립트 실행 전 설정 수정
+# - SERVER_USER: 서버 사용자 이름
+# - SERVER_IP: 서버 IP 주소
+# - SERVER_PATH: 서버의 배포 경로
+
+# 배포 스크립트 실행
+./deploy.sh
+```
+
+## 배포 후 접속
+
+- 프론트엔드: http://your-server-ip:3000
+- 백엔드 API: http://your-server-ip:4000

@@ -7,7 +7,6 @@ import { toast } from "react-hot-toast";
 import CustomerForm from "@/components/customers/CustomerForm";
 import PageHeader from "@/components/common/PageHeader";
 import axios from "axios";
-import { uploadFile } from "@/lib/api/customerApi";
 import { Customer } from "@/types/customer";
 import { uploadCustomerProfileImage } from "@/lib/api/customerApi";
 import { uploadSingerProfileImage } from "@/lib/api/singerApi";
@@ -17,7 +16,7 @@ export default function NewCustomerPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // 폼 제출 처리
-  const handleSubmit = async (formData, files) => {
+  const handleSubmit = async (formData: any, files: any) => {
     setIsSubmitting(true);
 
     try {
@@ -55,14 +54,14 @@ export default function NewCustomerPage() {
                 response.id
               );
               console.log("고객 프로필 이미지 업로드 완료:", uploadResult);
-            } catch (error) {
+            } catch (error: any) {
               console.error("고객 프로필 이미지 업로드 실패:", error);
               toast.error(
                 "프로필 이미지 업로드에 실패했습니다. 나중에 다시 시도해주세요."
               );
             }
           }
-        } catch (error) {
+        } catch (error: any) {
           // 이메일 중복 오류 처리
           if (
             error.response &&
@@ -102,7 +101,7 @@ export default function NewCustomerPage() {
 
         try {
           // 가수 기본 정보 저장
-          response = await singerApi.create(singerPayload);
+          response = await singerApi.createSinger(singerPayload);
 
           // 프로필 이미지 업로드 (있는 경우)
           if (response?.id && formData.profileImageFile) {
@@ -113,7 +112,7 @@ export default function NewCustomerPage() {
                 response.id
               );
               console.log("가수 프로필 이미지 업로드 완료:", uploadResult);
-            } catch (error) {
+            } catch (error: any) {
               console.error("가수 프로필 이미지 업로드 실패:", error);
               toast.error(
                 "가수 프로필 이미지 업로드에 실패했습니다. 나중에 다시 시도해주세요."
@@ -157,9 +156,12 @@ export default function NewCustomerPage() {
                 console.log(
                   `가수 ID ${response.id}에 대한 추가 파일 업로드 시작`
                 );
-                await singerApi.uploadFiles(response.id, filesFormData);
+                await singerApi.uploadSingerProfileImage(
+                  response.id,
+                  filesFormData
+                );
                 console.log("가수 추가 파일 업로드 완료");
-              } catch (fileError) {
+              } catch (fileError: any) {
                 console.error("가수 추가 파일 업로드 중 오류 발생:", fileError);
                 if (fileError.response) {
                   console.error("오류 응답:", fileError.response.data);
@@ -170,7 +172,7 @@ export default function NewCustomerPage() {
               }
             }
           }
-        } catch (error) {
+        } catch (error: any) {
           // 이메일 중복 오류 처리
           if (
             error.response &&
@@ -194,7 +196,7 @@ export default function NewCustomerPage() {
         }이 등록되었습니다.`
       );
       router.push("/admin/customers");
-    } catch (error) {
+    } catch (error: any) {
       console.error("등록 중 오류 발생:", error);
       if (error.response) {
         console.error(

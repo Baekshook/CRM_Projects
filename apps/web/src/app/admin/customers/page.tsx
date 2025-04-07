@@ -19,7 +19,8 @@ import {
 } from "@/components/customers/types";
 import { toast } from "react-hot-toast";
 import customerApi, { Customer } from "@/services/customerApi";
-import singerApi, { Singer } from "@/services/singerApi";
+import singerApi from "@/services/singerApi";
+import type { Singer } from "@/lib/api/singerApi";
 import { formatDate } from "@/utils/dateUtils";
 
 export default function CustomersPage() {
@@ -44,7 +45,7 @@ export default function CustomersPage() {
   // 필터
   const [filters, setFilters] = useState<Filter>({
     searchTerm: searchParams.get("search") || "",
-    status: searchParams.get("status") || "",
+    status: (searchParams.get("status") || "") as "" | CustomerStatus,
     grade: searchParams.get("grade") || "",
     sortBy: searchParams.get("sortBy") || "name",
     order: (searchParams.get("sortOrder") as "asc" | "desc") || "asc",

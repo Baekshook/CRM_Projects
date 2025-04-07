@@ -654,8 +654,6 @@ export default function ContractAnalysisPage() {
                     },
                   ]}
                   animate={true}
-                  motionStiffness={90}
-                  motionDamping={15}
                 />
               )}
             </div>
@@ -685,19 +683,7 @@ export default function ContractAnalysisPage() {
                       from: "color",
                       modifiers: [["darker", 0.2]],
                     }}
-                    radialLabelsSkipAngle={10}
-                    radialLabelsTextXOffset={6}
-                    radialLabelsTextColor="#333333"
-                    radialLabelsLinkOffset={0}
-                    radialLabelsLinkDiagonalLength={16}
-                    radialLabelsLinkHorizontalLength={24}
-                    radialLabelsLinkStrokeWidth={1}
-                    radialLabelsLinkColor={{ from: "color" }}
-                    slicesLabelsSkipAngle={10}
-                    slicesLabelsTextColor="#333333"
                     animate={true}
-                    motionStiffness={90}
-                    motionDamping={15}
                     legends={[
                       {
                         anchor: "bottom",
@@ -736,19 +722,7 @@ export default function ContractAnalysisPage() {
                       from: "color",
                       modifiers: [["darker", 0.2]],
                     }}
-                    radialLabelsSkipAngle={10}
-                    radialLabelsTextXOffset={6}
-                    radialLabelsTextColor="#333333"
-                    radialLabelsLinkOffset={0}
-                    radialLabelsLinkDiagonalLength={16}
-                    radialLabelsLinkHorizontalLength={24}
-                    radialLabelsLinkStrokeWidth={1}
-                    radialLabelsLinkColor={{ from: "color" }}
-                    slicesLabelsSkipAngle={10}
-                    slicesLabelsTextColor="#333333"
                     animate={true}
-                    motionStiffness={90}
-                    motionDamping={15}
                     legends={[
                       {
                         anchor: "bottom",

@@ -104,8 +104,8 @@ export default function InteractionsPage() {
 
       // 고객과 가수 데이터 합치기 (두 엔티티 모두 상호작용 대상)
       const entities: EntityWithName[] = [
-        ...customers.map((c) => ({ id: c.id, name: c.name })),
-        ...singers.map((s) => ({ id: s.id, name: s.name })),
+        ...customers.map((c: any) => ({ id: c.id, name: c.name })),
+        ...singers.map((s: any) => ({ id: s.id, name: s.name })),
       ];
 
       setCustomers(entities);
