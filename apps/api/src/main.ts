@@ -7,13 +7,16 @@ import { DataSource } from "typeorm";
 
 async function bootstrap() {
   try {
+    
+
     const app = await NestFactory.create(AppModule);
 
     // CORS 설정
     app.enableCors({
-      origin: "*",
-      methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
-      allowedHeaders: "Content-Type, Accept, Authorization",
+      origin:
+        process.env.FRONTEND_URL || "https://crm-project-tau-ashen.vercel.app/",
+      methods: "GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS",
+      credentials: true,
     });
 
     // 요청 본문 크기 제한 설정
@@ -76,7 +79,7 @@ async function bootstrap() {
     app.setGlobalPrefix("api");
 
     // 앱 실행
-    const port = process.env.PORT || 4000;
+    const port = process.env.PORT || 8080;
     await app.listen(port);
     console.log(`애플리케이션이 포트 ${port}에서 실행 중입니다.`);
     console.log(`API 엔드포인트: http://localhost:${port}/api`);

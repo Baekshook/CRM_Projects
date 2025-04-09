@@ -36,17 +36,20 @@ exports.AppModule = AppModule = __decorate([
             }),
             typeorm_1.TypeOrmModule.forRoot({
                 type: "postgres",
-                host: process.env.DB_HOST || "localhost",
-                port: parseInt(process.env.DB_PORT || "5432", 10),
-                username: process.env.DB_USERNAME || "eunchanko",
-                password: process.env.DB_PASSWORD || "",
-                database: process.env.DB_DATABASE || "crm_db",
+                host: process.env.DB_HOST,
+                port: parseInt(process.env.DB_PORT) || 5432,
+                username: process.env.DB_USERNAME,
+                password: process.env.DB_PASSWORD,
+                database: process.env.DB_DATABASE || "postgres",
                 entities: [__dirname + "/**/*.entity{.ts,.js}"],
                 synchronize: true,
+                ssl: process.env.NODE_ENV === "production"
+                    ? { rejectUnauthorized: false }
+                    : false,
+                extra: {
+                    trustServerCertificate: true,
+                },
                 autoLoadEntities: true,
-                retryAttempts: 10,
-                retryDelay: 3000,
-                logging: ["error", "warn", "schema"],
             }),
             customers_module_1.CustomersModule,
             singers_module_1.SingersModule,
