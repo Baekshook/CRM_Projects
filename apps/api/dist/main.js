@@ -49,6 +49,21 @@ async function bootstrap() {
             console.error("마이그레이션 실행 중 오류 발생:", err);
         }
         app.setGlobalPrefix("api");
+        app.use("/", (req, res) => {
+            res.json({
+                name: "CRM API Server",
+                status: "online",
+                version: "1.0.0",
+                endpoints: "/api",
+            });
+        });
+        app.use("/health", (req, res) => {
+            res.json({
+                status: "ok",
+                timestamp: new Date().toISOString(),
+                uptime: process.uptime(),
+            });
+        });
         const port = process.env.PORT || 8080;
         await app.listen(port);
         console.log(`애플리케이션이 포트 ${port}에서 실행 중입니다.`);

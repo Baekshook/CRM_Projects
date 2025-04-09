@@ -7,8 +7,6 @@ import { DataSource } from "typeorm";
 
 async function bootstrap() {
   try {
-    
-
     const app = await NestFactory.create(AppModule);
 
     // CORS 설정
@@ -77,6 +75,25 @@ async function bootstrap() {
 
     // API 프리픽스 설정
     app.setGlobalPrefix("api");
+
+    // 루트 경로를 위한 핸들러 추가
+    app.use("/", (req, res) => {
+      res.json({
+        name: "CRM API Server",
+        status: "online",
+        version: "1.0.0",
+        endpoints: "/api",
+      });
+    });
+
+    // Health check 엔드포인트 추가
+    app.use("/health", (req, res) => {
+      res.json({
+        status: "ok",
+        timestamp: new Date().toISOString(),
+        uptime: process.uptime(),
+      });
+    });
 
     // 앱 실행
     const port = process.env.PORT || 8080;
