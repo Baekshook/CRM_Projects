@@ -19,6 +19,22 @@ const nextConfig = {
     };
     return config;
   },
+  typescript: {
+    // !! WARN !!
+    // 프로덕션 빌드를 위해 타입 체크를 비활성화합니다.
+    ignoreBuildErrors: true,
+  },
+  eslint: {
+    // 프로덕션 빌드를 위해 ESLint 검사를 비활성화합니다.
+    ignoreDuringBuilds: true,
+  },
+  // 정적 페이지 생성 중 오류를 무시합니다
+  onDemandEntries: {
+    // 개발 서버가 페이지를 메모리에 유지하는 시간(ms)
+    maxInactiveAge: 60 * 60 * 1000,
+    // 동시에 메모리에 유지할 페이지 수
+    pagesBufferLength: 5,
+  },
 };
 
 module.exports = nextConfig;

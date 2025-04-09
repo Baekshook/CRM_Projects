@@ -2,8 +2,18 @@
 import { useState, useEffect } from "react";
 import PageHeader from "@/components/common/PageHeader";
 import { toast } from "react-hot-toast";
-import { ResponsiveBar } from "@nivo/bar";
-import { ResponsivePie } from "@nivo/pie";
+import dynamic from "next/dynamic";
+
+// 동적으로 불러오기
+const ResponsiveBar = dynamic(
+  () => import("@nivo/bar").then((mod) => mod.ResponsiveBar),
+  { ssr: false }
+);
+const ResponsivePie = dynamic(
+  () => import("@nivo/pie").then((mod) => mod.ResponsivePie),
+  { ssr: false }
+);
+
 import {
   Contract,
   ChartData,
