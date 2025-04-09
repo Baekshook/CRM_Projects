@@ -1,7 +1,8 @@
 import axios from "axios";
+import { API_URL } from "./apiConfig";
 
-// 백엔드 서버 URL
-const API_URL = "http://localhost:4000/api";
+// 백엔드 서버 URL - 중앙 설정에서 가져옴
+// const API_URL = "http://localhost:4000/api";
 
 export interface Customer {
   id: number | string;

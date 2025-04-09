@@ -9,8 +9,13 @@ async function bootstrap() {
     try {
         const app = await core_1.NestFactory.create(app_module_1.AppModule);
         app.enableCors({
-            origin: process.env.FRONTEND_URL || "https://crm-project-tau-ashen.vercel.app/",
+            origin: [
+                "https://crm-project-tau-ashen.vercel.app",
+                "http://localhost:3000",
+                "http://localhost:4000",
+            ],
             methods: "GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS",
+            allowedHeaders: "Content-Type, Accept, Authorization, X-Requested-With",
             credentials: true,
         });
         app.use(bodyParser.json({ limit: "50mb" }));

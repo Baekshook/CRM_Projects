@@ -1,11 +1,13 @@
 import axios from "axios";
+import { API_URL } from "./apiConfig";
 
-const API_BASE_URL = "http://localhost:4000/api";
+// 백엔드 서버 URL - 중앙 설정에서 가져옴
+// const API_URL = "http://localhost:4000/api";
 
 // 모든 가수 데이터 가져오기
 export const getAll = async () => {
   try {
-    const response = await axios.get(`${API_BASE_URL}/singers`);
+    const response = await axios.get(`${API_URL}/singers`);
     return response.data;
   } catch (error) {
     console.error("가수 목록 조회 실패:", error);
@@ -16,7 +18,7 @@ export const getAll = async () => {
 // ID로 가수 데이터 가져오기
 export const getById = async (id: string) => {
   try {
-    const response = await axios.get(`${API_BASE_URL}/singers/${id}`);
+    const response = await axios.get(`${API_URL}/singers/${id}`);
     return response.data;
   } catch (error) {
     console.error(`가수 ID ${id} 조회 실패:`, error);
@@ -27,7 +29,7 @@ export const getById = async (id: string) => {
 // 신규 가수 생성하기
 export const create = async (singerData: any) => {
   try {
-    const response = await axios.post(`${API_BASE_URL}/singers`, singerData);
+    const response = await axios.post(`${API_URL}/singers`, singerData);
     return response.data;
   } catch (error) {
     console.error("가수 생성 실패:", error);
@@ -38,10 +40,7 @@ export const create = async (singerData: any) => {
 // 가수 정보 업데이트하기
 export const update = async (id: string, singerData: any) => {
   try {
-    const response = await axios.patch(
-      `${API_BASE_URL}/singers/${id}`,
-      singerData
-    );
+    const response = await axios.patch(`${API_URL}/singers/${id}`, singerData);
     return response.data;
   } catch (error) {
     console.error(`가수 ID ${id} 업데이트 실패:`, error);
@@ -52,7 +51,7 @@ export const update = async (id: string, singerData: any) => {
 // 가수 삭제하기
 export const remove = async (id: string) => {
   try {
-    const response = await axios.delete(`${API_BASE_URL}/singers/${id}`);
+    const response = await axios.delete(`${API_URL}/singers/${id}`);
     return response.data;
   } catch (error) {
     console.error(`가수 ID ${id} 삭제 실패:`, error);
@@ -64,7 +63,7 @@ export const remove = async (id: string) => {
 export const uploadFiles = async (id: string, formData: FormData) => {
   try {
     const response = await axios.post(
-      `${API_BASE_URL}/singers/${id}/files`,
+      `${API_URL}/singers/${id}/files`,
       formData,
       {
         headers: {
@@ -107,7 +106,7 @@ export const uploadSingerProfileImage = async (
 
     // 파일 업로드 API 요청
     const response = await axios.post(
-      `${API_BASE_URL}/files/upload-to-db`,
+      `${API_URL}/files/upload-to-db`,
       formData,
       {
         headers: {

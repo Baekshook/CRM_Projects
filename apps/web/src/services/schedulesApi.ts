@@ -1,8 +1,6 @@
 import axios from "axios";
 import { Schedule, Contract, Singer, Venue } from "@/types/scheduleTypes";
-
-// 백엔드 서버 URL
-const API_URL = "http://localhost:4000/api";
+import { API_URL } from "./apiConfig";
 
 // 일정 관련 API 함수들
 

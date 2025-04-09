@@ -5,7 +5,6 @@ import {
   getDashboardData,
   getDashboardDataTemp,
 } from "@/services/dashboardApi";
-import { getDashboardData as getDashboardDataDirect } from "@/services/dashboardApiDirect";
 
 export default function DashboardPage() {
   const [stats, setStats] = useState<{
@@ -32,8 +31,8 @@ export default function DashboardPage() {
     try {
       setLoading(true);
 
-      // 직접 API를 사용하여 데이터 가져오기
-      const data = await getDashboardDataDirect(
+      // 수정된 API 사용하여 데이터 가져오기
+      const data = await getDashboardData(
         dateFilter,
         dateRange.startDate?.toISOString().split("T")[0],
         dateRange.endDate?.toISOString().split("T")[0]
