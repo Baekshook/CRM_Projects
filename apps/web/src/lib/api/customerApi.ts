@@ -1,6 +1,7 @@
 import axios from "axios";
+import { API_URL } from "../../services/apiConfig";
 
-const API_BASE_URL = "http://localhost:4000/api";
+const API_BASE_URL = API_URL;
 
 // 모든 고객 데이터 가져오기
 export const getAll = async () => {
