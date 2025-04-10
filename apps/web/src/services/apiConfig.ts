@@ -1,6 +1,14 @@
 // src/services/api.ts 또는 유사한 파일
 import axios from "axios";
 
+// API URL 정의
+export const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
+// API 경로 생성 유틸리티 함수
+export const getApiPath = (path: string): string => {
+  return `${API_URL}${path.startsWith("/") ? path : `/${path}`}`;
+};
+
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
   withCredentials: true, // CORS credentials 설정
