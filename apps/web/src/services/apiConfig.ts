@@ -2,7 +2,10 @@
 import axios from "axios";
 
 // API URL 정의
-export const API_URL = process.env.NEXT_PUBLIC_API_URL;
+// 원래 URL이 HTTP였으나 CSP는 HTTPS만 허용하므로 URL 수정
+export const API_URL =
+  process.env.NEXT_PUBLIC_API_URL ||
+  "https://crm-backend-env-env.eba-m3mmahdu.ap-northeast-1.elasticbeanstalk.com/api";
 
 // API 경로 생성 유틸리티 함수
 export const getApiPath = (path: string): string => {
@@ -10,7 +13,7 @@ export const getApiPath = (path: string): string => {
 };
 
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL,
+  baseURL: API_URL,
   withCredentials: true, // CORS credentials 설정
   timeout: 30000, // 타임아웃 설정
 });
