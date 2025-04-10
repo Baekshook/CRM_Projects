@@ -1,6 +1,7 @@
 import axios from "axios";
+import { API_URL } from "../../services/apiConfig";
 
-const API_BASE_URL = "http://localhost:4000/api";
+const API_BASE_URL = API_URL;
 
 // 고객 상호작용 인터페이스
 export interface Interaction {
