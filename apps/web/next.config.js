@@ -35,6 +35,21 @@ const nextConfig = {
     // 동시에 메모리에 유지할 페이지 수
     pagesBufferLength: 5,
   },
+  // Content Security Policy 설정 추가
+  async headers() {
+    return [
+      {
+        source: "/(.*)",
+        headers: [
+          {
+            key: "Content-Security-Policy",
+            value:
+              "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; connect-src 'self' https://crm-backend-env-env.eba-m3mmahdu.ap-northeast-1.elasticbeanstalk.com https://*.vercel.app http://localhost:4000; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; frame-ancestors 'none'; object-src 'none';",
+          },
+        ],
+      },
+    ];
+  },
 };
 
 module.exports = nextConfig;

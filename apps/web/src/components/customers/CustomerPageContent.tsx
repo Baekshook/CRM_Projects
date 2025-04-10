@@ -22,6 +22,7 @@ import customerApi, { Customer } from "@/services/customerApi";
 import singerApi from "@/services/singerApi";
 import type { Singer } from "@/lib/api/singerApi";
 import { formatDate } from "@/utils/dateUtils";
+import { getApiPath } from "@/services/apiConfig";
 
 export default function CustomerPageContent() {
   const router = useRouter();
@@ -58,61 +59,80 @@ export default function CustomerPageContent() {
       setError(null);
 
       try {
-        // 목록 데이터 가져오기
-        const apiCustomers = await customerApi.getAll();
-        const apiSingers = await singerApi.getAll();
+        // 먼저 임시 데이터 사용 (서버 문제 대비)
+        const tempCustomers = Array(10)
+          .fill(null)
+          .map((_, i) => ({
+            id: `temp-customer-${i}`,
+            name: `임시 고객 ${i + 1}`,
+            company: "로딩 중...",
+            email: "loading@example.com",
+            phone: "010-0000-0000",
+            grade: "3",
+            status: "active",
+            contractCount: 0,
+            registrationDate: formatDate(new Date().toISOString()),
+            address: "로딩 중...",
+            memo: "",
+            profileImage: null,
+            tableType: "customer",
+            type: "customer",
+          }));
 
-        const combinedItems = [
-          ...apiCustomers.map((customer: any) => {
-            // 이미지 URL 처리
+        setCustomers(tempCustomers);
+
+        // 실제 데이터 로드 시도
+        try {
+          // 목록 데이터 가져오기
+          const [apiCustomers, apiSingers] = await Promise.all([
+            customerApi.getAll(),
+            singerApi.getAll(),
+          ]);
+
+          // 고객 데이터 처리
+          const formattedCustomers = apiCustomers.map((customer: any) => {
+            // 이미지 URL 처리 - getApiPath 유틸리티 사용
             const profileImage = customer.profileImage
-              ? `http://localhost:4000/api/files/${customer.profileImage}/data`
+              ? getApiPath(`/files/${customer.profileImage}/data`)
               : null;
 
             return {
               ...customer,
               tableType: "customer",
+              type: "customer",
               profileImage: profileImage,
+              lastRequestDate: formatDate(customer.lastRequestDate),
+              registrationDate: formatDate(customer.registrationDate),
             };
-          }),
-          ...apiSingers.map((singer: any) => {
-            // 이미지 URL 처리
+          });
+          setCustomers(formattedCustomers);
+
+          // 가수 데이터 처리
+          const formattedSingers = apiSingers.map((singer: any) => {
+            // 이미지 URL 처리 - getApiPath 유틸리티 사용
             const profileImage = singer.profileImage
-              ? `http://localhost:4000/api/files/${singer.profileImage}/data`
+              ? getApiPath(`/files/${singer.profileImage}/data`)
               : null;
 
             return {
               ...singer,
               tableType: "singer",
+              type: "singer",
               profileImage: profileImage,
+              lastRequestDate: formatDate(singer.lastRequestDate),
+              registrationDate: formatDate(singer.registrationDate),
             };
-          }),
-        ];
-
-        // 고객 데이터 불러오기
-        const formattedCustomers = combinedItems
-          .filter((item) => item.tableType === "customer")
-          .map((customer: any) => ({
-            ...customer,
-            type: "customer",
-            lastRequestDate: formatDate(customer.lastRequestDate),
-            registrationDate: formatDate(customer.registrationDate),
-          }));
-        setCustomers(formattedCustomers);
-
-        // 가수 데이터 불러오기
-        const formattedSingers = combinedItems
-          .filter((item) => item.tableType === "singer")
-          .map((singer: any) => ({
-            ...singer,
-            type: "singer",
-            lastRequestDate: formatDate(singer.lastRequestDate),
-            registrationDate: formatDate(singer.registrationDate),
-          }));
-        setSingers(formattedSingers);
+          });
+          setSingers(formattedSingers);
+        } catch (apiError) {
+          console.error("API 데이터 로딩 실패:", apiError);
+          // 임시 데이터가 이미 설정되었으므로 별도 처리 불필요
+          toast.error("서버 연결에 실패했습니다. 임시 데이터를 표시합니다.");
+        }
       } catch (error) {
         console.error("데이터 로딩 중 오류 발생:", error);
         setError("데이터를 불러오는 데 실패했습니다.");
+        toast.error("데이터 로딩 중 오류가 발생했습니다.");
       } finally {
         setIsLoading(false);
       }
