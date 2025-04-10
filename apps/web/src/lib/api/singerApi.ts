@@ -1,7 +1,9 @@
 import axios from "axios";
 
 // API 기본 URL 설정
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api";
+const API_URL =
+  process.env.NEXT_PUBLIC_API_URL ||
+  "https://crm-backend-env-env.eba-m3mmahdu.ap-northeast-1.elasticbeanstalk.com/api";
 
 // 가수 타입 정의
 export interface Singer {

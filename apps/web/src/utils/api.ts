@@ -62,7 +62,8 @@ export const api = {
     fetchApi<T>(endpoint, { ...options, method: "DELETE" }),
 };
 
-const API_URL = 'http://localhost:4000/api';
+const API_URL =
+  "https://crm-backend-env-env.eba-m3mmahdu.ap-northeast-1.elasticbeanstalk.com/api";
 
 // API 응답 타입
 interface ApiResponse<T> {
@@ -77,7 +78,7 @@ export const customerApi = {
     try {
       const response = await fetch(`${API_URL}/customers`);
       if (!response.ok) {
-        throw new Error('고객 목록을 불러오는데 실패했습니다.');
+        throw new Error("고객 목록을 불러오는데 실패했습니다.");
       }
       const data = await response.json();
       return { data };
@@ -91,7 +92,7 @@ export const customerApi = {
     try {
       const response = await fetch(`${API_URL}/customers/${id}`);
       if (!response.ok) {
-        throw new Error('고객 정보를 불러오는데 실패했습니다.');
+        throw new Error("고객 정보를 불러오는데 실패했습니다.");
       }
       const data = await response.json();
       return { data };
@@ -104,14 +105,14 @@ export const customerApi = {
   create: async (customer: any): Promise<ApiResponse<any>> => {
     try {
       const response = await fetch(`${API_URL}/customers`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(customer),
       });
       if (!response.ok) {
-        throw new Error('고객 생성에 실패했습니다.');
+        throw new Error("고객 생성에 실패했습니다.");
       }
       const data = await response.json();
       return { data };
@@ -124,14 +125,14 @@ export const customerApi = {
   update: async (id: string, customer: any): Promise<ApiResponse<any>> => {
     try {
       const response = await fetch(`${API_URL}/customers/${id}`, {
-        method: 'PATCH',
+        method: "PATCH",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(customer),
       });
       if (!response.ok) {
-        throw new Error('고객 정보 수정에 실패했습니다.');
+        throw new Error("고객 정보 수정에 실패했습니다.");
       }
       const data = await response.json();
       return { data };
@@ -144,10 +145,10 @@ export const customerApi = {
   remove: async (id: string): Promise<ApiResponse<boolean>> => {
     try {
       const response = await fetch(`${API_URL}/customers/${id}`, {
-        method: 'DELETE',
+        method: "DELETE",
       });
       if (!response.ok) {
-        throw new Error('고객 삭제에 실패했습니다.');
+        throw new Error("고객 삭제에 실패했습니다.");
       }
       return { data: true };
     } catch (error) {
@@ -163,7 +164,7 @@ export const singerApi = {
     try {
       const response = await fetch(`${API_URL}/singers`);
       if (!response.ok) {
-        throw new Error('가수 목록을 불러오는데 실패했습니다.');
+        throw new Error("가수 목록을 불러오는데 실패했습니다.");
       }
       const data = await response.json();
       return { data };
@@ -177,7 +178,7 @@ export const singerApi = {
     try {
       const response = await fetch(`${API_URL}/singers/${id}`);
       if (!response.ok) {
-        throw new Error('가수 정보를 불러오는데 실패했습니다.');
+        throw new Error("가수 정보를 불러오는데 실패했습니다.");
       }
       const data = await response.json();
       return { data };
@@ -190,14 +191,14 @@ export const singerApi = {
   create: async (singer: any): Promise<ApiResponse<any>> => {
     try {
       const response = await fetch(`${API_URL}/singers`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(singer),
       });
       if (!response.ok) {
-        throw new Error('가수 생성에 실패했습니다.');
+        throw new Error("가수 생성에 실패했습니다.");
       }
       const data = await response.json();
       return { data };
@@ -210,14 +211,14 @@ export const singerApi = {
   update: async (id: string, singer: any): Promise<ApiResponse<any>> => {
     try {
       const response = await fetch(`${API_URL}/singers/${id}`, {
-        method: 'PATCH',
+        method: "PATCH",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(singer),
       });
       if (!response.ok) {
-        throw new Error('가수 정보 수정에 실패했습니다.');
+        throw new Error("가수 정보 수정에 실패했습니다.");
       }
       const data = await response.json();
       return { data };
@@ -230,10 +231,10 @@ export const singerApi = {
   remove: async (id: string): Promise<ApiResponse<boolean>> => {
     try {
       const response = await fetch(`${API_URL}/singers/${id}`, {
-        method: 'DELETE',
+        method: "DELETE",
       });
       if (!response.ok) {
-        throw new Error('가수 삭제에 실패했습니다.');
+        throw new Error("가수 삭제에 실패했습니다.");
       }
       return { data: true };
     } catch (error) {
@@ -249,7 +250,7 @@ export const requestApi = {
     try {
       const response = await fetch(`${API_URL}/requests`);
       if (!response.ok) {
-        throw new Error('요청 목록을 불러오는데 실패했습니다.');
+        throw new Error("요청 목록을 불러오는데 실패했습니다.");
       }
       const data = await response.json();
       return { data };
@@ -263,7 +264,7 @@ export const requestApi = {
     try {
       const response = await fetch(`${API_URL}/requests/${id}`);
       if (!response.ok) {
-        throw new Error('요청 정보를 불러오는데 실패했습니다.');
+        throw new Error("요청 정보를 불러오는데 실패했습니다.");
       }
       const data = await response.json();
       return { data };
@@ -276,14 +277,14 @@ export const requestApi = {
   create: async (request: any): Promise<ApiResponse<any>> => {
     try {
       const response = await fetch(`${API_URL}/requests`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(request),
       });
       if (!response.ok) {
-        throw new Error('요청 생성에 실패했습니다.');
+        throw new Error("요청 생성에 실패했습니다.");
       }
       const data = await response.json();
       return { data };
@@ -296,14 +297,14 @@ export const requestApi = {
   update: async (id: string, request: any): Promise<ApiResponse<any>> => {
     try {
       const response = await fetch(`${API_URL}/requests/${id}`, {
-        method: 'PATCH',
+        method: "PATCH",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(request),
       });
       if (!response.ok) {
-        throw new Error('요청 정보 수정에 실패했습니다.');
+        throw new Error("요청 정보 수정에 실패했습니다.");
       }
       const data = await response.json();
       return { data };
@@ -316,10 +317,10 @@ export const requestApi = {
   remove: async (id: string): Promise<ApiResponse<boolean>> => {
     try {
       const response = await fetch(`${API_URL}/requests/${id}`, {
-        method: 'DELETE',
+        method: "DELETE",
       });
       if (!response.ok) {
-        throw new Error('요청 삭제에 실패했습니다.');
+        throw new Error("요청 삭제에 실패했습니다.");
       }
       return { data: true };
     } catch (error) {

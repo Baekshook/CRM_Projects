@@ -1,89 +1,76 @@
 import axios from "axios";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api";
+const API_URL =
+  process.env.NEXT_PUBLIC_API_URL ||
+  "https://crm-backend-env-env.eba-m3mmahdu.ap-northeast-1.elasticbeanstalk.com/api";
 
 export interface Segment {
-  id: string;
+  id?: number;
   name: string;
-  description?: string;
-  entityType: string;
-  criteria?: Record<string, any>;
-  memberCount: number;
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
+  description: string;
+  criteria: string;
+  tags?: string[];
+  createdAt?: string;
+  updatedAt?: string;
+  customerCount?: number;
 }
 
-export interface CreateSegmentDTO {
-  name: string;
-  description?: string;
-  entityType: string;
-  criteria?: Record<string, any>;
-  isActive?: boolean;
+interface ApiResponse<T> {
+  success: boolean;
+  data?: T;
+  error?: string;
 }
 
-export interface UpdateSegmentDTO {
-  name?: string;
-  description?: string;
-  entityType?: string;
-  criteria?: Record<string, any>;
-  isActive?: boolean;
-}
-
-class SegmentApi {
-  async getAll(): Promise<Segment[]> {
+export const segmentApi = {
+  getAll: async (): Promise<Segment[]> => {
     try {
-      console.log("Fetching all segments...");
       const response = await axios.get(`${API_URL}/segments`);
       return response.data;
     } catch (error) {
-      console.error("세그먼트 데이터 로드 오류:", error);
+      console.error("세그먼트 목록 조회 실패:", error);
       throw error;
     }
-  }
+  },
 
-  async getById(id: string): Promise<Segment> {
+  getById: async (id: number | string): Promise<Segment> => {
     try {
-      console.log(`Fetching segment with id: ${id}`);
       const response = await axios.get(`${API_URL}/segments/${id}`);
       return response.data;
     } catch (error) {
-      console.error(`세그먼트 데이터 로드 오류 (ID: ${id}):`, error);
+      console.error(`세그먼트 ${id} 조회 실패:`, error);
       throw error;
     }
-  }
+  },
 
-  async create(segment: CreateSegmentDTO): Promise<Segment> {
+  create: async (segment: Segment): Promise<Segment> => {
     try {
-      console.log("Creating new segment:", segment);
       const response = await axios.post(`${API_URL}/segments`, segment);
       return response.data;
     } catch (error) {
-      console.error("세그먼트 생성 오류:", error);
+      console.error("세그먼트 생성 실패:", error);
       throw error;
     }
-  }
+  },
 
-  async update(id: string, segment: UpdateSegmentDTO): Promise<Segment> {
+  update: async (
+    id: number | string,
+    segment: Partial<Segment>
+  ): Promise<Segment> => {
     try {
-      console.log(`Updating segment ${id}:`, segment);
       const response = await axios.patch(`${API_URL}/segments/${id}`, segment);
       return response.data;
     } catch (error) {
-      console.error(`세그먼트 업데이트 오류 (ID: ${id}):`, error);
+      console.error(`세그먼트 ${id} 업데이트 실패:`, error);
       throw error;
     }
-  }
+  },
 
-  async delete(id: string): Promise<void> {
+  delete: async (id: number | string): Promise<void> => {
     try {
-      console.log(`Deleting segment with id: ${id}`);
       await axios.delete(`${API_URL}/segments/${id}`);
     } catch (error) {
-      console.error(`세그먼트 삭제 오류 (ID: ${id}):`, error);
+      console.error(`세그먼트 ${id} 삭제 실패:`, error);
       throw error;
     }
-  }
-}
-
-export const segmentApi = new SegmentApi();
+  },
+};
