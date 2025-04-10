@@ -1,13 +1,13 @@
 import axios from "axios";
 import { Schedule, Contract, Singer, Venue } from "@/types/scheduleTypes";
-import { API_URL } from "./apiConfig";
+import { API_URL, getApiPath } from "./apiConfig";
 
 // 일정 관련 API 함수들
 
 // 모든 일정 조회
 export const getAllSchedules = async (): Promise<Schedule[]> => {
   try {
-    const response = await axios.get(`${API_URL}/schedules`);
+    const response = await axios.get(getApiPath("/schedules"));
     return response.data;
   } catch (error) {
     console.error("일정 목록 조회 오류:", error);
@@ -20,7 +20,7 @@ export const getSchedulesByStatus = async (
   status: string
 ): Promise<Schedule[]> => {
   try {
-    const response = await axios.get(`${API_URL}/schedules`, {
+    const response = await axios.get(getApiPath("/schedules"), {
       params: { status },
     });
     return response.data;
@@ -33,7 +33,7 @@ export const getSchedulesByStatus = async (
 // 일정 상세 조회
 export const getScheduleById = async (id: string): Promise<Schedule> => {
   try {
-    const response = await axios.get(`${API_URL}/schedules/${id}`);
+    const response = await axios.get(getApiPath(`/schedules/${id}`));
     return response.data;
   } catch (error) {
     console.error("일정 상세 조회 오류:", error);
@@ -46,7 +46,7 @@ export const createSchedule = async (
   scheduleData: Partial<Schedule>
 ): Promise<Schedule> => {
   try {
-    const response = await axios.post(`${API_URL}/schedules`, scheduleData);
+    const response = await axios.post(getApiPath("/schedules"), scheduleData);
     return response.data;
   } catch (error) {
     console.error("일정 생성 오류:", error);
@@ -61,7 +61,7 @@ export const updateSchedule = async (
 ): Promise<Schedule> => {
   try {
     const response = await axios.patch(
-      `${API_URL}/schedules/${id}`,
+      getApiPath(`/schedules/${id}`),
       scheduleData
     );
     return response.data;
@@ -74,7 +74,7 @@ export const updateSchedule = async (
 // 일정 삭제
 export const deleteSchedule = async (id: string): Promise<void> => {
   try {
-    await axios.delete(`${API_URL}/schedules/${id}`);
+    await axios.delete(getApiPath(`/schedules/${id}`));
   } catch (error) {
     console.error("일정 삭제 오류:", error);
     throw error;
@@ -93,7 +93,7 @@ export const getSchedulesByDate = async (
       params.day = day;
     }
 
-    const response = await axios.get(`${API_URL}/schedules/date`, { params });
+    const response = await axios.get(getApiPath("/schedules/date"), { params });
     return response.data;
   } catch (error) {
     console.error("날짜별 일정 조회 오류:", error);
@@ -106,7 +106,7 @@ export const getSchedulesByDate = async (
 // 모든 계약 조회
 export const getAllContracts = async (): Promise<Contract[]> => {
   try {
-    const response = await axios.get(`${API_URL}/contracts`);
+    const response = await axios.get(getApiPath("/contracts"));
     return response.data;
   } catch (error) {
     console.error("계약 목록 조회 오류:", error);
@@ -119,7 +119,7 @@ export const getContractsByStatus = async (
   status: string
 ): Promise<Contract[]> => {
   try {
-    const response = await axios.get(`${API_URL}/contracts`, {
+    const response = await axios.get(getApiPath("/contracts"), {
       params: { status },
     });
     return response.data;
@@ -132,7 +132,7 @@ export const getContractsByStatus = async (
 // 계약 상세 조회
 export const getContractById = async (id: string): Promise<Contract> => {
   try {
-    const response = await axios.get(`${API_URL}/contracts/${id}`);
+    const response = await axios.get(getApiPath(`/contracts/${id}`));
     return response.data;
   } catch (error) {
     console.error("계약 상세 조회 오류:", error);
@@ -145,7 +145,7 @@ export const createContract = async (
   contractData: Partial<Contract>
 ): Promise<Contract> => {
   try {
-    const response = await axios.post(`${API_URL}/contracts`, contractData);
+    const response = await axios.post(getApiPath("/contracts"), contractData);
     return response.data;
   } catch (error) {
     console.error("계약 생성 오류:", error);
@@ -160,7 +160,7 @@ export const updateContract = async (
 ): Promise<Contract> => {
   try {
     const response = await axios.patch(
-      `${API_URL}/contracts/${id}`,
+      getApiPath(`/contracts/${id}`),
       contractData
     );
     return response.data;
@@ -173,7 +173,7 @@ export const updateContract = async (
 // 계약 삭제
 export const deleteContract = async (id: string): Promise<void> => {
   try {
-    await axios.delete(`${API_URL}/contracts/${id}`);
+    await axios.delete(getApiPath(`/contracts/${id}`));
   } catch (error) {
     console.error("계약 삭제 오류:", error);
     throw error;
@@ -187,7 +187,7 @@ export const signContract = async (
 ): Promise<Contract> => {
   try {
     const response = await axios.post(
-      `${API_URL}/contracts/${id}/sign`,
+      getApiPath(`/contracts/${id}/sign`),
       signatureData
     );
     return response.data;
@@ -202,7 +202,7 @@ export const signContract = async (
 // 모든 장소 리소스 조회
 export const getAllVenues = async (): Promise<Venue[]> => {
   try {
-    const response = await axios.get(`${API_URL}/venues`);
+    const response = await axios.get(getApiPath("/venues"));
     return response.data;
   } catch (error) {
     console.error("장소 목록 조회 오류:", error);
@@ -213,7 +213,7 @@ export const getAllVenues = async (): Promise<Venue[]> => {
 // 장소 상세 정보 조회
 export const getVenueById = async (id: string): Promise<Venue> => {
   try {
-    const response = await axios.get(`${API_URL}/venues/${id}`);
+    const response = await axios.get(getApiPath(`/venues/${id}`));
     return response.data;
   } catch (error) {
     console.error("장소 상세 조회 오류:", error);
@@ -224,7 +224,7 @@ export const getVenueById = async (id: string): Promise<Venue> => {
 // 모든 가수 리소스 조회
 export const getAllSingers = async (): Promise<Singer[]> => {
   try {
-    const response = await axios.get(`${API_URL}/singers`);
+    const response = await axios.get(getApiPath("/singers"));
     return response.data;
   } catch (error) {
     console.error("가수 목록 조회 오류:", error);
@@ -235,7 +235,7 @@ export const getAllSingers = async (): Promise<Singer[]> => {
 // 가수 상세 정보 조회
 export const getSingerById = async (id: string): Promise<Singer> => {
   try {
-    const response = await axios.get(`${API_URL}/singers/${id}`);
+    const response = await axios.get(getApiPath(`/singers/${id}`));
     return response.data;
   } catch (error) {
     console.error("가수 상세 조회 오류:", error);

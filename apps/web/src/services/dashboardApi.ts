@@ -5,7 +5,7 @@ import {
   contracts,
   negotiationLogs,
 } from "@/utils/dummyData";
-import { API_URL } from "./apiConfig";
+import { API_URL, getApiPath } from "./apiConfig";
 import axios from "axios";
 
 // 백엔드 서버 URL - 중앙 설정에서 가져옴
@@ -64,9 +64,9 @@ export const getDashboardStats = async (
     // 개별 API에서 데이터 직접 가져오기
     const [requestsResponse, schedulesResponse, contractsResponse] =
       await Promise.all([
-        axios.get(`${API_URL}/requests`),
-        axios.get(`${API_URL}/schedules`),
-        axios.get(`${API_URL}/contracts`),
+        axios.get(getApiPath("/requests")),
+        axios.get(getApiPath("/schedules")),
+        axios.get(getApiPath("/contracts")),
       ]);
 
     // 데이터 추출
@@ -110,7 +110,7 @@ export const getDashboardStats = async (
 // 최근 요청서 조회
 export const getRecentRequests = async (limit = 5) => {
   try {
-    const response = await axios.get(`${API_URL}/requests`);
+    const response = await axios.get(getApiPath("/requests"));
     const allRequests = response.data;
 
     // 날짜 기준 최신순 정렬 후 제한된 개수만 반환
@@ -147,7 +147,7 @@ export const getRecentRequests = async (limit = 5) => {
 // 오늘의 일정 조회
 export const getTodaySchedules = async () => {
   try {
-    const response = await axios.get(`${API_URL}/schedules`);
+    const response = await axios.get(getApiPath("/schedules"));
     const allSchedules = response.data;
 
     // 오늘 날짜 계산
@@ -186,9 +186,9 @@ export const getRecentNotifications = async (limit = 5) => {
     // 알림 API가 없으므로 요청과 일정을 조합하여 가상 알림 생성
     const [requestsResponse, schedulesResponse, contractsResponse] =
       await Promise.all([
-        axios.get(`${API_URL}/requests`),
-        axios.get(`${API_URL}/schedules`),
-        axios.get(`${API_URL}/contracts`),
+        axios.get(getApiPath("/requests")),
+        axios.get(getApiPath("/schedules")),
+        axios.get(getApiPath("/contracts")),
       ]);
 
     const requests = requestsResponse.data;

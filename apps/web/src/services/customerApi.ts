@@ -1,5 +1,5 @@
 import axios from "axios";
-import { API_URL } from "./apiConfig";
+import { API_URL, getApiPath } from "./apiConfig";
 
 // 백엔드 서버 URL - 중앙 설정에서 가져옴
 // const API_URL = "http://localhost:4000/api";
@@ -23,7 +23,7 @@ export interface Customer {
 const customerApi = {
   getAll: async (filters?: any): Promise<Customer[]> => {
     try {
-      const response = await axios.get(`${API_URL}/customers`, {
+      const response = await axios.get(getApiPath("/customers"), {
         params: filters,
       });
       return response.data;
@@ -35,7 +35,7 @@ const customerApi = {
 
   getById: async (id: string | number): Promise<Customer> => {
     try {
-      const response = await axios.get(`${API_URL}/customers/${id}`);
+      const response = await axios.get(getApiPath(`/customers/${id}`));
       return response.data;
     } catch (error) {
       console.error(`Error fetching customer ${id}:`, error);
@@ -82,7 +82,7 @@ const customerApi = {
 
       console.log("Final customer payload:", JSON.stringify(payload, null, 2));
 
-      const response = await axios.post(`${API_URL}/customers`, payload);
+      const response = await axios.post(getApiPath("/customers"), payload);
       console.log("Customer created successfully:", response.data);
       return response.data;
     } catch (error) {
@@ -114,7 +114,7 @@ const customerApi = {
       console.log("Update payload:", JSON.stringify(customer, null, 2));
 
       const response = await axios.patch(
-        `${API_URL}/customers/${id}`,
+        getApiPath(`/customers/${id}`),
         customer
       );
       console.log("Update response:", response.data);
@@ -142,7 +142,7 @@ const customerApi = {
         throw new Error("ID가 필요합니다.");
       }
 
-      const response = await axios.patch(`${API_URL}/customers/${id}`, {
+      const response = await axios.patch(getApiPath(`/customers/${id}`), {
         status,
       });
       return response.data;
@@ -158,7 +158,7 @@ const customerApi = {
         throw new Error("ID가 필요합니다.");
       }
 
-      await axios.delete(`${API_URL}/customers/${id}`);
+      await axios.delete(getApiPath(`/customers/${id}`));
     } catch (error) {
       console.error(`Error deleting customer ${id}:`, error);
       throw error;
@@ -197,7 +197,7 @@ const customerApi = {
 
       // 프로필 이미지를 DB에 직접 저장하는 엔드포인트 사용
       const response = await axios.post(
-        `${API_URL}/files/upload-to-db`,
+        getApiPath("/files/upload-to-db"),
         formData,
         {
           headers: {
@@ -276,7 +276,7 @@ const customerApi = {
         newFormData.append("category", "profileImage");
 
         const response = await axios.post(
-          `${API_URL}/files/upload-to-db`,
+          getApiPath("/files/upload-to-db"),
           newFormData,
           {
             headers: {
@@ -298,7 +298,7 @@ const customerApi = {
       // 엔드포인트 선택
       let uploadUrl;
       if (isSingleFile) {
-        uploadUrl = `${API_URL}/files/upload`;
+        uploadUrl = getApiPath("/files/upload");
 
         // profileImage를 file로 변경
         if (formData.has("profileImage")) {
@@ -308,7 +308,7 @@ const customerApi = {
           formData.append("category", "profileImage");
         }
       } else {
-        uploadUrl = `${API_URL}/files/multi-upload`;
+        uploadUrl = getApiPath("/files/multi-upload");
 
         // 파일 필드명을 'files'로 변경
         const files = [];
@@ -369,7 +369,7 @@ const customerApi = {
 
   // 파일 직접 가져오기
   getFileUrl: (fileId: string): string => {
-    return `${API_URL}/files/${fileId}/data`;
+    return getApiPath(`/files/${fileId}/data`);
   },
 
   // 고객 관련 파일 목록 가져오기
@@ -380,7 +380,7 @@ const customerApi = {
       }
 
       const response = await axios.get(
-        `${API_URL}/files/by-entity/customer/${id}`
+        getApiPath(`/files/by-entity/customer/${id}`)
       );
       return response.data;
     } catch (error) {
