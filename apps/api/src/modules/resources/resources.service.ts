@@ -22,9 +22,8 @@ export class ResourcesService {
       })}`
     );
 
-    // 데모 용도로 더미 데이터를 반환합니다.
-    return {
-      id: `resource-${Date.now()}`,
+    // 새 리소스 엔티티 생성 및 저장
+    const newResource = this.resourceRepository.create({
       name: createResourceDto.name,
       description: createResourceDto.description,
       entityId: createResourceDto.entityId,
@@ -40,7 +39,9 @@ export class ResourcesService {
       data: createResourceDto.data,
       uploadedAt: new Date(),
       updatedAt: new Date(),
-    } as Resource;
+    });
+
+    return this.resourceRepository.save(newResource);
   }
 
   async findAll(query?: any): Promise<Resource[]> {

@@ -16,6 +16,7 @@ import {
   CustomerStatus,
   Filter,
   CustomerGrade,
+  SortBy,
 } from "@/components/customers/types";
 import { toast } from "react-hot-toast";
 import customerApi, { Customer } from "@/services/customerApi";
@@ -43,14 +44,30 @@ export default function CustomerPageContent() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  // 필터
-  const [filters, setFilters] = useState<Filter>({
-    searchTerm: searchParams?.get("search") || "",
-    status: (searchParams?.get("status") || "") as "" | CustomerStatus,
-    grade: searchParams?.get("grade") || "",
-    sortBy: searchParams?.get("sortBy") || "name",
-    order: (searchParams?.get("sortOrder") as "asc" | "desc") || "asc",
+  // 필터 - useSearchParams는 클라이언트 컴포넌트에서만 사용해야 함
+  const [filters, setFilters] = useState<Filter>(() => {
+    // 초기값은 상수로 설정하고, useEffect에서 searchParams 값으로 업데이트
+    return {
+      searchTerm: "",
+      status: "" as "" | CustomerStatus,
+      grade: "" as "" | CustomerGrade,
+      sortBy: "name" as SortBy,
+      order: "asc" as "asc" | "desc",
+    };
   });
+
+  // 마운트 후에 SearchParams 반영
+  useEffect(() => {
+    if (searchParams) {
+      setFilters({
+        searchTerm: searchParams.get("search") || "",
+        status: (searchParams.get("status") || "") as "" | CustomerStatus,
+        grade: (searchParams.get("grade") || "") as "" | CustomerGrade,
+        sortBy: (searchParams.get("sortBy") as SortBy) || "name",
+        order: (searchParams.get("sortOrder") as "asc" | "desc") || "asc",
+      });
+    }
+  }, [searchParams]);
 
   // 데이터 로딩
   useEffect(() => {
@@ -59,35 +76,18 @@ export default function CustomerPageContent() {
       setError(null);
 
       try {
-        // 먼저 임시 데이터 사용 (서버 문제 대비)
-        const tempCustomers = Array(10)
-          .fill(null)
-          .map((_, i) => ({
-            id: `temp-customer-${i}`,
-            name: `임시 고객 ${i + 1}`,
-            company: "로딩 중...",
-            email: "loading@example.com",
-            phone: "010-0000-0000",
-            grade: "3",
-            status: "active",
-            contractCount: 0,
-            registrationDate: formatDate(new Date().toISOString()),
-            address: "로딩 중...",
-            memo: "",
-            profileImage: null,
-            tableType: "customer",
-            type: "customer",
-          }));
-
-        setCustomers(tempCustomers);
-
         // 실제 데이터 로드 시도
         try {
+          console.log("API 데이터 로드 시작");
           // 목록 데이터 가져오기
           const [apiCustomers, apiSingers] = await Promise.all([
             customerApi.getAll(),
             singerApi.getAll(),
           ]);
+          console.log("API 데이터 로드 완료:", {
+            고객수: apiCustomers.length,
+            가수수: apiSingers.length,
+          });
 
           // 고객 데이터 처리
           const formattedCustomers = apiCustomers.map((customer: any) => {
@@ -126,8 +126,8 @@ export default function CustomerPageContent() {
           setSingers(formattedSingers);
         } catch (apiError) {
           console.error("API 데이터 로딩 실패:", apiError);
-          // 임시 데이터가 이미 설정되었으므로 별도 처리 불필요
-          toast.error("서버 연결에 실패했습니다. 임시 데이터를 표시합니다.");
+          toast.error("서버 연결에 실패했습니다.");
+          throw apiError;
         }
       } catch (error) {
         console.error("데이터 로딩 중 오류 발생:", error);
@@ -190,12 +190,12 @@ export default function CustomerPageContent() {
       })
       .sort((a, b) => {
         // 정렬 로직
-        const sortField = filters.sortBy;
+        const sortField = filters.sortBy as string;
         const sortOrder = filters.order === "asc" ? 1 : -1;
 
         if (sortField === "name") {
           return sortOrder * a.name.localeCompare(b.name);
-        } else if (sortField === "company") {
+        } else if (sortField === "company" || sortField === "agency") {
           const aCompany = entityType === "customer" ? a.company : a.agency;
           const bCompany = entityType === "customer" ? b.company : b.agency;
           return sortOrder * (aCompany || "").localeCompare(bCompany || "");
@@ -213,6 +213,12 @@ export default function CustomerPageContent() {
             (new Date(a.lastRequestDate).getTime() -
               new Date(b.lastRequestDate).getTime())
           );
+        } else if (sortField === "grade" || sortField === "rating") {
+          const aGrade = Number(entityType === "customer" ? a.grade : a.rating);
+          const bGrade = Number(entityType === "customer" ? b.grade : b.rating);
+          return sortOrder * (aGrade - bGrade);
+        } else if (sortField === "contractCount") {
+          return sortOrder * ((a.contractCount || 0) - (b.contractCount || 0));
         }
 
         return 0;
@@ -330,7 +336,7 @@ export default function CustomerPageContent() {
   };
 
   // 일괄 상태 변경 처리
-  const handleBulkStatus = async (status: string) => {
+  const handleBulkStatus = async (status: CustomerStatus) => {
     if (!selectedEntityIds.length) {
       toast.error("선택된 항목이 없습니다.");
       return;
@@ -342,7 +348,8 @@ export default function CustomerPageContent() {
         if (entityType === "customer") {
           return customerApi.updateStatus(id, status);
         } else {
-          return singerApi.updateStatus(id, status);
+          // 가수 API에 updateStatus가 없을 경우 update를 사용
+          return singerApi.update(id, { status });
         }
       });
 
@@ -426,7 +433,6 @@ export default function CustomerPageContent() {
         <div className="mb-6">
           <CustomerFilter
             onFilterChange={handleFilterChange}
-            initialFilters={filters}
             type={entityType}
           />
         </div>

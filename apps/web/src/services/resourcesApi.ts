@@ -4,8 +4,9 @@ import {
   ResourceType,
   SingerResourceCategory,
 } from "@/components/customers/types";
+import { getApiPath } from "./apiConfig";
 
-const API_BASE_URL = "http://localhost:4000/api";
+// const API_BASE_URL = "http://localhost:4000/api";
 
 export interface ResourceFilters {
   entityId?: string; // 가수 ID
@@ -37,7 +38,7 @@ export const getResources = async (
     }
 
     const queryString = params.toString() ? `?${params.toString()}` : "";
-    const response = await axios.get(`${API_BASE_URL}/resources${queryString}`);
+    const response = await axios.get(getApiPath(`/resources${queryString}`));
     return response.data;
   } catch (error) {
     console.error("자료 목록 조회 실패:", error);
@@ -76,7 +77,7 @@ export const uploadResource = async (
     }
 
     const response = await axios.post(
-      `${API_BASE_URL}/resources/upload`,
+      getApiPath("/resources/upload"),
       formData,
       {
         headers: {
@@ -97,7 +98,7 @@ export const uploadResource = async (
  */
 export const deleteResource = async (id: string): Promise<boolean> => {
   try {
-    await axios.delete(`${API_BASE_URL}/resources/${id}`);
+    await axios.delete(getApiPath(`/resources/${id}`));
     return true;
   } catch (error) {
     console.error(`자료 ID ${id} 삭제 실패:`, error);

@@ -8,6 +8,11 @@ const typeorm_1 = require("typeorm");
 async function bootstrap() {
     try {
         const app = await core_1.NestFactory.create(app_module_1.AppModule);
+        console.log("환경 변수 확인:");
+        console.log(`NODE_ENV: ${process.env.NODE_ENV}`);
+        console.log(`PORT: ${process.env.PORT}`);
+        console.log(`DB_HOST: ${process.env.DB_HOST}`);
+        console.log(`FRONTEND_URL: ${process.env.FRONTEND_URL}`);
         app.enableCors({
             origin: [
                 "https://crm-project-tau-ashen.vercel.app",

@@ -28,8 +28,7 @@ let ResourcesService = ResourcesService_1 = class ResourcesService {
             ...createResourceDto,
             data: createResourceDto.data ? "Binary data" : undefined,
         })}`);
-        return {
-            id: `resource-${Date.now()}`,
+        const newResource = this.resourceRepository.create({
             name: createResourceDto.name,
             description: createResourceDto.description,
             entityId: createResourceDto.entityId,
@@ -45,7 +44,8 @@ let ResourcesService = ResourcesService_1 = class ResourcesService {
             data: createResourceDto.data,
             uploadedAt: new Date(),
             updatedAt: new Date(),
-        };
+        });
+        return this.resourceRepository.save(newResource);
     }
     async findAll(query) {
         this.logger.log(`Finding resources with query: ${JSON.stringify(query)}`);

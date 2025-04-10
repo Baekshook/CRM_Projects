@@ -4,3 +4,6 @@ npm-debug.log
 .gitignore
 .env.local
 .env.development
+src/**/*.spec.ts
+test
+**/*.map

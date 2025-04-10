@@ -4,13 +4,21 @@ import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
 import PageHeader from "@/components/common/PageHeader";
 import { Badge } from "@/components/ui/badge";
-import {
-  ResourceItem,
-  ResourceFilters,
-  getResources,
-  deleteResource,
-} from "@/services/resourcesApi";
+import { getResources, deleteResource } from "@/services/resourcesApi";
 import singerApi from "@/services/singerApi";
+import { ResourceItem } from "@/components/customers/types";
+
+// 리소스 필터 인터페이스 정의 (실제 서비스에서 사용하는 타입으로 맞춤)
+interface ResourceQueryFilter {
+  entityId?: string;
+  category?: string;
+  type?: string;
+  tags?: string[];
+  startDate?: string;
+  endDate?: string;
+  searchTerm?: string;
+  entityType?: string;
+}
 
 // 가수 자료 페이지
 export default function SingerResourcesPage() {
@@ -21,8 +29,9 @@ export default function SingerResourcesPage() {
   const [singerMap, setSingerMap] = useState<Record<string, string>>({});
 
   // 필터 상태
-  const [filters, setFilters] = useState<ResourceFilters>({
+  const [filters, setFilters] = useState<ResourceQueryFilter>({
     entityType: "singer",
+    searchTerm: "",
   });
 
   // 자료 로드
@@ -36,7 +45,7 @@ export default function SingerResourcesPage() {
     try {
       const singers = await singerApi.getAll();
       const map: Record<string, string> = {};
-      singers.forEach((singer) => {
+      singers.forEach((singer: { id: string; name: string }) => {
         map[singer.id] = singer.name;
       });
       setSingerMap(map);
@@ -61,7 +70,7 @@ export default function SingerResourcesPage() {
 
   // 필터 변경 핸들러
   const handleFilterChange = (
-    key: keyof ResourceFilters,
+    key: keyof ResourceQueryFilter,
     value: string | string[]
   ) => {
     setFilters((prev) => ({
@@ -391,18 +400,18 @@ export default function SingerResourcesPage() {
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
                       <div className="flex-shrink-0 mr-3">
-                        {getFileIcon(resource.fileType)}
+                        {getFileIcon(resource.type)}
                       </div>
                       <div>
                         <div className="text-sm font-medium text-gray-900">
-                          {resource.fileName}
+                          {resource.name}
                         </div>
                         <div className="text-sm text-gray-500">
                           {resource.description || "설명 없음"}
                         </div>
                         <div className="flex flex-wrap gap-1 mt-1">
                           {resource.tags &&
-                            resource.tags.map((tag, index) => (
+                            resource.tags.map((tag: string, index: number) => (
                               <Badge
                                 key={index}
                                 variant="outline"
@@ -432,14 +441,12 @@ export default function SingerResourcesPage() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-500">
-                      {formatDate(
-                        resource.uploadDate || resource.createdAt || ""
-                      )}
+                      {formatDate(resource.uploadedAt || "")}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <a
-                      href={resource.url}
+                      href={resource.fileUrl}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-indigo-600 hover:text-indigo-900 mr-3"
