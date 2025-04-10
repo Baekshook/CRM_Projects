@@ -1,111 +1,133 @@
 "use client";
-import { useState } from "react";
+import React, { useState } from "react";
 
 interface DateFilterProps {
-  dateFilter: string;
-  setDateFilter: (filter: string) => void;
-  customStartDate: string;
-  customEndDate: string;
-  setCustomStartDate: (date: string) => void;
-  setCustomEndDate: (date: string) => void;
+  currentFilter: string;
+  dateRange: {
+    startDate: Date | null;
+    endDate: Date | null;
+  };
+  onFilterChange: (
+    filter: string,
+    dateRange?: { startDate: Date | null; endDate: Date | null }
+  ) => void;
 }
 
-export const DateFilter: React.FC<DateFilterProps> = ({
-  dateFilter,
-  setDateFilter,
-  customStartDate,
-  customEndDate,
-  setCustomStartDate,
-  setCustomEndDate,
-}) => {
-  const [isCustomRange, setIsCustomRange] = useState(false);
+const DateFilter = ({
+  currentFilter,
+  dateRange,
+  onFilterChange,
+}: DateFilterProps) => {
+  const [showCustomDates, setShowCustomDates] = useState(
+    currentFilter === "custom"
+  );
 
-  const handleApplyCustomRange = () => {
-    if (customStartDate && customEndDate) {
-      setDateFilter("custom");
+  // 날짜를 입력 형식으로 변환
+  const formatDateForInput = (date: Date | null) => {
+    if (!date) return "";
+    return date.toISOString().split("T")[0];
+  };
+
+  // 필터 버튼 클릭 처리
+  const handleFilterClick = (filter: string) => {
+    if (filter === "custom") {
+      setShowCustomDates(true);
+    } else {
+      setShowCustomDates(false);
+      onFilterChange(filter);
     }
   };
 
+  // 사용자 지정 날짜 변경 처리
+  const handleCustomDateChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    type: "start" | "end"
+  ) => {
+    const newDate = e.target.value ? new Date(e.target.value) : null;
+
+    const newDateRange = {
+      ...dateRange,
+      [type === "start" ? "startDate" : "endDate"]: newDate,
+    };
+
+    onFilterChange("custom", newDateRange);
+  };
+
+  // 필터 버튼 스타일
+  const getButtonStyle = (filter: string) => {
+    return filter === currentFilter
+      ? "bg-orange-600 text-white"
+      : "bg-gray-100 text-gray-700 hover:bg-gray-200";
+  };
+
   return (
-    <div className="bg-white rounded-lg shadow p-4 mb-6">
-      <div className="flex flex-wrap space-x-2 mb-3">
+    <div className="mb-6">
+      <h3 className="text-sm font-medium text-gray-700 mb-2">기간 필터</h3>
+      <div className="flex flex-wrap gap-2">
         <button
-          className={`px-4 py-2 rounded-md text-sm font-medium ${
-            dateFilter === "today"
-              ? "bg-orange-500 text-white"
-              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-          }`}
-          onClick={() => {
-            setDateFilter("today");
-            setIsCustomRange(false);
-          }}
+          className={`px-3 py-1.5 rounded-md text-sm ${getButtonStyle(
+            "today"
+          )}`}
+          onClick={() => handleFilterClick("today")}
         >
           오늘
         </button>
         <button
-          className={`px-4 py-2 rounded-md text-sm font-medium ${
-            dateFilter === "week"
-              ? "bg-orange-500 text-white"
-              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-          }`}
-          onClick={() => {
-            setDateFilter("week");
-            setIsCustomRange(false);
-          }}
+          className={`px-3 py-1.5 rounded-md text-sm ${getButtonStyle("week")}`}
+          onClick={() => handleFilterClick("week")}
         >
-          이번 주
+          최근 7일
         </button>
         <button
-          className={`px-4 py-2 rounded-md text-sm font-medium ${
-            dateFilter === "month"
-              ? "bg-orange-500 text-white"
-              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-          }`}
-          onClick={() => {
-            setDateFilter("month");
-            setIsCustomRange(false);
-          }}
+          className={`px-3 py-1.5 rounded-md text-sm ${getButtonStyle(
+            "month"
+          )}`}
+          onClick={() => handleFilterClick("month")}
         >
-          이번 달
+          최근 30일
         </button>
         <button
-          className={`px-4 py-2 rounded-md text-sm font-medium ${
-            isCustomRange
-              ? "bg-orange-500 text-white"
-              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-          }`}
-          onClick={() => setIsCustomRange(!isCustomRange)}
+          className={`px-3 py-1.5 rounded-md text-sm ${getButtonStyle(
+            "custom"
+          )}`}
+          onClick={() => handleFilterClick("custom")}
         >
-          직접 설정
+          사용자 지정
         </button>
       </div>
 
-      {isCustomRange && (
-        <div className="flex flex-wrap items-center space-x-3 mt-3">
-          <div className="flex items-center">
-            <span className="text-sm text-gray-600 mr-2">시작일:</span>
+      {showCustomDates && (
+        <div className="flex flex-wrap gap-4 mt-3">
+          <div>
+            <label
+              htmlFor="start-date"
+              className="block text-sm text-gray-700 mb-1"
+            >
+              시작일
+            </label>
             <input
               type="date"
-              value={customStartDate}
-              onChange={(e) => setCustomStartDate(e.target.value)}
-              className="border border-gray-300 rounded-md p-2 text-sm"
+              id="start-date"
+              className="px-3 py-2 border border-gray-300 rounded-md text-sm"
+              value={formatDateForInput(dateRange.startDate)}
+              onChange={(e) => handleCustomDateChange(e, "start")}
             />
           </div>
-          <div className="flex items-center">
-            <span className="text-sm text-gray-600 mr-2">종료일:</span>
+          <div>
+            <label
+              htmlFor="end-date"
+              className="block text-sm text-gray-700 mb-1"
+            >
+              종료일
+            </label>
             <input
               type="date"
-              value={customEndDate}
-              onChange={(e) => setCustomEndDate(e.target.value)}
-              className="border border-gray-300 rounded-md p-2 text-sm"
+              id="end-date"
+              className="px-3 py-2 border border-gray-300 rounded-md text-sm"
+              value={formatDateForInput(dateRange.endDate)}
+              onChange={(e) => handleCustomDateChange(e, "end")}
             />
           </div>
-          <button
-            className="bg-blue-500 text-white px-4 py-2 rounded-md text-sm font-medium"
-            onClick={handleApplyCustomRange}
-          >
-            적용
-          </button>
         </div>
       )}
     </div>
