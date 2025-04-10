@@ -1,31 +1,34 @@
-// API 설정 파일
+// src/services/api.ts 또는 유사한 파일
+import axios from "axios";
 
-// 백엔드 API URL 가져오기 - HTTP를 HTTPS로 강제 변환
-let apiUrl =
-  process.env.NEXT_PUBLIC_API_URL ||
-  "https://crm-backend-env-env.eba-m3mmahdu.ap-northeast-1.elasticbeanstalk.com/api";
+const api = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_API_URL,
+  withCredentials: true, // CORS credentials 설정
+  timeout: 30000, // 타임아웃 설정
+});
 
-// HTTP를 HTTPS로 강제 변환
-if (apiUrl.startsWith("http://")) {
-  apiUrl = apiUrl.replace("http://", "https://");
-  console.log("보안을 위해 HTTP가 HTTPS로 변환되었습니다.");
-}
+// 요청 인터셉터 추가
+api.interceptors.request.use(
+  (config) => {
+    console.log(`API 요청: ${config.method?.toUpperCase()} ${config.url}`);
+    return config;
+  },
+  (error) => {
+    console.error("API 요청 오류:", error);
+    return Promise.reject(error);
+  }
+);
 
-// URL 끝에 슬래시가 있으면 제거
-if (apiUrl.endsWith("/")) {
-  apiUrl = apiUrl.slice(0, -1);
-}
+// 응답 인터셉터 추가
+api.interceptors.response.use(
+  (response) => {
+    return response;
+  },
+  (error) => {
+    console.error("API 응답 오류:", error.response?.status, error.message);
+    // 오류 처리 로직
+    return Promise.reject(error);
+  }
+);
 
-export const API_URL = apiUrl;
-
-// API 요청 경로 생성 유틸리티 함수
-export const getApiPath = (path: string): string => {
-  // 경로가 슬래시로 시작하는지 확인하고 슬래시 조정
-  const formattedPath = path.startsWith("/") ? path : `/${path}`;
-  return `${API_URL}${formattedPath}`;
-};
-
-export default {
-  API_URL,
-  getApiPath,
-};
+export default api;

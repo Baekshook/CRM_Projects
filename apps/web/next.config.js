@@ -7,12 +7,16 @@ const nextConfig = {
   },
   env: {
     NEXT_PUBLIC_API_URL:
-      process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api",
+      process.env.NEXT_PUBLIC_API_URL ||
+      (process.env.NODE_ENV === "production"
+        ? "https://crm-backend-env-env.eba-m3mmahdu.ap-northeast-1.elasticbeanstalk.com/api"
+        : "http://localhost:4000/api"),
   },
+
   images: {
     domains: [
       "localhost",
-      "crm-backend-env-env.eba-m3mmahdu.ap-northeast-1.elasticbeanstalk.com",
+      "https://crm-backend-env-env.eba-m3mmahdu.ap-northeast-1.elasticbeanstalk.com/api",
     ],
   },
   webpack: (config) => {
@@ -47,7 +51,7 @@ const nextConfig = {
           {
             key: "Content-Security-Policy",
             value:
-              "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; connect-src 'self' https://crm-backend-env-env.eba-m3mmahdu.ap-northeast-1.elasticbeanstalk.com https://*.vercel.app http://localhost:4000 wss://*.vercel.app; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://crm-backend-env-env.eba-m3mmahdu.ap-northeast-1.elasticbeanstalk.com; font-src 'self'; frame-ancestors 'none'; object-src 'none';",
+              "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; connect-src 'self' https://crm-backend-env-env.eba-m3mmahdu.ap-northeast-1.elasticbeanstalk.com https://*.vercel.app http://localhost:4000 wss://*.vercel.app; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https://crm-backend-env-env.eba-m3mmahdu.ap-northeast-1.elasticbeanstalk.com; font-src 'self' https://fonts.gstatic.com; frame-ancestors 'none'; object-src 'none';",
           },
         ],
       },

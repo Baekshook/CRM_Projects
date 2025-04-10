@@ -23,7 +23,6 @@ import customerApi, { Customer } from "@/services/customerApi";
 import singerApi from "@/services/singerApi";
 import type { Singer } from "@/lib/api/singerApi";
 import { formatDate } from "@/utils/dateUtils";
-import { getApiPath } from "@/services/apiConfig";
 import ClientOnly from "@/components/common/ClientOnly";
 import dynamic from "next/dynamic";
 
