@@ -5,6 +5,9 @@ import { toast } from "react-hot-toast";
 import Image from "next/image";
 import * as customerApi from "@/lib/api/customerApi";
 
+// 환경 변수에서 API URL 가져오기
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api";
+
 interface CustomerFormData {
   id?: string | number;
   name: string;
@@ -76,6 +79,13 @@ export default function CustomerForm({
     otherFiles: [],
     ...initialData,
   });
+
+  // 기존 프로필 이미지 URL
+  const existingProfileImageUrl = customerData?.profileImage
+    ? customerData.profileImage.startsWith("http")
+      ? customerData.profileImage
+      : `${API_URL}/files/${customerData.profileImage}/data`
+    : null;
 
   // 입력 필드 변경 처리
   const handleChange = (
@@ -378,12 +388,7 @@ export default function CustomerForm({
               <div className="w-32 h-32 bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center border border-gray-300">
                 {customerData.profileImage ? (
                   <Image
-                    src={
-                      customerData.profileImage.startsWith("http") ||
-                      customerData.profileImage.startsWith("data:image/")
-                        ? customerData.profileImage
-                        : `http://localhost:4000/api/files/${customerData.profileImage}/data`
-                    }
+                    src={existingProfileImageUrl || ""}
                     alt="프로필 이미지"
                     width={128}
                     height={128}

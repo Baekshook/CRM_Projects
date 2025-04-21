@@ -8,6 +8,9 @@ import {
   updateNegotiation,
 } from "@/services/negotiationsApi";
 
+// API URL
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api";
+
 export default function PendingNegotiationsPage() {
   const router = useRouter();
   const [negotiations, setNegotiations] = useState<Negotiation[]>([]);
@@ -254,8 +257,7 @@ export default function PendingNegotiationsPage() {
                 </h3>
                 <p className="mt-1 text-sm text-red-700">{error}</p>
                 <p className="mt-2 text-sm text-red-700">
-                  백엔드 API 서버가 실행 중인지 확인하세요.
-                  (http://localhost:4000/api)
+                  백엔드 API 서버가 실행 중인지 확인하세요. ({API_URL})
                 </p>
               </div>
             </div>

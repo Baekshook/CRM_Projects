@@ -8,6 +8,9 @@ import { toast } from "react-hot-toast";
 import { formatDate } from "@/utils/dateUtils";
 import Image from "next/image";
 
+// API URL
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api";
+
 // 고객 요청 타입
 interface CustomerRequest {
   id: string;
@@ -250,208 +253,219 @@ export default function CustomerDetailPage({
 
   // 기존 렌더링 JSX는 유지하되, customer 객체의 속성을 올바르게 사용하도록 수정
   return (
-    <>
-      {/* 페이지 헤더 */}
-      <div className="mb-6 flex flex-wrap justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-800">{customer.name}</h1>
-          <p className="text-gray-600">
-            {customer.type === "customer" ? customer.company : customer.agency}
-          </p>
-        </div>
-        <div className="flex space-x-3">
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-semibold">
+          {customer.type === "customer" ? "고객 상세" : "가수 상세"}
+        </h1>
+        <div className="flex gap-4">
           <Link
-            href={`/admin/customers/${customerId}/edit`}
-            className="px-4 py-2 border border-orange-500 text-orange-500 hover:bg-orange-50 rounded-md"
+            href={`/admin/${
+              customer.type === "customer" ? "customers" : "singers"
+            }/edit/${customerId}`}
+            className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
           >
-            수정
+            편집
           </Link>
           <button
             onClick={handleDelete}
-            className="px-4 py-2 border border-red-500 text-red-500 hover:bg-red-50 rounded-md"
+            className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
           >
             삭제
           </button>
-          <Link
-            href="/admin/customers"
-            className="px-4 py-2 bg-gray-100 text-gray-700 hover:bg-gray-200 rounded-md"
-          >
-            목록으로
-          </Link>
         </div>
       </div>
 
-      {/* 고객 정보 */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* 왼쪽 패널: 기본 정보 */}
-        <div className="lg:col-span-2">
-          <div className="bg-white rounded-lg shadow p-6 mb-6">
-            <h2 className="text-xl font-semibold mb-6 pb-2 border-b border-gray-200">
-              기본 정보
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <h3 className="text-sm font-semibold text-gray-600 uppercase mb-2">
-                  이름
-                </h3>
-                <p className="text-gray-900">{customer.name}</p>
-              </div>
-              <div>
-                <h3 className="text-sm font-semibold text-gray-600 uppercase mb-2">
-                  이메일
-                </h3>
-                <p className="text-gray-900">{customer.email}</p>
-              </div>
-              <div>
-                <h3 className="text-sm font-semibold text-gray-600 uppercase mb-2">
-                  {customer.type === "customer" ? "회사" : "소속사"}
-                </h3>
-                <p className="text-gray-900">
-                  {customer.type === "customer"
-                    ? customer.company
-                    : customer.agency}
-                </p>
-              </div>
-              <div>
-                <h3 className="text-sm font-semibold text-gray-600 uppercase mb-2">
-                  전화번호
-                </h3>
-                <p className="text-gray-900">{customer.phone}</p>
-              </div>
-              {customer.type === "singer" && (
-                <>
-                  <div>
-                    <h3 className="text-sm font-semibold text-gray-600 uppercase mb-2">
-                      장르
-                    </h3>
-                    <p className="text-gray-900">{customer.genre}</p>
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-semibold text-gray-600 uppercase mb-2">
-                      가격
-                    </h3>
-                    <p className="text-gray-900">
-                      {new Intl.NumberFormat("ko-KR", {
-                        style: "currency",
-                        currency: "KRW",
-                      }).format(customer.price || 0)}
-                    </p>
-                  </div>
-                </>
-              )}
-              <div>
-                <h3 className="text-sm font-semibold text-gray-600 uppercase mb-2">
-                  등록일
-                </h3>
-                <p className="text-gray-900">
-                  {formatDate(customer.registrationDate)}
-                </p>
-              </div>
-              <div>
-                <h3 className="text-sm font-semibold text-gray-600 uppercase mb-2">
-                  상태
-                </h3>
-                <span
-                  className={`px-2 py-1 text-sm rounded-full ${getStatusColor(
-                    customer.status
-                  )}`}
-                >
-                  {customer.status === "active" ? "활성" : "비활성"}
-                </span>
-              </div>
-              <div>
-                <h3 className="text-sm font-semibold text-gray-600 uppercase mb-2">
-                  등급
-                </h3>
-                <span
-                  className={`px-2 py-1 text-sm rounded-full ${getGradeColor(
-                    customer.type === "customer"
-                      ? customer.grade
-                      : customer.rating
-                  )}`}
-                >
-                  {customer.type === "customer"
-                    ? `${customer.grade}등급`
-                    : `${customer.rating}점`}
-                </span>
-              </div>
-              <div>
-                <h3 className="text-sm font-semibold text-gray-600 uppercase mb-2">
-                  주소
-                </h3>
-                <p className="text-gray-900">{customer.address}</p>
-              </div>
-              <div>
-                <h3 className="text-sm font-semibold text-gray-600 uppercase mb-2">
-                  계약 건수
-                </h3>
-                <p className="text-gray-900">{customer.contractCount || 0}건</p>
-              </div>
-              <div>
-                <h3 className="text-sm font-semibold text-gray-600 uppercase mb-2">
-                  마지막 요청일
-                </h3>
-                <p className="text-gray-900">
-                  {formatDate(customer.lastRequestDate)}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* 오른쪽 패널: 프로필 이미지, 상태 메시지, 메모 */}
-          <div className="lg:col-span-1 space-y-6">
-            {/* 프로필 이미지 */}
-            <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-xl font-semibold mb-4 pb-2 border-b border-gray-200">
-                프로필 이미지
-              </h2>
-              <div className="flex justify-center">
-                {customer.profileImage ? (
-                  <div className="w-48 h-48 rounded-md overflow-hidden relative">
+      <div className="bg-white rounded-lg shadow overflow-hidden">
+        <div className="flex">
+          <div className="p-4 flex-1">
+            <div className="flex flex-col sm:flex-row">
+              <div className="flex flex-col items-center mb-4 sm:mb-0 sm:mr-6">
+                <div className="relative w-32 h-32 mb-3">
+                  {customer.profileImage ? (
                     <Image
                       src={
                         customer.profileImage.startsWith("http")
                           ? customer.profileImage
-                          : `http://localhost:4000/api/files/${customer.profileImage}/data`
+                          : `${API_URL}/files/${customer.profileImage}/data`
                       }
                       alt={customer.name}
                       fill
-                      className="object-cover"
-                      onError={(e) => {
-                        console.error(
-                          `이미지 로드 실패: ${customer.profileImage}`
-                        );
-                        // 이미지 로드 실패 시 기본 이미지 표시
-                        e.currentTarget.src = `/images/profile-placeholder.png`;
-                      }}
-                      sizes="(max-width: 768px) 100vw, 192px"
-                      priority
+                      className="rounded-full object-cover"
                     />
-                  </div>
-                ) : (
-                  <div className="w-48 h-48 bg-gray-200 rounded-md flex items-center justify-center">
-                    <div className="w-24 h-24 rounded-full bg-gray-300 flex items-center justify-center">
-                      <span className="text-4xl font-bold text-gray-500">
-                        {customer.name.charAt(0)}
+                  ) : (
+                    <div className="w-32 h-32 rounded-full bg-gray-200 flex items-center justify-center">
+                      <span className="text-gray-500 text-4xl">
+                        {customer.name?.substring(0, 1) || "?"}
                       </span>
                     </div>
-                  </div>
+                  )}
+                </div>
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-600 uppercase mb-2">
+                    이름
+                  </h3>
+                  <p className="text-gray-900">{customer.name}</p>
+                </div>
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-600 uppercase mb-2">
+                    이메일
+                  </h3>
+                  <p className="text-gray-900">{customer.email}</p>
+                </div>
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-600 uppercase mb-2">
+                    {customer.type === "customer" ? "회사" : "소속사"}
+                  </h3>
+                  <p className="text-gray-900">
+                    {customer.type === "customer"
+                      ? customer.company
+                      : customer.agency}
+                  </p>
+                </div>
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-600 uppercase mb-2">
+                    전화번호
+                  </h3>
+                  <p className="text-gray-900">{customer.phone}</p>
+                </div>
+                {customer.type === "singer" && (
+                  <>
+                    <div>
+                      <h3 className="text-sm font-semibold text-gray-600 uppercase mb-2">
+                        장르
+                      </h3>
+                      <p className="text-gray-900">{customer.genre}</p>
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-semibold text-gray-600 uppercase mb-2">
+                        가격
+                      </h3>
+                      <p className="text-gray-900">
+                        {new Intl.NumberFormat("ko-KR", {
+                          style: "currency",
+                          currency: "KRW",
+                        }).format(customer.price || 0)}
+                      </p>
+                    </div>
+                  </>
                 )}
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-600 uppercase mb-2">
+                    등록일
+                  </h3>
+                  <p className="text-gray-900">
+                    {formatDate(customer.registrationDate)}
+                  </p>
+                </div>
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-600 uppercase mb-2">
+                    상태
+                  </h3>
+                  <span
+                    className={`px-2 py-1 text-sm rounded-full ${getStatusColor(
+                      customer.status
+                    )}`}
+                  >
+                    {customer.status === "active" ? "활성" : "비활성"}
+                  </span>
+                </div>
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-600 uppercase mb-2">
+                    등급
+                  </h3>
+                  <span
+                    className={`px-2 py-1 text-sm rounded-full ${getGradeColor(
+                      customer.type === "customer"
+                        ? customer.grade
+                        : customer.rating
+                    )}`}
+                  >
+                    {customer.type === "customer"
+                      ? `${customer.grade}등급`
+                      : `${customer.rating}점`}
+                  </span>
+                </div>
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-600 uppercase mb-2">
+                    주소
+                  </h3>
+                  <p className="text-gray-900">{customer.address}</p>
+                </div>
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-600 uppercase mb-2">
+                    계약 건수
+                  </h3>
+                  <p className="text-gray-900">
+                    {customer.contractCount || 0}건
+                  </p>
+                </div>
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-600 uppercase mb-2">
+                    마지막 요청일
+                  </h3>
+                  <p className="text-gray-900">
+                    {formatDate(customer.lastRequestDate)}
+                  </p>
+                </div>
               </div>
-            </div>
 
-            {/* 상태 메시지 */}
-            <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-xl font-semibold mb-4 pb-2 border-b border-gray-200">
-                상태 메시지
-              </h2>
-              <p className="text-gray-700">
-                {customer.statusMessage || "등록된 상태 메시지가 없습니다."}
-              </p>
+              {/* 오른쪽 패널: 프로필 이미지, 상태 메시지, 메모 */}
+              <div className="lg:col-span-1 space-y-6">
+                {/* 프로필 이미지 */}
+                <div className="bg-white rounded-lg shadow p-6">
+                  <h2 className="text-xl font-semibold mb-4 pb-2 border-b border-gray-200">
+                    프로필 이미지
+                  </h2>
+                  <div className="flex justify-center">
+                    {customer.profileImage ? (
+                      <div className="w-48 h-48 rounded-md overflow-hidden relative">
+                        <Image
+                          src={
+                            customer.profileImage.startsWith("http")
+                              ? customer.profileImage
+                              : `${API_URL}/files/${customer.profileImage}/data`
+                          }
+                          alt={customer.name}
+                          fill
+                          className="object-cover"
+                          onError={(e) => {
+                            console.error(
+                              `이미지 로드 실패: ${customer.profileImage}`
+                            );
+                            // 이미지 로드 실패 시 기본 이미지 표시
+                            e.currentTarget.src = `/images/profile-placeholder.png`;
+                          }}
+                          sizes="(max-width: 768px) 100vw, 192px"
+                          priority
+                        />
+                      </div>
+                    ) : (
+                      <div className="w-48 h-48 bg-gray-200 rounded-md flex items-center justify-center">
+                        <div className="w-24 h-24 rounded-full bg-gray-300 flex items-center justify-center">
+                          <span className="text-4xl font-bold text-gray-500">
+                            {customer.name.charAt(0)}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* 상태 메시지 */}
+                <div className="bg-white rounded-lg shadow p-6">
+                  <h2 className="text-xl font-semibold mb-4 pb-2 border-b border-gray-200">
+                    상태 메시지
+                  </h2>
+                  <p className="text-gray-700">
+                    {customer.statusMessage || "등록된 상태 메시지가 없습니다."}
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 }

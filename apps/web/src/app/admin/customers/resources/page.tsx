@@ -29,6 +29,10 @@ export default function CustomerResourcesPage() {
     "all"
   );
 
+  // API URL
+  const API_URL =
+    process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api";
+
   useEffect(() => {
     // 고객 목록 불러오기
     const fetchCustomers = async () => {
@@ -273,54 +277,43 @@ export default function CustomerResourcesPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (confirm("정말로 이 자료를 삭제하시겠습니까?")) {
-      try {
-        // 실제 API 호출로 파일 삭제
-        const fileToDelete = resources.find((res) => res.id === id);
-        if (!fileToDelete) {
-          throw new Error("삭제할 파일을 찾을 수 없습니다.");
-        }
+    try {
+      // 파일 삭제 API 호출
+      await fetch(`${API_URL}/files/${id}`, {
+        method: "DELETE",
+      });
 
-        // 백엔드 API 호출하여 삭제
-        await fetch(`http://localhost:4000/api/files/${id}`, {
-          method: "DELETE",
-        });
+      // 성공 메시지
+      toast.success("파일이 삭제되었습니다.");
 
-        const updatedResources = resources.filter(
-          (resource) => resource.id !== id
-        );
-        setResources(updatedResources);
-        setSelectedResources((prev) => prev.filter((resId) => resId !== id));
-        toast.success("자료가 삭제되었습니다.");
-      } catch (error) {
-        console.error("자료 삭제 오류:", error);
-        toast.error("자료 삭제에 실패했습니다.");
-      }
+      // 목록 다시 불러오기
+      fetchResources();
+    } catch (error) {
+      console.error("파일 삭제 오류:", error);
+      toast.error("파일 삭제에 실패했습니다.");
     }
   };
 
   const handleBulkDelete = async () => {
-    if (
-      confirm(`선택된 ${selectedResources.length}개 자료를 삭제하시겠습니까?`)
-    ) {
-      try {
-        // 실제 API 호출로 선택된 모든 파일 삭제
-        for (const id of selectedResources) {
-          await fetch(`http://localhost:4000/api/files/${id}`, {
-            method: "DELETE",
-          });
-        }
-
-        const updatedResources = resources.filter(
-          (resource) => !selectedResources.includes(resource.id)
-        );
-        setResources(updatedResources);
-        setSelectedResources([]);
-        toast.success(`${selectedResources.length}개 자료가 삭제되었습니다.`);
-      } catch (error) {
-        console.error("다중 자료 삭제 오류:", error);
-        toast.error("자료 삭제에 실패했습니다.");
+    try {
+      // 선택된 모든 파일을 순차적으로 삭제
+      for (const id of selectedResources) {
+        await fetch(`${API_URL}/files/${id}`, {
+          method: "DELETE",
+        });
       }
+
+      // 성공 메시지
+      toast.success(`${selectedResources.length}개 파일이 삭제되었습니다.`);
+
+      // 선택 초기화
+      setSelectedResources([]);
+
+      // 목록 다시 불러오기
+      fetchResources();
+    } catch (error) {
+      console.error("일괄 삭제 오류:", error);
+      toast.error("일부 파일 삭제에 실패했습니다.");
     }
   };
 

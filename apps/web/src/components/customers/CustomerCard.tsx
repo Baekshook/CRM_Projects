@@ -11,6 +11,9 @@ import {
 } from "./types";
 import { formatDate } from "../../utils/dateUtils";
 
+// 환경 변수에서 API URL 가져오기
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api";
+
 const CustomerCard: React.FC<CustomerCardProps> = ({
   entity,
   onEdit,
@@ -75,10 +78,8 @@ const CustomerCard: React.FC<CustomerCardProps> = ({
 
   const renderAvatar = () => {
     if (entity.profileImage && !imageError) {
-      // 이미지 URL이 http로 시작하지 않으면 API 서버 URL 접두어 추가
-      const imageUrl = entity.profileImage.startsWith("http")
-        ? entity.profileImage
-        : `http://localhost:4000/api/files/${entity.profileImage}/data`;
+      // 프로필 이미지 URL 생성
+      const imageUrl = getProfileImageUrl(entity);
 
       return (
         <div className="h-16 w-16 rounded-full bg-gray-200 relative overflow-hidden">
@@ -125,6 +126,15 @@ const CustomerCard: React.FC<CustomerCardProps> = ({
     }).format(price);
   };
 
+  // 프로필 이미지 URL 생성
+  const getProfileImageUrl = (entity: any) => {
+    if (!entity.profileImage) return null;
+
+    return entity.profileImage.startsWith("http")
+      ? entity.profileImage
+      : `${API_URL}/files/${entity.profileImage}/data`;
+  };
+
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
       <div className="p-4 relative">
@@ -145,10 +155,10 @@ const CustomerCard: React.FC<CustomerCardProps> = ({
           </span>
           <span
             className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getGradeColor(
-              entity.grade
+              Number(entity.grade)
             )}`}
           >
-            {getGradeText(entity.grade)}
+            {getGradeText(Number(entity.grade))}
           </span>
         </div>
 

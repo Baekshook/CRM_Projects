@@ -12,6 +12,7 @@ export type ResourceType = "image" | "document" | "audio" | "video" | "other";
 export interface ResourceItem {
   id: string;
   entityId: string; // 고객 또는 가수 ID
+  entityType: string; // 고객 또는 가수 타입
   name: string;
   type: ResourceType;
   fileUrl: string;

@@ -24,8 +24,7 @@ interface Feedback {
 }
 
 // API URL
-const API_URL =
-  "https://crm-backend-env-env.eba-m3mmahdu.ap-northeast-1.elasticbeanstalk.com/api";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api";
 
 // 별점 컴포넌트
 function StarRating({ rating }: { rating: number }) {

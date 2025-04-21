@@ -12,6 +12,9 @@ import {
   deleteRequest,
 } from "@/services/negotiationsApi";
 
+// API URL
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api";
+
 export default function RequestsPage() {
   const router = useRouter();
   const [requests, setRequests] = useState<Request[]>([]);
@@ -195,6 +198,25 @@ export default function RequestsPage() {
     return date.toLocaleDateString("ko-KR");
   };
 
+  // 오류 메시지 렌더링
+  if (error) {
+    return (
+      <div className="rounded-md bg-red-50 p-4">
+        <div className="flex">
+          <div className="ml-3">
+            <h3 className="text-sm font-medium text-red-800">
+              오류가 발생했습니다
+            </h3>
+            <p className="mt-1 text-sm text-red-700">{error}</p>
+            <p className="mt-2 text-sm text-red-700">
+              백엔드 API 서버가 실행 중인지 확인하세요. ({API_URL})
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="pb-10">
       <div className="flex justify-between items-center mb-6">
@@ -329,38 +351,6 @@ export default function RequestsPage() {
             <div className="text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
               <p className="text-gray-600">데이터를 불러오는 중입니다...</p>
-            </div>
-          </div>
-        )}
-
-        {/* 에러 메시지 */}
-        {error && !loading && (
-          <div className="bg-red-50 border border-red-200 text-red-800 p-4 m-4 rounded-md">
-            <div className="flex">
-              <div className="flex-shrink-0">
-                <svg
-                  className="h-5 w-5 text-red-500"
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </div>
-              <div className="ml-3">
-                <h3 className="text-sm font-medium text-red-800">
-                  오류가 발생했습니다
-                </h3>
-                <p className="mt-1 text-sm text-red-700">{error}</p>
-                <p className="mt-2 text-sm text-red-700">
-                  백엔드 API 서버가 실행 중인지 확인하세요.
-                  (http://localhost:4000/api)
-                </p>
-              </div>
             </div>
           </div>
         )}

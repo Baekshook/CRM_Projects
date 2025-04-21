@@ -62,6 +62,22 @@ export const remove = async (id: string) => {
   }
 };
 
+// 가수 파일 목록 가져오기
+export const getFiles = async (id: string) => {
+  try {
+    const response = await axios.get(getApiPath(`/singers/${id}/files`));
+    return response.data;
+  } catch (error) {
+    console.error(`가수 ID ${id} 파일 목록 조회 실패:`, error);
+    throw error;
+  }
+};
+
+// 파일 URL 생성
+export const getFileUrl = (fileId: string) => {
+  return `${getApiPath(`/files/${fileId}/data`)}`;
+};
+
 // 가수 파일 업로드
 export const uploadFiles = async (id: string, formData: FormData) => {
   try {
@@ -154,6 +170,8 @@ const singerApi = {
   delete: remove,
   uploadFiles,
   uploadProfileImage: uploadSingerProfileImage,
+  getFiles,
+  getFileUrl,
 };
 
 export default singerApi;

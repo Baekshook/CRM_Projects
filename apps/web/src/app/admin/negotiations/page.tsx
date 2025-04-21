@@ -12,6 +12,9 @@ import {
   updateNegotiation,
 } from "@/services/negotiationsApi";
 
+// API URL
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api";
+
 // 협상 관리에서 사용할 상태 정의
 type NegotiationStatus =
   | "pending"
@@ -386,8 +389,7 @@ export default function NegotiationsPage() {
                 </h3>
                 <p className="mt-1 text-sm text-red-700">{error}</p>
                 <p className="mt-2 text-sm text-red-700">
-                  백엔드 API 서버가 실행 중인지 확인하세요.
-                  (http://localhost:4000/api)
+                  백엔드 API 서버가 실행 중인지 확인하세요. ({API_URL})
                 </p>
               </div>
             </div>
